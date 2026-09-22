@@ -1,0 +1,6 @@
+{
+  "name": "Maths & Math Lit HOD Assistant",
+  "description": "AI-powered Head of Department management portal for Mathematics and Mathematical Literacy at Eagle House School, featuring automated pre- and post-moderation, IEB SAGS, CAPS, and Cambridge alignment, docx/xlsx exports, meeting agenda/minutes generation, deadline tracking, and HOD duties index.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

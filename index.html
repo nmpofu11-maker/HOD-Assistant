@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Maths & Math Lit HOD Assistant - Eagle House School</title>
+    <meta name="description" content="AI-powered Head of Department management portal for Mathematics and Mathematical Literacy at Eagle House School, featuring automated pre- and post-moderation, IEB SAGS, CAPS, and Cambridge alignment, docx/xlsx exports, meeting agenda/minutes generation, deadline tracking, and HOD duties index." />
+    <meta property="og:title" content="Maths & Math Lit HOD Assistant - Eagle House School" />
+    <meta property="og:description" content="AI-powered Head of Department management portal for Mathematics and Mathematical Literacy at Eagle House School, featuring automated pre- and post-moderation, IEB SAGS, CAPS, and Cambridge alignment, docx/xlsx exports, meeting agenda/minutes generation, deadline tracking, and HOD duties index." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="HOD Portal" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.jpg" />
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("/sw.js")
+            .then((reg) => {
+              console.log("ServiceWorker successfully registered with scope:", reg.scope);
+            })
+            .catch((err) => {
+              console.error("ServiceWorker registration failed:", err);
+            });
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

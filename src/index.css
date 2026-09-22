@@ -1,0 +1,218 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-primary: var(--color-primary-brand);
+  --color-brand-secondary: var(--color-secondary-brand);
+  --color-brand-bg: var(--color-bg-base);
+  --color-brand-dark: var(--color-text-base);
+  --color-brand-mute: var(--color-text-muted);
+  --color-brand-line: var(--color-border-base);
+  --color-brand-warn: #a3341f;
+
+  --color-white: var(--color-white-custom);
+  --color-slate-50: var(--color-slate-50-custom);
+  --color-slate-100: var(--color-slate-100-custom);
+  --color-slate-200: var(--color-slate-200-custom);
+  --color-slate-300: var(--color-slate-300-custom);
+  --color-slate-400: var(--color-slate-400-custom);
+  --color-slate-500: var(--color-slate-500-custom);
+  --color-slate-600: var(--color-slate-600-custom);
+  --color-slate-700: var(--color-slate-700-custom);
+  --color-slate-800: var(--color-slate-800-custom);
+  --color-slate-900: var(--color-slate-900-custom);
+  --color-slate-950: var(--color-slate-950-custom);
+
+  --color-neutral-50: var(--color-neutral-50-custom);
+  --color-neutral-100: var(--color-neutral-100-custom);
+  --color-neutral-200: var(--color-neutral-200-custom);
+  --color-neutral-300: var(--color-neutral-300-custom);
+  --color-neutral-400: var(--color-neutral-400-custom);
+  --color-neutral-500: var(--color-neutral-500-custom);
+  --color-neutral-600: var(--color-neutral-600-custom);
+  --color-neutral-700: var(--color-neutral-700-custom);
+  --color-neutral-800: var(--color-neutral-800-custom);
+  --color-neutral-900: var(--color-neutral-900-custom);
+  --color-neutral-950: var(--color-neutral-950-custom);
+
+  --font-serif: "Iowan Old Style", Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+:root {
+  --color-primary-brand: #0284c7; /* Sky/Royal Blue */
+  --color-secondary-brand: #0369a1;
+  --color-bg-base: #f8fafc;
+  --color-text-base: #0f172a;
+  --color-text-muted: #475569;
+  --color-border-base: #cbd5e1;
+
+  --color-white-custom: #ffffff;
+  --color-slate-50-custom: #f8fafc;
+  --color-slate-100-custom: #f1f5f9;
+  --color-slate-200-custom: #e2e8f0;
+  --color-slate-300-custom: #cbd5e1;
+  --color-slate-400-custom: #94a3b8;
+  --color-slate-500-custom: #64748b;
+  --color-slate-600-custom: #475569;
+  --color-slate-700-custom: #334155;
+  --color-slate-800-custom: #1e293b;
+  --color-slate-900-custom: #0f172a;
+  --color-slate-950-custom: #020617;
+
+  --color-neutral-50-custom: #faf9f6;
+  --color-neutral-100-custom: #f5f4f0;
+  --color-neutral-200-custom: #e5e4df;
+  --color-neutral-300-custom: #d5d4ce;
+  --color-neutral-400-custom: #a5a49e;
+  --color-neutral-500-custom: #75746e;
+  --color-neutral-600-custom: #55544e;
+  --color-neutral-700-custom: #3c3b36;
+  --color-neutral-800-custom: #252420;
+  --color-neutral-900-custom: #161512;
+  --color-neutral-950-custom: #090908;
+}
+
+.dark {
+  --color-primary-brand: #38bdf8; /* Lighter vivid blue */
+  --color-secondary-brand: #0284c7;
+  --color-bg-base: #0b1329; /* Deep blue/slate background */
+  --color-text-base: #f8fafc;
+  --color-text-muted: #cbd5e1;
+  --color-border-base: #253356;
+
+  --color-white-custom: #151f38; /* Cards become deep blue/slate card */
+  --color-slate-50-custom: #0b1329; /* Light pages/backgrounds become deep blue/slate */
+  --color-slate-100-custom: #1c2541; /* Secondary elements */
+  --color-slate-200-custom: #253356; /* Borders become steel blue */
+  --color-slate-300-custom: #3a506b;
+  --color-slate-400-custom: #64748b;
+  --color-slate-500-custom: #94a3b8;
+  --color-slate-600-custom: #cbd5e1;
+  --color-slate-700-custom: #e2e8f0;
+  --color-slate-800-custom: #f1f5f9;
+  --color-slate-900-custom: #f8fafc;
+  --color-slate-950-custom: #050b18;
+
+  --color-neutral-50-custom: #0b1329;
+  --color-neutral-100-custom: #131c33; /* Sidebar bg gets deep blue/slate */
+  --color-neutral-200-custom: #253356;
+  --color-neutral-300-custom: #3a506b;
+  --color-neutral-400-custom: #475569;
+  --color-neutral-500-custom: #cbd5e1;
+  --color-neutral-600-custom: #e2e8f0;
+  --color-neutral-700-custom: #f1f5f9;
+  --color-neutral-800-custom: #f8fafc;
+  --color-neutral-900-custom: #ffffff;
+  --color-neutral-950-custom: #050b18;
+
+  /* Direct Overrides to force standard utility classes into dark theme instantly */
+  .bg-white, 
+  .bg-neutral-50, 
+  .bg-neutral-100, 
+  .bg-slate-50, 
+  .bg-slate-100, 
+  .bg-gray-50, 
+  .bg-gray-100,
+  .bg-\[\#ffffff\], 
+  .bg-\[\#faf9f6\], 
+  .bg-\[\#fcfbf7\],
+  .bg-\[\#faf9f5\],
+  .bg-\[\#fafafa\],
+  .bg-\[rgba\(255\2c 255\2c 255\2c 0\.05\)\],
+  .bg-amber-50,
+  .bg-emerald-50,
+  .bg-blue-50,
+  .bg-indigo-50,
+  .bg-rose-50,
+  .bg-orange-50 {
+    background-color: #151f38 !important;
+  }
+  
+  .bg-slate-200, 
+  .bg-slate-300, 
+  .bg-neutral-200, 
+  .bg-neutral-300,
+  .bg-gray-200,
+  .bg-gray-300 {
+    background-color: #0b1329 !important;
+  }
+  
+  .border-slate-100,
+  .border-slate-200, 
+  .border-slate-300,
+  .border-neutral-100, 
+  .border-neutral-200, 
+  .border-neutral-300,
+  .border-gray-100,
+  .border-gray-200 {
+    border-color: #253356 !important;
+  }
+
+  .text-slate-900, 
+  .text-neutral-900, 
+  .text-slate-800, 
+  .text-neutral-800,
+  .text-gray-900,
+  .text-gray-800 {
+    color: #f8fafc !important;
+  }
+  
+  .text-slate-700, 
+  .text-neutral-700,
+  .text-gray-700 {
+    color: #cbd5e1 !important;
+  }
+
+  .text-slate-600, 
+  .text-neutral-600,
+  .text-gray-600 {
+    color: #cbd5e1 !important;
+  }
+
+  .text-slate-500, 
+  .text-neutral-500,
+  .text-gray-500 {
+    color: #cbd5e1 !important;
+  }
+  
+  input, select, textarea {
+    background-color: #0b1329 !important;
+    color: #f8fafc !important;
+    border-color: #253356 !important;
+  }
+  
+  thead, th {
+    background-color: #131c33 !important;
+    color: #cbd5e1 !important;
+  }
+  
+  tr:hover {
+    background-color: #1c2541 !important;
+  }
+
+  /* Universal Selector override for custom components that might bypass class rules */
+  div, section, aside, header, p, span, h1, h2, h3, h4, th, td, input, select, textarea, button, form {
+    &.bg-white, &.bg-\[\#ffffff\], &.bg-\[\#faf9f6\], &.bg-\[\#faf9f5\] {
+      background-color: #151f38 !important;
+    }
+    &.bg-slate-50, &.bg-slate-100, &.bg-slate-200 {
+      background-color: #0b1329 !important;
+    }
+    &.text-slate-900, &.text-slate-800, &.text-slate-700, &.text-slate-600 {
+      color: #cbd5e1 !important;
+    }
+    &.border-slate-100, &.border-slate-200, &.border-slate-300 {
+      border-color: #253356 !important;
+    }
+  }
+}
+
+body {
+  background-color: var(--color-bg-base);
+  color: var(--color-text-base);
+  font-family: var(--font-sans);
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+h1, h2, h3, .editorial-heading {
+  font-family: var(--font-serif);
+}
