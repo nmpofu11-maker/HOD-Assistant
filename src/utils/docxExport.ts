@@ -630,6 +630,107 @@ export async function exportPostModerationDocx(report: PostModerationReport) {
 }
 
 /**
+ * 2B. POST-MODERATION ASSIGNMENT SCHEDULE & GUIDELINES EXPORT (.DOCX)
+ */
+export async function exportPostModerationAssignmentScheduleDocx(assignments: Array<{ subject: string; grade: string; teacher: string; assignedModerator: string; notes: string }>) {
+  const logoBuffer = await fetchLogoArrayBuffer();
+  const doc = new Document({
+    sections: [
+      {
+        properties: {},
+        children: [
+          createEagleHouseHeader("Post-Moderation Assignment Schedule & Governance", logoBuffer),
+
+          new Paragraph({ spacing: { before: 100 } }),
+
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            rows: [
+              new TableRow({
+                children: [
+                  createCell("POLICY & ASSIGNMENT MANDATE (§7.2)", true, 100, FOREST_GREEN, AlignmentType.LEFT, "FFFFFF", 20),
+                ],
+              }),
+              new TableRow({
+                children: [
+                  createCell(
+                    "Eagle House School Assessment Policy §7.2 (Post-Moderation):\n" +
+                    "1. Mathematical Literacy (all grades) -> Assigned to Shingi.\n" +
+                    "2. Core Mathematics (Grades 11 & 12) -> Assigned to Reggie.\n" +
+                    "3. Other Classes & Subjects -> Distributed equitably between HOD Mpofu and Lutendo.\n" +
+                    "4. Sampling Standard: Exactly 3 learners per assessment task (Best mark, Mid/Median mark, and Low mark) spanning Top, Average, and Weak performance bands.",
+                    false,
+                    100,
+                    "",
+                    AlignmentType.LEFT,
+                    DARK_CHARCOAL,
+                    18
+                  ),
+                ],
+              }),
+            ],
+          }),
+
+          new Paragraph({ spacing: { before: 200 } }),
+
+          // Assignment Table
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            rows: [
+              new TableRow({
+                children: [
+                  createCell("SUBJECT / LEARNING AREA", true, 30, FOREST_GREEN, AlignmentType.LEFT, "FFFFFF", 18),
+                  createCell("GRADE", true, 15, FOREST_GREEN, AlignmentType.LEFT, "FFFFFF", 18),
+                  createCell("EDUCATOR", true, 25, FOREST_GREEN, AlignmentType.LEFT, "FFFFFF", 18),
+                  createCell("ASSIGNED MODERATOR", true, 30, FOREST_GREEN, AlignmentType.LEFT, "FFFFFF", 18),
+                ],
+              }),
+              ...assignments.map((a) => (
+                new TableRow({
+                  children: [
+                    createCell(a.subject, true, 30),
+                    createCell(a.grade, false, 15),
+                    createCell(a.teacher, false, 25),
+                    createCell(a.assignedModerator, true, 30, "", AlignmentType.LEFT, "1F4D3D"),
+                  ],
+                })
+              )),
+            ],
+          }),
+
+          new Paragraph({ spacing: { before: 250 } }),
+
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            rows: [
+              new TableRow({
+                children: [
+                  createCell("HOD Review Signature: _______________________ (HOD Mpofu)", true, 50, "", AlignmentType.LEFT, DARK_CHARCOAL, 18),
+                  createCell("Date Approved: _______________________", true, 50, "", AlignmentType.LEFT, DARK_CHARCOAL, 18),
+                ],
+              }),
+            ],
+          }),
+
+          new Paragraph({ spacing: { before: 200 } }),
+          createEagleHouseFooter(),
+        ],
+      },
+    ],
+  });
+
+  const blob = await Packer.toBlob(doc);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `Post_Moderation_Assignment_Schedule_2026.docx`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/**
  * 3. HIGH-FIDELITY RESULTS DIAGNOSTIC ANALYSIS REPORT EXPORT (POST-TEST DIAGNOSTIC ANALYSIS)
  * Implements sections 1, 2, 3 and 4 of the Post-Test Diagnostic Analysis form perfectly.
  */
@@ -835,6 +936,176 @@ export async function exportResultsAnalysisDocx(analysis: ResultsAnalysisData) {
   const a = document.createElement("a");
   a.href = url;
   a.download = `Post_Test_Diagnostic_Analysis_${analysis.subject.replace(/\s+/g, "_")}_Gr${analysis.grade.replace(/\s+/g, "_")}.docx`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * 4. HIGH-FIDELITY PROGRAMME OF ASSESSMENT (POA) & ASSESSMENT SUMMARY EXPORT
+ * Formats official annual assessment schedule, subject weightings, and cognitive distribution.
+ */
+export async function exportPoaSummaryDocx(poaData: {
+  subject: string;
+  grade: string;
+  framework: string;
+  examiner: string;
+  moderator: string;
+  annualSbaWeightPercent: number;
+  annualExamWeightPercent: number;
+  tasks: Array<{
+    term: number;
+    taskTitle: string;
+    taskType: string;
+    durationMinutes: number;
+    totalMarks: number;
+    internalSbaWeightPercent: number;
+    annualPromotionWeightPercent: number;
+    cognitiveWeighting: { knowledge: number; routineProcedures: number; complexProcedures: number; problemSolving: number };
+    policyReference: string;
+  }>;
+}) {
+  const logoBuffer = await fetchLogoArrayBuffer();
+  const doc = new Document({
+    sections: [
+      {
+        properties: {},
+        children: [
+          createEagleHouseHeader("Programme of Assessment (POA) & Assessment Summary", logoBuffer),
+
+          new Paragraph({ spacing: { before: 100 } }),
+
+          // Metadata Grid
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            rows: [
+              new TableRow({
+                children: [
+                  createCell("School / Department:", true, 25, ALABASTER_BG, AlignmentType.LEFT, FOREST_GREEN),
+                  createCell("Eagle House School - Department of Mathematical Sciences", false, 75, "", AlignmentType.LEFT, DARK_CHARCOAL),
+                ],
+              }),
+              new TableRow({
+                children: [
+                  createCell("Subject & Stream:", true, 25, ALABASTER_BG, AlignmentType.LEFT, FOREST_GREEN),
+                  createCell(`${poaData.subject} (${poaData.framework})`, false, 25),
+                  createCell("Target Grade / Class:", true, 25, ALABASTER_BG, AlignmentType.LEFT, FOREST_GREEN),
+                  createCell(poaData.grade, false, 25),
+                ],
+              }),
+              new TableRow({
+                children: [
+                  createCell("Subject Educator:", true, 25, ALABASTER_BG, AlignmentType.LEFT, FOREST_GREEN),
+                  createCell(poaData.examiner, false, 25),
+                  createCell("HOD Moderator:", true, 25, ALABASTER_BG, AlignmentType.LEFT, FOREST_GREEN),
+                  createCell(poaData.moderator, false, 25),
+                ],
+              }),
+              new TableRow({
+                children: [
+                  createCell("Annual SBA Contribution:", true, 25, ALABASTER_BG, AlignmentType.LEFT, FOREST_GREEN),
+                  createCell(`${poaData.annualSbaWeightPercent}% Final Mark`, true, 25, "", AlignmentType.LEFT, FOREST_GREEN),
+                  createCell("Final Exam Contribution:", true, 25, ALABASTER_BG, AlignmentType.LEFT, FOREST_GREEN),
+                  createCell(`${poaData.annualExamWeightPercent}% Final Mark`, true, 25, "", AlignmentType.LEFT, TERRACOTTA),
+                ],
+              }),
+            ],
+          }),
+
+          new Paragraph({ spacing: { before: 200 } }),
+
+          // POA Assessment Tasks Table
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            rows: [
+              new TableRow({
+                children: [
+                  createCell("TERM", true, 8, FOREST_GREEN, AlignmentType.CENTER, "FFFFFF", 16),
+                  createCell("FORMAL ASSESSMENT TASK", true, 30, FOREST_GREEN, AlignmentType.LEFT, "FFFFFF", 16),
+                  createCell("TYPE & MARKS", true, 18, FOREST_GREEN, AlignmentType.LEFT, "FFFFFF", 16),
+                  createCell("SBA WEIGHT", true, 12, FOREST_GREEN, AlignmentType.CENTER, "FFFFFF", 16),
+                  createCell("PROMOTION %", true, 12, FOREST_GREEN, AlignmentType.CENTER, "FFFFFF", 16),
+                  createCell("COGNITIVE RATIO (K/RP/CP/PS)", true, 20, FOREST_GREEN, AlignmentType.CENTER, "FFFFFF", 16),
+                ],
+              }),
+              ...poaData.tasks.map((t) => {
+                const cogStr = `${t.cognitiveWeighting.knowledge}% / ${t.cognitiveWeighting.routineProcedures}% / ${t.cognitiveWeighting.complexProcedures}% / ${t.cognitiveWeighting.problemSolving}%`;
+                return new TableRow({
+                  children: [
+                    createCell(`Term ${t.term}`, true, 8, ALABASTER_BG, AlignmentType.CENTER, DARK_CHARCOAL, 16),
+                    createCell(`${t.taskTitle}\n(${t.policyReference})`, false, 30, "", AlignmentType.LEFT, DARK_CHARCOAL, 16),
+                    createCell(`${t.taskType}\n${t.totalMarks} Marks (${t.durationMinutes} mins)`, false, 18, "", AlignmentType.LEFT, SLATE_MUTED, 16),
+                    createCell(`${t.internalSbaWeightPercent}%`, true, 12, "", AlignmentType.CENTER, FOREST_GREEN, 16),
+                    createCell(`${t.annualPromotionWeightPercent}%`, true, 12, "", AlignmentType.CENTER, TERRACOTTA, 16),
+                    createCell(cogStr, false, 20, "", AlignmentType.CENTER, SLATE_MUTED, 14),
+                  ],
+                });
+              }),
+            ],
+          }),
+
+          new Paragraph({ spacing: { before: 200 } }),
+
+          // Governance & Moderation Notice
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            rows: [
+              new TableRow({
+                children: [
+                  createCell("ASSESSMENT POLICY & GOVERNANCE COMPLIANCE", true, 100, "EDF2F7", AlignmentType.LEFT, FOREST_GREEN, 18),
+                ],
+              }),
+              new TableRow({
+                children: [
+                  createCell(
+                    "1. Pre-Assessment Moderation (§7.1): Every formal assessment task must be submitted to HOD 5 school days prior with memorandum and cognitive demand grid.\n" +
+                    "2. Post-Assessment Moderation (§7.2): Minimum 10% stratified purple pen sample (Top, Average, Weak) audited within 5 days of mark completion.\n" +
+                    "3. All tasks aligned to DBE CAPS ATPs and IEB Subject Assessment Guidelines (SAGs).",
+                    false,
+                    100,
+                    "",
+                    AlignmentType.LEFT,
+                    DARK_CHARCOAL,
+                    16
+                  ),
+                ],
+              }),
+            ],
+          }),
+
+          new Paragraph({ spacing: { before: 250 } }),
+
+          // Sign-Off Block
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            rows: [
+              new TableRow({
+                children: [
+                  createCell(`Subject Educator Signature: _______________________ (${poaData.examiner})`, true, 50, "", AlignmentType.LEFT, DARK_CHARCOAL, 16),
+                  createCell(`HOD Moderator Approval: _______________________ (${poaData.moderator})`, true, 50, "", AlignmentType.LEFT, DARK_CHARCOAL, 16),
+                ],
+              }),
+              new TableRow({
+                children: [
+                  createCell(`Date Approved: ${new Date().toISOString().split("T")[0]}`, false, 100, "", AlignmentType.LEFT, SLATE_MUTED, 14),
+                ],
+              }),
+            ],
+          }),
+
+          new Paragraph({ spacing: { before: 200 } }),
+          createEagleHouseFooter(),
+        ],
+      },
+    ],
+  });
+
+  const blob = await Packer.toBlob(doc);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `Programme_of_Assessment_${poaData.subject.replace(/\s+/g, "_")}_Gr${poaData.grade.replace(/\s+/g, "_")}.docx`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

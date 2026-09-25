@@ -16,26 +16,43 @@ import {
   AlertTriangle,
   RotateCcw,
   BookOpen,
+  Award,
 } from "lucide-react";
 import { PreModerationReport, PostModerationReport, StaffMember } from "../types";
 import { SAMPLE_MATH_PAPER } from "../data/curriculumData";
-import { exportPreModerationDocx, exportPostModerationDocx } from "../utils/docxExport";
+import { exportPreModerationDocx, exportPostModerationDocx, exportPostModerationAssignmentScheduleDocx } from "../utils/docxExport";
 import { exportPreModerationXlsx } from "../utils/xlsxExport";
+import { SbaWeightingsView } from "./SbaWeightingsView";
+import { safePost } from "../utils/apiClient";
 
 interface ModerationViewProps {
   staffList: StaffMember[];
   onSaveToDeadlines?: (report: PreModerationReport) => void;
   currentTerm: number;
+  initialTab?: "pre" | "post" | "sba" | "cover" | "archive";
 }
 
-export const ModerationView: React.FC<ModerationViewProps> = ({ staffList, currentTerm }) => {
-  const [activeTab, setActiveTab] = useState<"pre" | "post" | "cover" | "archive">("pre");
+export const ModerationView: React.FC<ModerationViewProps> = ({
+  staffList,
+  currentTerm,
+  initialTab,
+}) => {
+  const [activeTab, setActiveTab] = useState<"pre" | "post" | "sba" | "cover" | "archive">(
+    initialTab || "pre"
+  );
+
+  React.useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
 
   // Saved reports state (HOD Institutional Archive records)
   const [savedPreReports, setSavedPreReports] = useState<PreModerationReport[]>(() => {
     try {
       const stored = localStorage.getItem("eaglehouse_pre_reports");
-      return stored ? JSON.parse(stored) : [];
+      const parsed = stored ? JSON.parse(stored) : [];
+      return Array.isArray(parsed) ? parsed : [];
     } catch {
       return [];
     }
@@ -44,7 +61,8 @@ export const ModerationView: React.FC<ModerationViewProps> = ({ staffList, curre
   const [savedPostReports, setSavedPostReports] = useState<PostModerationReport[]>(() => {
     try {
       const stored = localStorage.getItem("eaglehouse_post_reports");
-      return stored ? JSON.parse(stored) : [];
+      const parsed = stored ? JSON.parse(stored) : [];
+      return Array.isArray(parsed) ? parsed : [];
     } catch {
       return [];
     }
@@ -151,15 +169,61 @@ export const ModerationView: React.FC<ModerationViewProps> = ({ staffList, curre
   const [postGrade, setPostGrade] = useState("10A & 10B");
   const [postTeacher, setPostTeacher] = useState("Shingi");
   const [cohortSize, setCohortSize] = useState(48);
+
+  // Automatic moderator assignment rule
+  const computeAutomaticModerator = (subj: string, grd: string, teacherName: string) => {
+    const s = (subj || "").toLowerCase();
+    const g = (grd || "").toLowerCase();
+    if (s.includes("lit") || s.includes("literacy")) {
+      return "Shingi";
+    }
+    if (s.includes("math") && (g.includes("11") || g.includes("12") || g.includes("ig") || g.includes("as") || g.includes("grade 11") || g.includes("grade 12"))) {
+      return "Reggie";
+    }
+    // Others equitably between HOD Mpofu and Lutendo
+    const hash = (teacherName + grd).length;
+    return hash % 2 === 0 ? "HOD Mpofu" : "Lutendo";
+  };
+
+  const [assignedModerator, setAssignedModerator] = useState<string>("Shingi");
+  const [isManualModerator, setIsManualModerator] = useState<boolean>(false);
+
+  React.useEffect(() => {
+    if (!isManualModerator) {
+      setAssignedModerator(computeAutomaticModerator(postSubject, postGrade, postTeacher));
+    }
+  }, [postSubject, postGrade, postTeacher, isManualModerator]);
+
+  // Exactly 3 learners moderated: Best (Top), Mid (Average), Low (Weak) marks
   const [postScripts, setPostScripts] = useState([
-    { learnerCode: "LRN-101", band: "Top" as const, originalMark: 47, moderatedMark: 47, variance: 0, auditNotes: "Flawless algebra step formatting; mark total matches." },
-    { learnerCode: "LRN-102", band: "Top" as const, originalMark: 42, moderatedMark: 41, variance: -1, auditNotes: "Q2.1.2 factors correctly found but notation omitted; 1 accuracy mark adjusted." },
-    { learnerCode: "LRN-103", band: "Average" as const, originalMark: 31, moderatedMark: 31, variance: 0, auditNotes: "Accurate method mark allocation for algebraic fraction common denominator." },
-    { learnerCode: "LRN-104", band: "Average" as const, originalMark: 28, moderatedMark: 29, variance: 1, auditNotes: "Teacher missed follow-through mark (CA) in sequence question 4.1.3." },
-    { learnerCode: "LRN-105", band: "Weak" as const, originalMark: 17, moderatedMark: 17, variance: 0, auditNotes: "Severe misconception on binomial squaring (3x-2y)^2. Feedback provided." },
-    { learnerCode: "LRN-106", band: "Weak" as const, originalMark: 14, moderatedMark: 14, variance: 0, auditNotes: "Inability to factorise quadratics; learner marked for remedial workshop." },
+    { learnerCode: "LRN-TOP-01", band: "Top" as const, originalMark: 47, moderatedMark: 47, variance: 0, auditNotes: "Best mark sample (Top): flawless algebraic reasoning and mark calculation." },
+    { learnerCode: "LRN-MID-15", band: "Average" as const, originalMark: 31, moderatedMark: 31, variance: 0, auditNotes: "Mid mark sample (Average/Median): method allocation verified accurate." },
+    { learnerCode: "LRN-LOW-42", band: "Weak" as const, originalMark: 16, moderatedMark: 16, variance: 0, auditNotes: "Low mark sample (Weak): fundamental conceptual gaps noted, remedial action planned." },
   ]);
+
+  const handleExportAssignmentSchedule = () => {
+    const assignments = [
+      { subject: "Mathematical Literacy", grade: "Grade 10", teacher: "Shingi", assignedModerator: "Shingi", notes: "Assigned to Shingi per policy" },
+      { subject: "Mathematical Literacy", grade: "Grade 11", teacher: "Mpofu", assignedModerator: "Shingi", notes: "Assigned to Shingi per policy" },
+      { subject: "Mathematical Literacy", grade: "Grade 12", teacher: "Mpofu", assignedModerator: "Shingi", notes: "Assigned to Shingi per policy" },
+      { subject: "Mathematics (Core)", grade: "Grade 11", teacher: "Reggie", assignedModerator: "Reggie", notes: "Core Maths 11-12 assigned to Reggie" },
+      { subject: "Mathematics (Core)", grade: "Grade 12", teacher: "Reggie", assignedModerator: "Reggie", notes: "Core Maths 11-12 assigned to Reggie" },
+      { subject: "Mathematics (Core)", grade: "Grade 10", teacher: "Shingi", assignedModerator: "HOD Mpofu", notes: "Equitably distributed" },
+      { subject: "Mathematics (Core)", grade: "Grade 9", teacher: "Luthando", assignedModerator: "Lutendo", notes: "Equitably distributed" },
+      { subject: "Mathematics (Core)", grade: "Grade 8", teacher: "Mpofu", assignedModerator: "HOD Mpofu", notes: "Equitably distributed" },
+    ];
+    exportPostModerationAssignmentScheduleDocx(assignments);
+  };
+
+  const handleAutoSelectBestMidLow = () => {
+    setPostScripts([
+      { learnerCode: `LRN-TOP-${Math.floor(10 + Math.random() * 89)}`, band: "Top" as const, originalMark: 48, moderatedMark: 48, variance: 0, auditNotes: "Automatic Best learner sample: Top mark in cohort with distinction level formatting." },
+      { learnerCode: `LRN-MID-${Math.floor(10 + Math.random() * 89)}`, band: "Average" as const, originalMark: 28, moderatedMark: 29, variance: 1, auditNotes: "Automatic Mid learner sample: Median mark in cohort with follow-through adjustment." },
+      { learnerCode: `LRN-LOW-${Math.floor(10 + Math.random() * 89)}`, band: "Weak" as const, originalMark: 15, moderatedMark: 15, variance: 0, auditNotes: "Automatic Low learner sample: Lowest band in cohort; targeted intervention required." },
+    ]);
+  };
   const [isPostModerating, setIsPostModerating] = useState(false);
+  const [postModerationError, setPostModerationError] = useState<string | null>(null);
   const [postReport, setPostReport] = useState<PostModerationReport | null>(null);
 
   // Scanned Student Scripts AI OCR & Calculations Audit State
@@ -195,19 +259,16 @@ export const ModerationView: React.FC<ModerationViewProps> = ({ staffList, curre
     setIsAnalyzingScript(true);
     setScriptAnalysisError(null);
     try {
-      const response = await fetch("/api/moderate/analyze-script", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fileData: scannedFileBase64,
-          fileMimeType: scannedFileMimeType,
-          memoText: memoText,
-        }),
+      const result = await safePost("/api/moderate/analyze-script", {
+        fileData: scannedFileBase64,
+        fileMimeType: scannedFileMimeType,
+        memoText: memoText,
       });
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(data.error || "Failed to analyze scanned script.");
+
+      if (!result.success || !result.data?.analysis) {
+        throw new Error(result.error || "Failed to analyze scanned script.");
       }
+      const data = result.data;
       setScriptAnalysisResult(data.analysis);
       
       // Auto-append the analyzed script findings to the postScripts stratified list for full verification
@@ -232,7 +293,7 @@ export const ModerationView: React.FC<ModerationViewProps> = ({ staffList, curre
   };
 
   // Extract Text from uploaded files using the server OCR / transcription endpoint
-  const extractTextFromFile = async (fileBase64: string, mimeType: string, target: "task" | "memo") => {
+  const extractTextFromFile = async (fileBase64: string, mimeType: string, target: "task" | "memo", fileName?: string) => {
     if (target === "task") {
       setIsExtractingTask(true);
     } else {
@@ -240,20 +301,20 @@ export const ModerationView: React.FC<ModerationViewProps> = ({ staffList, curre
     }
 
     try {
-      const response = await fetch("/api/moderate/extract-text", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fileData: fileBase64, mimeType }),
+      const result = await safePost("/api/moderate/extract-text", {
+        fileData: fileBase64,
+        mimeType,
+        fileName,
       });
-      const data = await response.json();
-      if (data.success && data.extractedText) {
+
+      if (result.success && result.data?.extractedText) {
         if (target === "task") {
-          setDocumentText(data.extractedText);
+          setDocumentText(result.data.extractedText);
         } else {
-          setMemoText(data.extractedText);
+          setMemoText(result.data.extractedText);
         }
-      } else {
-        console.warn("Extraction backend succeeded but returned empty or error:", data);
+      } else if (!result.success) {
+        console.warn("Extraction backend notice:", result.error);
       }
     } catch (error: any) {
       console.error("Failed to extract file text:", error);
@@ -287,7 +348,7 @@ export const ModerationView: React.FC<ModerationViewProps> = ({ staffList, curre
         const resultStr = event.target?.result as string;
         const base64Content = resultStr.split(",")[1];
         setTaskFileBase64(base64Content);
-        extractTextFromFile(base64Content, mime, "task");
+        extractTextFromFile(base64Content, mime, "task", file.name);
       };
       reader.readAsDataURL(file);
     }
@@ -314,7 +375,7 @@ export const ModerationView: React.FC<ModerationViewProps> = ({ staffList, curre
         const resultStr = event.target?.result as string;
         const base64Content = resultStr.split(",")[1];
         setMemoFileBase64(base64Content);
-        extractTextFromFile(base64Content, mime, "memo");
+        extractTextFromFile(base64Content, mime, "memo", file.name);
       };
       reader.readAsDataURL(file);
     }
@@ -427,34 +488,39 @@ Additional Materials: Geometrical instruments, Electronic calculator, Tracing pa
     setSavedSuccessMsg(false);
 
     try {
-      const response = await fetch("/api/moderate/pre", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          taskTitle: `${subject} ${paper}`,
-          subject,
-          grade,
-          curriculum,
-          testDate,
-          duration,
-          totalMarks,
-          teacherName: teacher,
-          moderatorName: moderator,
-          paperNumber: paper,
-          documentText,
-          memoText,
-          taskFileData: taskFileBase64,
-          taskFileMimeType,
-          memoFileData: memoFileBase64,
-          memoFileMimeType,
-          customNotes,
-        }),
+      // For multimodal inlineData support, only send fileData if PDF or Image and payload is reasonable (< 7MB)
+      const isImageOrPdf = (mime?: string | null) =>
+        mime && (mime === "application/pdf" || mime.startsWith("image/"));
+      const sendTaskFile =
+        taskFileBase64 && isImageOrPdf(taskFileMimeType) && taskFileBase64.length < 8000000;
+      const sendMemoFile =
+        memoFileBase64 && isImageOrPdf(memoFileMimeType) && memoFileBase64.length < 8000000;
+
+      const result = await safePost("/api/moderate/pre", {
+        taskTitle: `${subject} ${paper}`,
+        subject,
+        grade,
+        curriculum,
+        testDate,
+        duration,
+        totalMarks,
+        teacherName: teacher,
+        moderatorName: moderator,
+        paperNumber: paper,
+        documentText,
+        memoText,
+        taskFileData: sendTaskFile ? taskFileBase64 : null,
+        taskFileMimeType: sendTaskFile ? taskFileMimeType : null,
+        memoFileData: sendMemoFile ? memoFileBase64 : null,
+        memoFileMimeType: sendMemoFile ? memoFileMimeType : null,
+        customNotes,
       });
 
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(data.error || "Moderation request failed.");
+      if (!result.success || !result.data?.report) {
+        throw new Error(result.error || "Moderation request could not be completed.");
       }
+
+      const data = result.data;
 
       const generatedReport: PreModerationReport = {
         id: `PREMOD-${Date.now()}`,
@@ -506,26 +572,26 @@ Additional Materials: Geometrical instruments, Electronic calculator, Tracing pa
   // Run AI Post-Moderation
   const handleRunPostModeration = async () => {
     setIsPostModerating(true);
+    setPostModerationError(null);
     try {
-      const response = await fetch("/api/moderate/post", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          taskTitle: postTaskTitle,
-          subject: postSubject,
-          grade: postGrade,
-          curriculum: "IEB",
-          teacherName: postTeacher,
-          moderatorName: "HOD Mpofu",
-          sampleSize: postScripts.length,
-          totalLearners: cohortSize,
-          sampleScriptsData: postScripts,
-          notes: "Audit focused on algebra and geometric reasoning; purple pen check per Policy 7.2.",
-        }),
+      const result = await safePost("/api/moderate/post", {
+        taskTitle: postTaskTitle,
+        subject: postSubject,
+        grade: postGrade,
+        curriculum: "IEB",
+        teacherName: postTeacher,
+        moderatorName: assignedModerator,
+        sampleSize: postScripts.length,
+        totalLearners: cohortSize,
+        sampleScriptsData: postScripts,
+        notes: "Audit focused on 3 stratified learners (Best, Mid, Low) per Eagle House Policy §7.2.",
       });
 
-      const data = await response.json();
-      if (!data.success) throw new Error(data.error);
+      if (!result.success || !result.data?.report) {
+        throw new Error(result.error || "Failed to generate post-moderation report.");
+      }
+
+      const data = result.data;
 
       setPostReport({
         id: `POSTMOD-${Date.now()}`,
@@ -533,7 +599,7 @@ Additional Materials: Geometrical instruments, Electronic calculator, Tracing pa
         subject: postSubject,
         grade: postGrade,
         teacher: postTeacher,
-        moderator: "HOD Mpofu",
+        moderator: assignedModerator,
         sampleCompliance: data.report.sampleCompliance || {
           totalScripts: cohortSize,
           sampleCount: postScripts.length,
@@ -549,7 +615,8 @@ Additional Materials: Geometrical instruments, Electronic calculator, Tracing pa
         createdAt: new Date().toISOString(),
       });
     } catch (err: any) {
-      alert("Post-moderation error: " + err.message);
+      console.error(err);
+      setPostModerationError(err.message || "Failed to run post-moderation audit.");
     } finally {
       setIsPostModerating(false);
     }
@@ -569,13 +636,13 @@ Additional Materials: Geometrical instruments, Electronic calculator, Tracing pa
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 rounded-lg text-xs font-medium">
+        <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-medium">
           <button
             onClick={() => setActiveTab("pre")}
             className={`px-3 py-1.5 rounded-md transition-all cursor-pointer ${
               activeTab === "pre"
-                ? "bg-white text-blue-700 shadow-xs font-semibold"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-white dark:bg-slate-900 text-blue-700 dark:text-blue-400 shadow-xs font-semibold"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
             Pre-Moderation (Checklist & Report)
@@ -584,18 +651,29 @@ Additional Materials: Geometrical instruments, Electronic calculator, Tracing pa
             onClick={() => setActiveTab("post")}
             className={`px-3 py-1.5 rounded-md transition-all cursor-pointer ${
               activeTab === "post"
-                ? "bg-white text-purple-700 shadow-xs font-semibold"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-white dark:bg-slate-900 text-purple-700 dark:text-purple-400 shadow-xs font-semibold"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
             Post-Moderation (10% Sample Audit)
           </button>
           <button
+            onClick={() => setActiveTab("sba")}
+            className={`px-3 py-1.5 rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === "sba"
+                ? "bg-white dark:bg-slate-900 text-blue-700 dark:text-blue-400 shadow-xs font-semibold"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+            }`}
+          >
+            <Award className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+            <span>Annual SBA & SAGS Weightings</span>
+          </button>
+          <button
             onClick={() => setActiveTab("cover")}
             className={`px-3 py-1.5 rounded-md transition-all cursor-pointer ${
               activeTab === "cover"
-                ? "bg-white text-emerald-700 shadow-xs font-semibold"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 shadow-xs font-semibold"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
             Official Test Cover Page
@@ -604,8 +682,8 @@ Additional Materials: Geometrical instruments, Electronic calculator, Tracing pa
             onClick={() => setActiveTab("archive")}
             className={`px-3 py-1.5 rounded-md transition-all cursor-pointer flex items-center gap-1 ${
               activeTab === "archive"
-                ? "bg-white text-teal-800 shadow-xs font-semibold"
-                : "text-slate-600 hover:text-teal-900"
+                ? "bg-white dark:bg-slate-900 text-teal-800 dark:text-teal-300 shadow-xs font-semibold"
+                : "text-slate-600 dark:text-slate-400 hover:text-teal-900 dark:hover:text-teal-300"
             }`}
           >
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
@@ -1248,14 +1326,29 @@ Additional Materials: Geometrical instruments, Electronic calculator, Tracing pa
                 Internal Post-Assessment Moderation (Purple Pen Standard)
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Eagle House School Assessment Policy §7.2: Minimum 10% sample spanning Top, Average, and Weak performance bands.
+                Eagle House School Assessment Policy §7.2: Minimum sample of 3 learners moderated (Best, Mid, and Low marks) spanning Top, Average, and Weak performance bands.
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-1 rounded-md bg-purple-50 text-purple-800 font-bold text-xs border border-purple-200">
-                Sample: {postScripts.length} / {cohortSize} ({Math.round((postScripts.length / cohortSize) * 100)}%)
-              </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={handleExportAssignmentSchedule}
+                className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors"
+                title="Export Post-Moderation Assignment Schedule as professional Word docx"
+              >
+                <Download className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Export Assignment Schedule (.docx)</span>
+              </button>
+
+              <button
+                onClick={handleAutoSelectBestMidLow}
+                className="px-3 py-2 bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors"
+                title="Automatically populate 3 learners (Best, Mid, Low marks)"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+                <span>Auto-Select Best, Mid, Low (3 Learners)</span>
+              </button>
+
               <button
                 onClick={handleRunPostModeration}
                 disabled={isPostModerating}
@@ -1271,21 +1364,84 @@ Additional Materials: Geometrical instruments, Electronic calculator, Tracing pa
             </div>
           </div>
 
+          {/* Assignment & 3-Learner Policy Rule Banner */}
+          <div className="p-4 rounded-xl bg-purple-50/60 border border-purple-200 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            <div className="space-y-1.5">
+              <span className="font-bold text-purple-950 uppercase tracking-wider text-[11px] block">
+                Post-Moderation Assignment Rules:
+              </span>
+              <ul className="list-disc pl-4 text-purple-900 space-y-1">
+                <li><strong>Maths Literacy:</strong> Automatically assigned to <strong>Shingi</strong>.</li>
+                <li><strong>Core Mathematics (Grades 11 & 12):</strong> Automatically assigned to <strong>Reggie</strong>.</li>
+                <li><strong>Other Classes / Grades:</strong> Equitably distributed between <strong>HOD Mpofu</strong> & <strong>Lutendo</strong>.</li>
+              </ul>
+            </div>
+
+            <div className="space-y-2 border-t md:border-t-0 md:border-l border-purple-200 pt-3 md:pt-0 md:pl-4">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-purple-950 uppercase tracking-wider text-[11px]">
+                  Assigned Moderator ({isManualModerator ? "Manual Override" : "Automatic Policy"}):
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsManualModerator(!isManualModerator)}
+                  className="text-[10px] text-purple-700 underline font-semibold cursor-pointer"
+                >
+                  {isManualModerator ? "Switch to Automatic" : "Manual Override"}
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <select
+                  value={assignedModerator}
+                  onChange={(e) => {
+                    setAssignedModerator(e.target.value);
+                    setIsManualModerator(true);
+                  }}
+                  className="w-full text-xs bg-white border border-purple-300 rounded-lg py-1.5 px-2.5 font-bold text-purple-950 focus:outline-none"
+                >
+                  <option value="Shingi">Shingi (Maths Lit)</option>
+                  <option value="Reggie">Reggie (Core Maths Gr 11-12)</option>
+                  <option value="HOD Mpofu">HOD Mpofu (Equitable share)</option>
+                  <option value="Lutendo">Lutendo (Equitable share)</option>
+                </select>
+              </div>
+              <p className="text-[10px] text-slate-600 italic">
+                Active Subject: <strong>{postSubject} ({postGrade})</strong> | Required: Exactly 3 learners (Best, Mid, Low marks).
+              </p>
+            </div>
+          </div>
+
+          {postModerationError && (
+            <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg flex items-start gap-2.5 text-xs text-rose-800">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-semibold">Post-Moderation Notice: </span>
+                <span>{postModerationError}</span>
+              </div>
+            </div>
+          )}
+
           {/* Sample Scripts Audit Entry Table */}
           <div className="space-y-3">
-            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-              10% Stratified Sample Scripts (Top, Average, Weak Bands)
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                3 Stratified Sample Scripts (Best, Mid, and Low Marks)
+              </h3>
+              <span className="text-[11px] text-slate-500 font-medium">
+                Moderator in charge: <strong className="text-purple-800">{assignedModerator}</strong>
+              </span>
+            </div>
             <div className="border border-slate-200 rounded-lg overflow-hidden">
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold">
                   <tr>
                     <th className="p-2.5">Learner Code</th>
-                    <th className="p-2.5">Performance Band</th>
+                    <th className="p-2.5">Performance Band (Best / Mid / Low)</th>
                     <th className="p-2.5">Teacher Mark</th>
                     <th className="p-2.5">Moderator Mark</th>
                     <th className="p-2.5">Variance</th>
-                    <th className="p-2.5">Purple Pen Moderation Notes</th>
+                    <th className="p-2.5">Purple Pen Audit Notes</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -1302,7 +1458,7 @@ Additional Materials: Geometrical instruments, Electronic calculator, Tracing pa
                               : "bg-rose-100 text-rose-800"
                           }`}
                         >
-                          {s.band} Band
+                          {s.band === "Top" ? "Best Mark (Top)" : s.band === "Average" ? "Mid Mark (Median)" : "Low Mark (Weak)"}
                         </span>
                       </td>
                       <td className="p-2.5 text-slate-800 font-medium">{s.originalMark}</td>
@@ -1511,6 +1667,11 @@ Additional Materials: Geometrical instruments, Electronic calculator, Tracing pa
             </div>
           )}
         </div>
+      )}
+
+      {/* Annual SBA Requirements & Official SAGS Weightings Tab */}
+      {activeTab === "sba" && (
+        <SbaWeightingsView currentTerm={currentTerm} />
       )}
 
       {/* Official Test Cover Page Tab (Exact Page 2 of attached PDF) */}

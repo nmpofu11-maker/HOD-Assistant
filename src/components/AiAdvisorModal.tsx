@@ -49,15 +49,26 @@ export const AiAdvisorModal: React.FC<AiAdvisorModalProps> = ({ isOpen, onClose 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           query: userText,
+          conversationHistory: newMessages.slice(-6),
           department: "Mathematics & Mathematical Literacy",
           curriculum: "IEB SAGS, CAPS ATP, Cambridge",
         }),
       });
 
-      const data = await response.json();
-      if (!data.success) throw new Error(data.error);
+      const contentType = response.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) {
+        const text = await response.text();
+        if (text.includes("<!doctype") || text.includes("<html")) {
+          throw new Error("The HOD AI service is initializing. Please retry in a few seconds.");
+        }
+        throw new Error(text || `Server returned status ${response.status}`);
+      }
 
-      setMessages([...newMessages, { role: "assistant", content: data.advice }]);
+      const data = await response.json();
+      if (!data.success) throw new Error(data.error || "Failed to retrieve guidance.");
+
+      const replyContent = data.reply || data.advice || "No guidance received.";
+      setMessages([...newMessages, { role: "assistant", content: replyContent }]);
     } catch (err: any) {
       setMessages([
         ...newMessages,

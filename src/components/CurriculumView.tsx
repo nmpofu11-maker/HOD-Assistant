@@ -1761,7 +1761,10 @@ export const CurriculumView: React.FC = () => {
   const [resources, setResources] = useState<ResourceItem[]>(() => {
     try {
       const stored = localStorage.getItem("eaglehouse_subject_resources");
-      if (stored) return JSON.parse(stored);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return parsed;
+      }
     } catch {}
     return [
       {

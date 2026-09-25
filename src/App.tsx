@@ -28,6 +28,7 @@ import {
   User,
   Sun,
   Moon,
+  Award,
 } from "lucide-react";
 
 export default function App() {
@@ -58,7 +59,8 @@ export default function App() {
   const [currentTerm, setCurrentTerm] = useState<number>(() => {
     try {
       const stored = localStorage.getItem("eaglehouse_current_term");
-      return stored ? parseInt(stored, 10) : 1;
+      const parsed = stored ? parseInt(stored, 10) : 1;
+      return isNaN(parsed) || parsed < 1 || parsed > 4 ? 1 : parsed;
     } catch {
       return 1;
     }
@@ -69,8 +71,8 @@ export default function App() {
     localStorage.setItem("eaglehouse_current_term", term.toString());
   };
 
-  // Filter deadlines dynamically based on the selected Active Persona Role & selected term
-  const getFilteredDeadlines = () => {
+  // Filter deadlines dynamically based on the selected Active Persona Role
+  const getPersonaDeadlines = () => {
     let list = deadlines;
     if (persona === "shingi") {
       list = list.filter((d) => d.teacherName === "Shingi");
@@ -79,12 +81,13 @@ export default function App() {
     } else if (persona === "luthando") {
       list = list.filter((d) => d.teacherName === "Luthando");
     }
-    
-    return list.filter((d) => {
-      const termOfItem = d.term || 1;
-      return termOfItem === currentTerm;
-    });
+    return list;
   };
+
+  const personaDeadlines = getPersonaDeadlines();
+  const filteredDeadlines = personaDeadlines.filter(
+    (d) => (d.term || 1) === currentTerm
+  );
 
   const getFilteredStaffList = () => {
     if (persona === "shingi") {
@@ -99,7 +102,6 @@ export default function App() {
     return staffList;
   };
 
-  const filteredDeadlines = getFilteredDeadlines();
   const filteredStaffList = getFilteredStaffList();
 
   // Pending deadlines for badge
@@ -130,6 +132,7 @@ export default function App() {
 
   const navItems = [
     { id: "moderation", label: "Pre & Post Moderation", icon: FileCheck2 },
+    { id: "sba-tracker", label: "Annual SBAs & SAGS", icon: Award },
     {
       id: "deadlines",
       label: "Deadlines Dashboard",
@@ -311,14 +314,23 @@ export default function App() {
               <ModerationView staffList={filteredStaffList} currentTerm={currentTerm} />
             )}
 
+            {activeTab === "sba-tracker" && (
+              <ModerationView
+                staffList={filteredStaffList}
+                currentTerm={currentTerm}
+                initialTab="sba"
+              />
+            )}
+
             {activeTab === "deadlines" && (
               <DeadlinesView
-                deadlines={filteredDeadlines}
+                deadlines={personaDeadlines}
                 staffList={filteredStaffList}
                 onAddDeadline={handleAddDeadline}
                 onUpdateStatus={handleUpdateDeadlineStatus}
                 onSelectForModeration={handleSelectForModeration}
                 currentTerm={currentTerm}
+                onTermChange={handleTermChange}
               />
             )}
 

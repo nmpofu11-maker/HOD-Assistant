@@ -96,6 +96,12 @@ export interface PostModerationReport {
   term?: number;
 }
 
+export type SubjectDifficultyTier =
+  | "Tier 1: Advanced / High Rigour"
+  | "Tier 2: Senior Core Pure Maths"
+  | "Tier 3: Core FET Foundations"
+  | "Tier 4: Applied / Contextual";
+
 export interface StaffDeadlineItem {
   id: string;
   teacherName: string;
@@ -110,6 +116,7 @@ export interface StaffDeadlineItem {
   totalMarks: number;
   hasDocument: boolean;
   term?: number;
+  difficultyCategory?: SubjectDifficultyTier;
 }
 
 export interface MeetingAgendaItem {
@@ -143,6 +150,11 @@ export interface DepartmentMeeting {
   nextMeetingDate: string;
 }
 
+export type MeetingTemplateType =
+  | "Standard Staff Meeting"
+  | "Moderation Meeting"
+  | "Curriculum Planning";
+
 export interface MeetingRecord {
   id: string;
   title: string;
@@ -150,8 +162,20 @@ export interface MeetingRecord {
   startTime: string;
   endTime: string;
   meetingType: "Regular Departmental" | "Pre-Moderation Calibration" | "Post-Exam Review" | "Urgent / Escalation";
+  templateType?: MeetingTemplateType;
   attendees: string[];
   apologies: string[];
+  venue?: string;
+  chairperson?: string;
+  department?: string;
+  teacherSignatures?: {
+    teacherId: string;
+    name: string;
+    role: string;
+    allocation: string;
+    signed: boolean;
+    signedDate?: string;
+  }[];
   agendaPoints: {
     pointNumber: number;
     title: string;
@@ -165,6 +189,9 @@ export interface MeetingRecord {
     status: "Pending" | "In Progress" | "Completed";
   }[];
   minutesSummary: string;
+  transcriptionSummary?: string;
+  rawTranscribedText?: string;
+  sourceType?: "manual" | "typed_upload" | "typed_file" | "typed_text" | "recorded_audio" | "handwritten_ocr";
   status: "Completed" | "Draft";
 }
 

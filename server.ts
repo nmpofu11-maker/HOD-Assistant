@@ -4,6 +4,8 @@ import { fileURLToPath } from "url";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
+import mammoth from "mammoth";
+import * as XLSX from "xlsx";
 
 dotenv.config();
 
@@ -46,13 +48,13 @@ async function generateContentWithRetry(
   }
 ) {
   const modelsToTry = Array.from(
-    new Set([params.model, "gemini-2.5-flash", "gemini-3.5-flash-lite", "gemini-flash-latest"])
+    new Set([params.model || "gemini-3.6-flash", "gemini-3.6-flash", "gemini-flash-latest", "gemini-3.1-flash-lite"])
   );
   let lastError: any = null;
 
   for (const model of modelsToTry) {
-    let attempts = 4;
-    let delay = 800; // base delay in ms
+    let attempts = 2;
+    let delay = 400; // base delay in ms
 
     while (attempts > 0) {
       try {
@@ -86,21 +88,19 @@ async function generateContentWithRetry(
               err.message.toLowerCase().includes("capacity")));
 
         if (isTransient && attempts > 1) {
-          // Add randomized jitter to avoid synchronized retry waves (thundering herd)
-          const jitter = Math.floor(Math.random() * 400);
+          const jitter = Math.floor(Math.random() * 200);
           const currentDelay = delay + jitter;
           console.warn(`[Gemini Transient Error] Status ${statusCode || "unknown"}. Retrying in ${currentDelay}ms... Details: ${err.message}`);
           await new Promise((resolve) => setTimeout(resolve, currentDelay));
-          delay *= 2; // Exponential backoff scaling
+          delay *= 1.5;
           attempts--;
         } else {
-          // Break inner loop to try the fallback model if attempts are exhausted or the error is non-transient
-          console.error(`[Gemini Error] Non-transient or exhausted attempts for model ${model}:`, err.message);
+          console.error(`[Gemini Error] Moving to next model or aborting for ${model}:`, err.message);
           break;
         }
       }
     }
-    console.warn(`[Gemini Fallback] Model ${model} failed or is highly congested. Trying fallback model...`);
+    console.warn(`[Gemini Fallback] Model ${model} finished. Checking next candidate...`);
   }
 
   throw lastError || new Error("Failed to generate content from Gemini after multiple attempts and fallbacks.");
@@ -269,30 +269,32 @@ Evaluate all 12 checklist points rigorously, provide deep constructive mathemati
 
     const parts: any[] = [];
     
-    // Support separate task file upload
-    if (taskFileData && taskFileMimeType) {
+    const isGeminiInlineAllowed = (mime?: string) => {
+      if (!mime) return false;
+      const m = mime.toLowerCase();
+      return m === "application/pdf" || m.startsWith("image/");
+    };
+
+    // Support separate task file upload (PDF / Image only for inlineData)
+    const rawTask = taskFileData || fileData;
+    const rawTaskMime = taskFileMimeType || fileMimeType;
+    if (rawTask && isGeminiInlineAllowed(rawTaskMime)) {
+      const cleanData = rawTask.replace(/^data:[a-zA-Z0-9_\-+./]+;base64,/, "");
       parts.push({
         inlineData: {
-          mimeType: taskFileMimeType,
-          data: taskFileData,
-        },
-      });
-    } else if (fileData && fileMimeType) {
-      // Fallback for older client or generic uploads
-      parts.push({
-        inlineData: {
-          mimeType: fileMimeType,
-          data: fileData,
+          mimeType: rawTaskMime!,
+          data: cleanData,
         },
       });
     }
 
-    // Support separate memo file upload
-    if (memoFileData && memoFileMimeType) {
+    // Support separate memo file upload (PDF / Image only for inlineData)
+    if (memoFileData && isGeminiInlineAllowed(memoFileMimeType)) {
+      const cleanMemo = memoFileData.replace(/^data:[a-zA-Z0-9_\-+./]+;base64,/, "");
       parts.push({
         inlineData: {
-          mimeType: memoFileMimeType,
-          data: memoFileData,
+          mimeType: memoFileMimeType!,
+          data: cleanMemo,
         },
       });
     }
@@ -300,7 +302,7 @@ Evaluate all 12 checklist points rigorously, provide deep constructive mathemati
     parts.push({ text: promptText });
 
     const response = await generateContentWithRetry(ai, {
-      model: "gemini-2.5-flash",
+      model: "gemini-3.6-flash",
       contents: { parts },
       config: {
         systemInstruction,
@@ -321,30 +323,116 @@ Evaluate all 12 checklist points rigorously, provide deep constructive mathemati
   }
 });
 
-// Endpoint: AI-Powered Text Extraction from uploaded PDF/Image files
-app.post("/api/moderate/extract-text", async (req, res) => {
-  try {
-    const { fileData, mimeType } = req.body;
-    if (!fileData || !mimeType) {
-      return res.status(400).json({ success: false, error: "Missing fileData or mimeType" });
-    }
+// Universal helper to perform OCR / transcription / text extraction on ANY uploaded file
+async function extractTextFromAnyFile(
+  fileData: string,
+  mimeType?: string,
+  fileName?: string
+): Promise<{ text: string; detectedType: string; wordCount: number; charCount: number }> {
+  const cleanBase64 = (fileData || "").replace(/^data:[a-zA-Z0-9_\-+./]+;base64,/, "");
+  const normalizedMime = (mimeType || "").toLowerCase();
+  const lowerName = (fileName || "").toLowerCase();
 
+  // 1. Word Document (.docx)
+  if (lowerName.endsWith(".docx") || normalizedMime.includes("wordprocessingml") || normalizedMime.includes("docx")) {
+    if (cleanBase64) {
+      try {
+        const buffer = Buffer.from(cleanBase64, "base64");
+        const parsedDocx = await mammoth.extractRawText({ buffer });
+        const text = parsedDocx.value?.trim() || "";
+        return {
+          text,
+          detectedType: "Word Document (.docx)",
+          wordCount: text ? text.split(/\s+/).length : 0,
+          charCount: text.length,
+        };
+      } catch (docxErr) {
+        console.warn("Mammoth DOCX extraction warning:", docxErr);
+      }
+    }
+  }
+
+  // 1b. Excel Spreadsheet (.xlsx, .xls)
+  if (
+    lowerName.endsWith(".xlsx") ||
+    lowerName.endsWith(".xls") ||
+    normalizedMime.includes("spreadsheetml") ||
+    normalizedMime.includes("ms-excel")
+  ) {
+    if (cleanBase64) {
+      try {
+        const buffer = Buffer.from(cleanBase64, "base64");
+        const workbook = XLSX.read(buffer, { type: "buffer" });
+        const sheetTexts: string[] = [];
+        workbook.SheetNames.forEach((sheetName) => {
+          const sheet = workbook.Sheets[sheetName];
+          const csv = XLSX.utils.sheet_to_csv(sheet);
+          if (csv && csv.trim()) {
+            sheetTexts.push(`--- Sheet: ${sheetName} ---\n${csv.trim()}`);
+          }
+        });
+        const text = sheetTexts.join("\n\n");
+        return {
+          text,
+          detectedType: "Excel Spreadsheet (.xlsx / .xls)",
+          wordCount: text ? text.split(/\s+/).length : 0,
+          charCount: text.length,
+        };
+      } catch (excelErr) {
+        console.warn("XLSX extraction warning:", excelErr);
+      }
+    }
+  }
+
+  // 2. Plain Text / Markdown / CSV / JSON
+  if (
+    normalizedMime.startsWith("text/") ||
+    lowerName.endsWith(".txt") ||
+    lowerName.endsWith(".csv") ||
+    lowerName.endsWith(".md") ||
+    lowerName.endsWith(".json")
+  ) {
+    let text = "";
+    if (cleanBase64 && cleanBase64.length % 4 === 0 && /^[A-Za-z0-9+/=]+$/.test(cleanBase64.slice(0, 100))) {
+      try {
+        text = Buffer.from(cleanBase64, "base64").toString("utf-8");
+      } catch {
+        text = fileData;
+      }
+    } else {
+      text = fileData;
+    }
+    text = text.trim();
+    return {
+      text,
+      detectedType: "Plain Text / Document",
+      wordCount: text ? text.split(/\s+/).length : 0,
+      charCount: text.length,
+    };
+  }
+
+  // 3. Audio Speech-to-Text Transcription
+  if (
+    normalizedMime.startsWith("audio/") ||
+    lowerName.match(/\.(mp3|wav|m4a|webm|ogg|aac|flac)$/)
+  ) {
     const ai = getGeminiClient();
-    const systemInstruction = "You are an expert document layout reader and OCR assistant at Eagle House School. Extract all text, headings, formulas, and mark counts exactly. Preserve mathematical formatting, questions structure, and columns layout.";
+    const systemInstruction =
+      "You are an expert audio transcriptionist for Eagle House School. Accurately transcribe all spoken dialogue, educator remarks, agenda items, decisions, and action items verbatim with timestamps and speaker tags where identifiable.";
     const parts = [
       {
         inlineData: {
-          mimeType,
-          data: fileData,
+          mimeType: normalizedMime || "audio/webm",
+          data: cleanBase64,
         },
       },
       {
-        text: "Extract and transcribe all text from this assessment document. Return only the clean transcribed text/markdown content without any conversational preamble or AI commentary.",
+        text: "Transcribe this audio recording verbatim into clean text. Include speaker labels (e.g. Chair/HOD, Educator, Teacher), key points discussed, and agreed actions.",
       },
     ];
 
     const response = await generateContentWithRetry(ai, {
-      model: "gemini-2.5-flash",
+      model: "gemini-3.6-flash",
       contents: { parts },
       config: {
         systemInstruction,
@@ -352,8 +440,94 @@ app.post("/api/moderate/extract-text", async (req, res) => {
       },
     });
 
-    const extractedText = response.text?.trim() || "";
-    res.json({ success: true, extractedText });
+    const text = response.text?.trim() || "";
+    return {
+      text,
+      detectedType: "Recorded Audio (Speech-to-Text)",
+      wordCount: text ? text.split(/\s+/).length : 0,
+      charCount: text.length,
+    };
+  }
+
+  // 4. Multimodal Optical Character Recognition (OCR) for Images and PDFs
+  const isPdf = normalizedMime === "application/pdf" || lowerName.endsWith(".pdf");
+  const isImage = normalizedMime.startsWith("image/") || lowerName.match(/\.(png|jpe?g|webp|bmp|gif|tiff)$/);
+
+  const ai = getGeminiClient();
+  const systemInstruction = isPdf
+    ? "You are an expert PDF document and handwritten scan OCR specialist at Eagle House School. Extract and transcribe all text, questions, mathematical formulas, tabular data, handwritten notations, teacher annotations, and signatures accurately without omission."
+    : "You are an expert Optical Character Recognition (OCR) vision specialist for Eagle House School. Meticulously transcribe all handwritten text, cursive script, whiteboard notes, printed forms, mathematical symbols, educator signatures, and margin notes. Return verbatim clean text.";
+
+  const effectiveMime = isPdf ? "application/pdf" : normalizedMime || "image/jpeg";
+  const parts = [
+    {
+      inlineData: {
+        mimeType: effectiveMime,
+        data: cleanBase64,
+      },
+    },
+    {
+      text: "Extract and transcribe all text from this uploaded scan/document. Preserve layout structure, section headings, bullet points, numbers, and handwritten remarks. Return only the extracted text without introductory chatter.",
+    },
+  ];
+
+  const response = await generateContentWithRetry(ai, {
+    model: "gemini-3.6-flash",
+    contents: { parts },
+    config: {
+      systemInstruction,
+      temperature: 0.1,
+    },
+  });
+
+  const text = response.text?.trim() || "";
+  return {
+    text,
+    detectedType: isPdf ? "Scanned Document (PDF OCR)" : "Handwritten Scan / Image (Vision OCR)",
+    wordCount: text ? text.split(/\s+/).length : 0,
+    charCount: text.length,
+  };
+}
+
+// Universal Endpoint: OCR-to-Text for ANY uploaded file (Image, PDF, DOCX, Audio, TXT)
+app.post("/api/ocr/extract-text", async (req, res) => {
+  try {
+    const { fileData, mimeType, fileName } = req.body;
+    if (!fileData) {
+      return res.status(400).json({ success: false, error: "Missing fileData" });
+    }
+
+    const result = await extractTextFromAnyFile(fileData, mimeType, fileName);
+    res.json({
+      success: true,
+      extractedText: result.text,
+      detectedType: result.detectedType,
+      wordCount: result.wordCount,
+      charCount: result.charCount,
+    });
+  } catch (error: any) {
+    console.error("Universal OCR text extraction failed:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message || "Failed to perform OCR text extraction.",
+    });
+  }
+});
+
+// Endpoint: AI-Powered Text Extraction from uploaded PDF/Image/DOCX files for Moderation
+app.post("/api/moderate/extract-text", async (req, res) => {
+  try {
+    const { fileData, mimeType, fileName } = req.body;
+    if (!fileData) {
+      return res.status(400).json({ success: false, error: "Missing fileData" });
+    }
+
+    const result = await extractTextFromAnyFile(fileData, mimeType, fileName);
+    res.json({
+      success: true,
+      extractedText: result.text,
+      detectedType: result.detectedType,
+    });
   } catch (error: any) {
     console.error("Text extraction failed:", error);
     res.status(500).json({ success: false, error: error.message || "Failed to extract text." });
@@ -433,7 +607,7 @@ Return valid JSON ONLY with this structure:
 Perform a detailed audit and generate the post-moderation report in JSON.`;
 
     const response = await generateContentWithRetry(ai, {
-      model: "gemini-2.5-flash",
+      model: "gemini-3.6-flash",
       contents: promptText,
       config: {
         systemInstruction,
@@ -501,7 +675,7 @@ Perform a rigorous, exact mathematical and quality audit on the uploaded handwri
     parts.push({ text: promptText });
 
     const response = await generateContentWithRetry(ai, {
-      model: "gemini-2.5-flash",
+      model: "gemini-3.6-flash",
       contents: { parts },
       config: {
         systemInstruction,
@@ -526,6 +700,7 @@ Perform a rigorous, exact mathematical and quality audit on the uploaded handwri
 app.post("/api/meetings/generate", async (req, res) => {
   try {
     const {
+      templateType = "Standard Staff Meeting",
       meetingType,
       meetingTitle,
       term,
@@ -538,25 +713,57 @@ app.post("/api/meetings/generate", async (req, res) => {
 
     const ai = getGeminiClient();
 
+    let templateSpecificStructure = "";
+    if (templateType === "Moderation Meeting") {
+      templateSpecificStructure = `Eagle House Moderation Meeting 10-Point Sequence (Policy §7.1 & §7.2 Quality Assurance):
+1. Quorum Verification & Internal Moderation Objectives (HOD Mpofu)
+2. Matters Arising & Action Audit from Prior Moderation Cycle (Senior Moderators)
+3. Assessment Blueprint & Cognitive Weighting Grid (Bloom's Taxonomy Levels 1–4 Balance)
+4. Policy §7.1 Compliance: 5-Day Pre-Moderation Lead-Time & Technical Formatting Review
+5. Marking Memorandum Standardization & Alternative Solution Methods Calibration
+6. Policy §7.2 Post-Moderation: 10% Stratified Purple Pen Protocol & Marking Audit
+7. Moderation Discrepancy & Mark Variance Resolution Register (±5% threshold)
+8. Question Discrimination Index & Diagnostic Error Analysis
+9. Statutory Moderation Tool Sign-off & Appendix 7 Compliance Certification
+10. Moderation Remedial Orders & Senior Leadership (SMT) Escalation`;
+    } else if (templateType === "Curriculum Planning") {
+      templateSpecificStructure = `Eagle House Curriculum Planning 10-Point Sequence (CAPS ATP & SAGS Milestones):
+1. Department Academic Vision & Term Strategic Targets (HOD Mpofu)
+2. CAPS/IEB Annual Teaching Plan (ATP) Milestone Mapping & Pacing Calendar
+3. Prerequisite Diagnostic Gaps & Baseline Remediation Strategy
+4. Common Assessment Task (CAT) & SBA Schedule Synchronization
+5. Pedagogical Methodology, Lesson Study & Differentiated CRA Instruction
+6. Textbook, Digital LMS & Technology Resource Allocation
+7. Inclusive Education & High-Potential / At-Risk Tiering Framework
+8. Educator Workload, Subject Allocations & Mentorship Pairing
+9. Cross-Curricular STEM Integration & Academic Enrichment
+10. Department Milestones Approval, SMT Submission & Adjournment`;
+    } else {
+      templateSpecificStructure = `Eagle House Standard 10-Item Meeting Agenda (HOD Handbook §1):
+1. Welcome & Apologies
+2. Matters Arising from Previous Minutes
+3. Curriculum Progress & ATP Pacing Alignment
+4. Assessment & Moderation Compliance (§7.1 pre-mod 5 days ahead, §7.2 post-mod 10% purple pen)
+5. Learner Performance & Diagnostic Data
+6. Learners Requiring Academic Intervention (Appendix 10 trackers for learners <30%)
+7. Educator Support, Teaching Practice & Professional Development
+8. Resources, Textbooks & Technology
+9. Matters Requiring Escalation to Senior Leadership (SMT Green/Amber/Red)
+10. Any Other Business (AOB) & Date of Next Meeting`;
+    }
+
     const systemInstruction = `You are an AI assistant for the Head of Department (HOD) for Mathematics & Mathematical Literacy at Eagle House School.
 You follow the Eagle House School HOD Handbook guidelines for professional department meetings and minutes:
 "Department meetings should be purposeful and action-driven, a working session, not a status update read aloud. Protect the time, keep to the agenda, and always close with clear actions."
-Eagle House Standard 10-Item Meeting Agenda:
-1. Welcome & Apologies
-2. Matters Arising from Previous Minutes
-3. Curriculum Progress (pacing against ATP / term plan, gaps)
-4. Assessment & Moderation (pre-mod 5 days ahead, post-mod 10% purple pen)
-5. Learner Performance & Data (trends, diagnostic insights)
-6. Learners Requiring Intervention (Appendix 10 trackers)
-7. Educator Support & Professional Development
-8. Resources, Textbooks & Technology
-9. Matters Requiring Escalation to Senior Leadership (Green/Amber/Red)
-10. Any Other Business (AOB) & Date of Next Meeting
+
+Selected Template Format: ${templateType}
+${templateSpecificStructure}
 
 Generate both a professional standardized Agenda and structured Minutes summary with specific Action Items.
 Return valid JSON ONLY with this exact format:
 {
   "title": string,
+  "templateType": string,
   "date": string,
   "attendees": [string],
   "agendaPoints": [
@@ -578,17 +785,18 @@ Return valid JSON ONLY with this exact format:
   "minutesSummary": string
 }`;
 
-    const prompt = `Generate formal meeting agenda, professional discussion notes, and action items:
+    const prompt = `Generate formal meeting agenda, professional discussion notes, and action items using the "${templateType}" template format:
+- Template Format: ${templateType}
 - Meeting Title: ${meetingTitle || "Department Meeting"}
 - Meeting Type: ${meetingType || "Regular Departmental"}
 - Date: ${meetingDate || new Date().toISOString().split("T")[0]}
 - Specific Focus: ${specificFocus || "Standard term review and moderation alignment"}
 - Previous Action Items: ${JSON.stringify(previousActionItems || [])}
 
-Ensure all 10 standard Eagle House agenda points are fully populated with professional discussion notes, decisions, and clear action items.`;
+Ensure all 10 agenda points corresponding to the "${templateType}" format are fully populated with realistic, professional discussion notes, decisions, and clear action items for Eagle House School Mathematics educators.`;
 
     const response = await generateContentWithRetry(ai, {
-      model: "gemini-2.5-flash",
+      model: "gemini-3.6-flash",
       contents: prompt,
       config: {
         systemInstruction,
@@ -605,6 +813,213 @@ Ensure all 10 standard Eagle House agenda points are fully populated with profes
     res.status(500).json({
       success: false,
       error: error.message || "Failed to generate meeting agenda/minutes.",
+    });
+  }
+});
+
+// Endpoint: Parse Uploaded Meeting Notes / Scans / Audio into 10-Point Minutes or Agenda Template
+app.post("/api/meetings/parse-upload", async (req, res) => {
+  try {
+    const {
+      targetType, // "minutes" | "agenda"
+      templateType = "Standard Staff Meeting", // "Standard Staff Meeting" | "Moderation Meeting" | "Curriculum Planning"
+      inputFormat, // "typed_text" | "typed_file" | "recorded_audio" | "handwritten_ocr"
+      fileData, // base64 string or plain text
+      mimeType, // e.g. "image/png", "audio/mp3", "application/pdf", "text/plain", etc.
+      fileName,
+      meetingDate,
+      additionalContext,
+    } = req.body;
+
+    const ai = getGeminiClient();
+
+    let rawTextContent = "";
+    let inlinePart: any = null;
+
+    const cleanBase64 = (fileData || "").replace(/^data:([a-zA-Z0-9_\-+.]+\/[a-zA-Z0-9_\-+.]+);base64,/, "");
+
+    // If docx file, extract text with mammoth
+    const isDocx = (fileName && fileName.toLowerCase().endsWith(".docx")) ||
+      mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+    if (isDocx && cleanBase64) {
+      try {
+        const buffer = Buffer.from(cleanBase64, "base64");
+        const parsedDocx = await mammoth.extractRawText({ buffer });
+        rawTextContent = parsedDocx.value || "";
+      } catch (docxErr) {
+        console.warn("Failed to extract docx with mammoth, falling back:", docxErr);
+      }
+    }
+
+    if (!rawTextContent) {
+      if (inputFormat === "typed_text" || mimeType?.startsWith("text/")) {
+        rawTextContent = typeof fileData === "string" ? fileData : "";
+      } else if (cleanBase64 && (mimeType?.startsWith("image/") || mimeType?.startsWith("audio/") || mimeType === "application/pdf")) {
+        inlinePart = {
+          inlineData: {
+            data: cleanBase64,
+            mimeType: mimeType || (inputFormat === "recorded_audio" ? "audio/webm" : "image/jpeg"),
+          },
+        };
+      } else if (typeof fileData === "string") {
+        rawTextContent = fileData;
+      }
+    }
+
+    let templateSpecificStructure = "";
+    if (templateType === "Moderation Meeting") {
+      templateSpecificStructure = `Eagle House Moderation Meeting 10-Point Sequence (Policy §7.1 & §7.2 Quality Assurance):
+1. Quorum Verification & Internal Moderation Objectives (HOD Mpofu)
+2. Matters Arising & Action Audit from Prior Moderation Cycle (Senior Moderators)
+3. Assessment Blueprint & Cognitive Weighting Grid (Bloom's Taxonomy Levels 1–4 Balance)
+4. Policy §7.1 Compliance: 5-Day Pre-Moderation Lead-Time & Technical Formatting Review
+5. Marking Memorandum Standardization & Alternative Solution Methods Calibration
+6. Policy §7.2 Post-Moderation: 10% Stratified Purple Pen Protocol & Marking Audit
+7. Moderation Discrepancy & Mark Variance Resolution Register (±5% threshold)
+8. Question Discrimination Index & Diagnostic Error Analysis
+9. Statutory Moderation Tool Sign-off & Appendix 7 Compliance Certification
+10. Moderation Remedial Orders & Senior Leadership (SMT) Escalation`;
+    } else if (templateType === "Curriculum Planning") {
+      templateSpecificStructure = `Eagle House Curriculum Planning 10-Point Sequence (CAPS ATP & SAGS Milestones):
+1. Department Academic Vision & Term Strategic Targets (HOD Mpofu)
+2. CAPS/IEB Annual Teaching Plan (ATP) Milestone Mapping & Pacing Calendar
+3. Prerequisite Diagnostic Gaps & Baseline Remediation Strategy
+4. Common Assessment Task (CAT) & SBA Schedule Synchronization
+5. Pedagogical Methodology, Lesson Study & Differentiated CRA Instruction
+6. Textbook, Digital LMS & Technology Resource Allocation
+7. Inclusive Education & High-Potential / At-Risk Tiering Framework
+8. Educator Workload, Subject Allocations & Mentorship Pairing
+9. Cross-Curricular STEM Integration & Academic Enrichment
+10. Department Milestones Approval, SMT Submission & Adjournment`;
+    } else {
+      templateSpecificStructure = `Eagle House Standard 10-Item Meeting Sequence (HOD Handbook §1):
+1. Welcome & Apologies
+2. Matters Arising from Previous Minutes
+3. Curriculum Progress & ATP Pacing Alignment
+4. Assessment & Moderation Compliance (§7.1 5-day pre-moderation lead time, §7.2 10% stratified purple pen post-moderation audit)
+5. Learner Performance & Diagnostic Data
+6. Learners Requiring Academic Intervention (Appendix 10 trackers for learners <30%)
+7. Educator Support, Teaching Practice & Professional Development
+8. Resources, Textbooks & Technology
+9. Matters Requiring Escalation to Senior Leadership (SMT Green/Amber/Red)
+10. Any Other Business (AOB) & Date of Next Meeting`;
+    }
+
+    const templatePrompt = targetType === "agenda"
+      ? `You are preparing an official Eagle House School Department Meeting AGENDA DRAFT for a "${templateType}".
+Map the extracted information into upcoming agenda discussion points, intended objectives, suggested leads, and time allocations according to the selected format.`
+      : `You are preparing the official Eagle House School Department Meeting MINUTES & ACCOUNTABILITY TRACKER for a "${templateType}".
+Map the extracted information into formal minutes records, discussions held, decisions reached, diagnostic figures, learner intervention metrics, and clear action items according to the selected format.`;
+
+    const formatSpecificInstruction = inputFormat === "handwritten_ocr"
+      ? `CRITICAL OCR & HANDWRITING INSTRUCTION:
+The provided image is a handwritten note, meeting journal page, whiteboard photo, or scanned document.
+Perform meticulous Optical Character Recognition (OCR) on all handwritten script, including cursive, shorthand, teacher initials, math symbols, and margin notes.
+Transcribe and interpret all handwritten text accurately.`
+      : inputFormat === "recorded_audio"
+      ? `CRITICAL AUDIO TRANSCRIPTION INSTRUCTION:
+The provided file is an audio recording of an Eagle House School Mathematics Department meeting or voice note.
+Transcribe all spoken discussions, identifying speaking educators, decisions made, curriculum pacing reports, test moderation remarks, and assigned duties.`
+      : `CRITICAL DOCUMENT INSTRUCTION:
+Extract all typed text, minutes notes, agenda outlines, and action points from this document.`;
+
+    const systemInstruction = `You are an expert Head of Department (HOD) Assistant for Mathematics & Mathematical Literacy at Eagle House School.
+${templatePrompt}
+${formatSpecificInstruction}
+
+Selected Template Format: ${templateType}
+${templateSpecificStructure}
+
+Mathematics Department Staff Roster:
+- Mr. N. Mpofu (Head of Department — Chair)
+- Shingi (Mathematics Educator)
+- Reggie (Mathematics Educator)
+- Luthando (Mathematics Educator)
+
+You MUST populate all 10 agenda points. If specific details for any point were not mentioned in the source material, provide professional, context-appropriate standard notes or leave a concise standard placeholder aligned with Eagle House guidelines.
+Extract all actionable tasks into the actionItems array with realistic deadlines and responsible educators.
+Return valid JSON ONLY with this exact structure:
+{
+  "title": string,
+  "date": string,
+  "startTime": string,
+  "endTime": string,
+  "venue": string,
+  "chairperson": string,
+  "meetingType": "Regular Departmental" | "Pre-Moderation Calibration" | "Post-Exam Review" | "Urgent / Escalation",
+  "attendees": [string],
+  "apologies": [string],
+  "rawTranscribedText": string,
+  "transcriptionSummary": string,
+  "agendaPoints": [
+    {
+      "pointNumber": number,
+      "title": string,
+      "notes": string
+    }
+  ],
+  "actionItems": [
+    {
+      "id": string,
+      "description": string,
+      "responsible": string,
+      "deadline": string,
+      "status": "Pending" | "In Progress" | "Completed"
+    }
+  ],
+  "teacherSignatures": [
+    {
+      "teacherId": "mpofu" | "shingi" | "reggie" | "luthando",
+      "name": string,
+      "role": string,
+      "allocation": string,
+      "signed": boolean,
+      "signedDate": string
+    }
+  ],
+  "minutesSummary": string
+}`;
+
+    const promptText = `Process this uploaded ${inputFormat} meeting source material and populate the Eagle House School ${targetType === "agenda" ? "Agenda Draft" : "Meeting Minutes Template"}.
+Target Date: ${meetingDate || new Date().toISOString().split("T")[0]}
+Additional Context from User: ${additionalContext || "None provided"}
+${rawTextContent ? `\n--- SOURCE TEXT EXTRACTED ---\n${rawTextContent}` : ""}`;
+
+    const contentParts: any[] = [];
+    if (inlinePart) {
+      contentParts.push(inlinePart);
+    }
+    contentParts.push({ text: promptText });
+
+    const response = await generateContentWithRetry(ai, {
+      model: "gemini-3.6-flash",
+      contents: contentParts,
+      config: {
+        systemInstruction,
+        responseMimeType: "application/json",
+        temperature: 0.2,
+      },
+    });
+
+    const responseText = response.text?.trim() || "{}";
+    const result = JSON.parse(responseText);
+
+    if (!result.rawTranscribedText && rawTextContent) {
+      result.rawTranscribedText = rawTextContent;
+    }
+
+    res.json({
+      success: true,
+      targetType,
+      inputFormat,
+      parsedRecord: result,
+    });
+  } catch (error: any) {
+    console.error("Error parsing uploaded meeting material:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message || "Failed to parse meeting material via OCR/AI.",
     });
   }
 });
@@ -683,7 +1098,7 @@ Return valid JSON ONLY with this structure:
 Provide a deep pedagogical diagnostic and actionable HOD interventions.`;
 
     const response = await generateContentWithRetry(ai, {
-      model: "gemini-2.5-flash",
+      model: "gemini-3.6-flash",
       contents: prompt,
       config: {
         systemInstruction,
@@ -776,8 +1191,29 @@ Return valid JSON ONLY with this structure:
 }`;
 
     const contents: any[] = [];
-    
-    if (fileData.startsWith("data:")) {
+    const lowerFileName = (fileName || "").toLowerCase();
+    const isDocOrSheet =
+      lowerFileName.endsWith(".xlsx") ||
+      lowerFileName.endsWith(".xls") ||
+      lowerFileName.endsWith(".docx") ||
+      lowerFileName.endsWith(".csv") ||
+      lowerFileName.endsWith(".txt") ||
+      lowerFileName.endsWith(".json");
+
+    if (isDocOrSheet || !fileData.startsWith("data:")) {
+      const extracted = await extractTextFromAnyFile(fileData, mimeType, fileName);
+      contents.push({
+        text: `Analyze this uploaded assessment results dataset (${fileName || "results file"}):
+Subject: ${subject || "Mathematics"}
+Grade: ${grade || "10"}
+Term: ${term || "Term 1"}
+Task: ${taskName || "Assessment"}
+Extracted Data Type: ${extracted.detectedType}
+
+--- EXTRACTED RESULTS CONTENT ---
+${extracted.text || fileData}`,
+      });
+    } else if (fileData.startsWith("data:")) {
       const commaIndex = fileData.indexOf(",");
       const header = fileData.substring(0, commaIndex);
       const base64Content = fileData.substring(commaIndex + 1);
@@ -792,21 +1228,10 @@ Return valid JSON ONLY with this structure:
       contents.push({
         text: `Analyze this uploaded assessment file (${fileName || "results document"}) for Subject: ${subject || "Mathematics"}, Grade: ${grade || "10"}, Term: ${term || "Term 1"}, Assessment: ${taskName || "Control Test"}. Perform full OCR extraction of marks, compute statistics, analyze strand mastery, and populate the learner intervention tracker.`,
       });
-    } else {
-      contents.push({
-        text: `Analyze this uploaded assessment dataset (${fileName || "results data"}):
-Subject: ${subject || "Mathematics"}
-Grade: ${grade || "10"}
-Term: ${term || "Term 1"}
-Task: ${taskName || "Assessment"}
-
-Content:
-${fileData}`,
-      });
     }
 
     const response = await generateContentWithRetry(ai, {
-      model: "gemini-2.5-flash",
+      model: "gemini-3.6-flash",
       contents,
       config: {
         systemInstruction,
@@ -867,7 +1292,7 @@ Provide professional, supportive, compliant, and actionable advice.`;
     });
 
     const response = await generateContentWithRetry(ai, {
-      model: "gemini-2.5-flash",
+      model: "gemini-3.6-flash",
       contents,
       config: {
         systemInstruction,
@@ -875,7 +1300,11 @@ Provide professional, supportive, compliant, and actionable advice.`;
       },
     });
 
-    res.json({ success: true, reply: response.text });
+    res.json({
+      success: true,
+      reply: response.text,
+      advice: response.text,
+    });
   } catch (error: any) {
     console.error("Error in HOD advisor:", error);
     res.status(500).json({

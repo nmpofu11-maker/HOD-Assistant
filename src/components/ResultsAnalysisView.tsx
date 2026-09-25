@@ -35,6 +35,7 @@ import {
 import { ResultsAnalysisData, LearnerInterventionItem, StaffMember, StaffDeadlineItem } from "../types";
 import { exportResultsAnalysisXlsx } from "../utils/xlsxExport";
 import { exportResultsAnalysisDocx } from "../utils/docxExport";
+import { safePost } from "../utils/apiClient";
 
 interface ResultsAnalysisViewProps {
   staffList?: StaffMember[];
@@ -59,6 +60,7 @@ export const ResultsAnalysisView: React.FC<ResultsAnalysisViewProps> = ({
   const [uploadTeacher, setUploadTeacher] = useState("Shingi");
   const [uploadClass, setUploadClass] = useState("Grade 10A");
   const [uploadTaskDate, setUploadTaskDate] = useState(new Date().toISOString().split("T")[0]);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
 
   // Helper to compute results analysis due date (5 days after task is written)
   const computeAnalysisDueDate = (taskDateStr: string) => {
@@ -79,24 +81,23 @@ export const ResultsAnalysisView: React.FC<ResultsAnalysisViewProps> = ({
       reader.onload = async (e) => {
         const fileData = e.target?.result as string;
         try {
-          const res = await fetch("/api/results/upload-analyze", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              fileData,
-              fileName: uploadFile.name,
-              mimeType: uploadFile.type,
-              subject: selectedSubject,
-              grade: uploadClass,
-              teacher: uploadTeacher,
-              taskDate: uploadTaskDate,
-              term: selectedTerm,
-              taskName: uploadTaskName,
-            }),
+          const result = await safePost("/api/results/upload-analyze", {
+            fileData,
+            fileName: uploadFile.name,
+            mimeType: uploadFile.type,
+            subject: selectedSubject,
+            grade: uploadClass,
+            teacher: uploadTeacher,
+            taskDate: uploadTaskDate,
+            term: selectedTerm,
+            taskName: uploadTaskName,
           });
 
-          const data = await res.json();
-          if (!data.success) throw new Error(data.error);
+          if (!result.success || !result.data?.analysis) {
+            throw new Error(result.error || "Failed to analyze uploaded file.");
+          }
+
+          const data = result.data;
 
           setAnalysisData({
             ...analysisData,
@@ -264,27 +265,27 @@ export const ResultsAnalysisView: React.FC<ResultsAnalysisViewProps> = ({
   // Run AI Results Re-analysis
   const handleRunAiAnalysis = async () => {
     setIsAnalyzing(true);
+    setAnalysisError(null);
     try {
-      const res = await fetch("/api/results/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          subject: selectedSubject,
-          grade: selectedGrade,
-          term: selectedTerm,
-          taskName: analysisData.taskName,
-          cohortSize: analysisData.cohortSize,
-          averagePercentage: analysisData.averagePercentage,
-          passRatePercentage: analysisData.passRatePercentage,
-          distinctionsCount: analysisData.distinctionsCount,
-          marksDistribution: analysisData.marksDistribution,
-          strandPerformance: analysisData.strandPerformance,
-          flaggedLearners: analysisData.learnerInterventions,
-        }),
+      const result = await safePost("/api/results/analyze", {
+        subject: selectedSubject,
+        grade: selectedGrade,
+        term: selectedTerm,
+        taskName: analysisData.taskName,
+        cohortSize: analysisData.cohortSize,
+        averagePercentage: analysisData.averagePercentage,
+        passRatePercentage: analysisData.passRatePercentage,
+        distinctionsCount: analysisData.distinctionsCount,
+        marksDistribution: analysisData.marksDistribution,
+        strandPerformance: analysisData.strandPerformance,
+        flaggedLearners: analysisData.learnerInterventions,
       });
 
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error);
+      if (!result.success || !result.data?.analysis) {
+        throw new Error(result.error || "Analysis failed.");
+      }
+
+      const data = result.data;
 
       setAnalysisData({
         ...analysisData,
@@ -293,7 +294,8 @@ export const ResultsAnalysisView: React.FC<ResultsAnalysisViewProps> = ({
         strandPerformance: data.analysis.strandPerformance || analysisData.strandPerformance,
       });
     } catch (err: any) {
-      alert("Analysis error: " + err.message);
+      console.error(err);
+      setAnalysisError(err.message || "Analysis error occurred.");
     } finally {
       setIsAnalyzing(false);
     }
@@ -301,6 +303,21 @@ export const ResultsAnalysisView: React.FC<ResultsAnalysisViewProps> = ({
 
   return (
     <div className="space-y-6">
+      {analysisError && (
+        <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg flex items-center justify-between text-xs text-rose-800">
+          <div className="flex items-center gap-2">
+            <AlertOctagon className="w-4 h-4 text-rose-600 shrink-0" />
+            <span>{analysisError}</span>
+          </div>
+          <button
+            onClick={() => setAnalysisError(null)}
+            className="text-rose-600 hover:text-rose-800 font-bold ml-2"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       {/* Top Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
         <div>
