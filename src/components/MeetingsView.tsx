@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ClipboardList,
   Calendar,
@@ -597,7 +597,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
   ];
 
   // Active meeting records seeded with all 3 formats
-  const [meetings, setMeetings] = useState<MeetingRecord[]>([
+  const defaultMeetings: MeetingRecord[] = [
     {
       id: "MTG-2026-01",
       title: "Term 1 Cycle 2 Mathematics Department Meeting",
@@ -740,7 +740,30 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
         "Strategic curriculum roadmapping: synchronized CAPS ATP pacing schedules, integrated 2-week baseline bridge drills, finalized formal assessment calendar (CAT/SBA), and adopted CRA instructional modeling.",
       status: "Draft",
     },
-  ]);
+  ];
+
+  const [meetings, setMeetings] = useState<MeetingRecord[]>(defaultMeetings);
+
+  useEffect(() => {
+    fetch("/api/data/meetings.json")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setMeetings(data);
+          setSelectedMeeting(data[0]);
+        }
+      })
+      .catch((err) => console.error("Failed to load meetings:", err));
+  }, []);
+
+  const updateMeetingsAndPersist = (newMeetings: MeetingRecord[]) => {
+    setMeetings(newMeetings);
+    fetch("/api/data/meetings.json", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newMeetings),
+    }).catch((err) => console.error("Failed to save meetings:", err));
+  };
 
   const [selectedMeeting, setSelectedMeeting] = useState<MeetingRecord>(meetings[0]);
 
@@ -765,7 +788,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
     };
 
     setSelectedMeeting(updatedMeeting);
-    setMeetings(meetings.map((m) => (m.id === updatedMeeting.id ? updatedMeeting : m)));
+    updateMeetingsAndPersist(meetings.map((m) => (m.id === updatedMeeting.id ? updatedMeeting : m)));
   };
 
   // Generate automated agenda using AI with template-specific 10-point guideline structure
@@ -842,7 +865,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
         status: "Draft",
       };
 
-      setMeetings([newRecord, ...meetings]);
+      updateMeetingsAndPersist([newRecord, ...meetings]);
       setSelectedMeeting(newRecord);
       setActiveTab("scheduled");
     } catch (err: any) {
@@ -885,7 +908,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
         status: "Draft",
       };
 
-      setMeetings([fallbackRecord, ...meetings]);
+      updateMeetingsAndPersist([fallbackRecord, ...meetings]);
       setSelectedMeeting(fallbackRecord);
       setActiveTab("scheduled");
     } finally {

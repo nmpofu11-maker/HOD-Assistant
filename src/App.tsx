@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ModerationView } from "./components/ModerationView";
 import { DeadlinesView } from "./components/DeadlinesView";
 import { ResultsAnalysisView } from "./components/ResultsAnalysisView";
@@ -35,6 +35,18 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("moderation");
   const [staffList, setStaffList] = useState(INITIAL_STAFF_MEMBERS);
   const [deadlines, setDeadlines] = useState<StaffDeadlineItem[]>(INITIAL_DEADLINES);
+
+  useEffect(() => {
+    fetch("/api/data/deadlines.json")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setDeadlines(data);
+        }
+      })
+      .catch((err) => console.error("Failed to load deadlines:", err));
+  }, []);
+
   const [isAdvisorModalOpen, setIsAdvisorModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [persona, setPersona] = useState<"hod" | "shingi" | "reggie" | "luthando">("hod");
@@ -109,8 +121,18 @@ export default function App() {
     (d) => d.preModStatus === "Pending" || d.preModStatus === "Overdue"
   ).length;
 
-  const handleAddDeadline = (newDeadline: StaffDeadlineItem) => {
-    setDeadlines((prev) => [newDeadline, ...prev]);
+  const handleAddDeadline = async (newDeadline: StaffDeadlineItem) => {
+    const updated = [newDeadline, ...deadlines];
+    setDeadlines(updated);
+    try {
+      await fetch("/api/data/deadlines.json", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updated),
+      });
+    } catch (err) {
+      console.error("Failed to save new deadline on server:", err);
+    }
   };
 
   const handleUpdateDeadlineStatus = (

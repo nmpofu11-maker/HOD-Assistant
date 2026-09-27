@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   BarChart3,
   TrendingUp,
@@ -99,7 +99,7 @@ export const ResultsAnalysisView: React.FC<ResultsAnalysisViewProps> = ({
 
           const data = result.data;
 
-          setAnalysisData({
+          updateAnalysisAndPersist({
             ...analysisData,
             ...data.analysis,
             grade: uploadClass,
@@ -134,6 +134,26 @@ export const ResultsAnalysisView: React.FC<ResultsAnalysisViewProps> = ({
       setIsUploadingFile(false);
       alert("Error reading file: " + err.message);
     }
+  };
+
+  useEffect(() => {
+    fetch("/api/data/results.json")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && typeof data === "object" && data.id) {
+          setAnalysisData(data);
+        }
+      })
+      .catch((err) => console.error("Failed to load results analysis:", err));
+  }, []);
+
+  const updateAnalysisAndPersist = (newData: ResultsAnalysisData) => {
+    setAnalysisData(newData);
+    fetch("/api/data/results.json", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newData),
+    }).catch((err) => console.error("Failed to save results analysis:", err));
   };
 
   // Sample active analysis dataset for Grade 10 Mathematics

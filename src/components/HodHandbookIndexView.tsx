@@ -308,34 +308,34 @@ export const HodHandbookIndexView: React.FC<HodHandbookIndexViewProps> = ({ setA
                 new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "SUPPORT ACTION / ROADMAP", bold: true, size: 16 })] })], width: { size: 2500, type: WidthType.DXA } })
               ] }),
               new TableRow({ children: [
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Precious B.", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "12%", size: 16 })] })], width: { size: 1500, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Trig ratios confusion", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Daily visual ratio cards, after-school study.", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } })
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Learner Name]", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Mark]%", size: 16 })] })], width: { size: 1500, type: WidthType.DXA } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Diagnostic concern]", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Support action]", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } })
               ] }),
               new TableRow({ children: [
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Zanele S.", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "9%", size: 16 })] })], width: { size: 1500, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Algebra basics gap", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Immediate remediation tutoring support.", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } })
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Learner Name]", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Mark]%", size: 16 })] })], width: { size: 1500, type: WidthType.DXA } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Diagnostic concern]", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Support action]", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } })
               ] }),
               new TableRow({ children: [
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Johan v.", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "18%", size: 16 })] })], width: { size: 1500, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Functions & graphs", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Specialized graphs worksheet, weekly homework check.", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } })
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Learner Name]", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Mark]%", size: 16 })] })], width: { size: 1500, type: WidthType.DXA } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Diagnostic concern]", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Support action]", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } })
               ] }),
               new TableRow({ children: [
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Sipho K.", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "22%", size: 16 })] })], width: { size: 1500, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Linear equations", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Diagnostic equations worksheet, peer study setup.", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } })
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Learner Name]", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Mark]%", size: 16 })] })], width: { size: 1500, type: WidthType.DXA } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Diagnostic concern]", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Support action]", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } })
               ] }),
               new TableRow({ children: [
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Lerato M.", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "29%", size: 16 })] })], width: { size: 1500, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Coordinate geometry", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Daily formula review, weekly practice tasks.", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } })
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Learner Name]", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Mark]%", size: 16 })] })], width: { size: 1500, type: WidthType.DXA } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Diagnostic concern]", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Support action]", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } })
               ] }),
             ],
             width: { size: 9000, type: WidthType.DXA },
@@ -383,24 +383,24 @@ export const HodHandbookIndexView: React.FC<HodHandbookIndexViewProps> = ({ setA
             rows: [
               new TableRow({ children: [
                 new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "LEARNER NAME", bold: true, size: 16 })] })], width: { size: 3000, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Thabo N. (Grade 10)", size: 16 })] })], width: { size: 6000, type: WidthType.DXA } })
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Learner Name]", size: 16 })] })], width: { size: 6000, type: WidthType.DXA } })
               ] }),
               new TableRow({ children: [
                 new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "PARENT / GUARDIAN", bold: true, size: 16 })] })], width: { size: 3000, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Mr. & Mrs. N.", size: 16 })] })], width: { size: 6000, type: WidthType.DXA } })
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Parent / Guardian Name]", size: 16 })] })], width: { size: 6000, type: WidthType.DXA } })
               ] }),
               new TableRow({ children: [
                 new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "CONFERENCE DATE", bold: true, size: 16 })] })], width: { size: 3000, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "2026-09-18", size: 16 })] })], width: { size: 6000, type: WidthType.DXA } })
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Date]", size: 16 })] })], width: { size: 6000, type: WidthType.DXA } })
               ] }),
             ],
             width: { size: 9000, type: WidthType.DXA },
           }),
           new Paragraph({ spacing: { before: 200 } }),
           new Paragraph({ children: [new TextRun({ text: "DIAGNOSTIC EVIDENCE REVIEWED:", bold: true, size: 18, color: "1F4D3D" })] }),
-          new Paragraph({ children: [new TextRun({ text: "- Recent Grade 10 Test Mark: 50% (SBA Tracker)\n- CAT4 Quantitative Reasoning Score: 112 (Suggesting potential achievement band of 70%+)\n- Diagnostic Gap Identified: Careless linear algebraic sign omissions during timed tests.", size: 16 })], spacing: { before: 100 } }),
+          new Paragraph({ children: [new TextRun({ text: "- [Diagnostic evidence review notes here]", size: 16 })], spacing: { before: 100 } }),
           new Paragraph({ children: [new TextRun({ text: "AGREED HOME SUPPORT STRATEGY:", bold: true, size: 18, color: "1F4D3D" })] }),
-          new Paragraph({ children: [new TextRun({ text: "1. Parent to verify daily homework log is signed off twice weekly.\n2. Learner to attend Wednesday math enrichment clinics for coordinate proof practice.\n3. Teacher to supply 3 additional review tasks weekly.", size: 16 })], spacing: { before: 100 } }),
+          new Paragraph({ children: [new TextRun({ text: "[Agreed home support strategy here]", size: 16 })], spacing: { before: 100 } }),
           new Paragraph({ children: [new TextRun({ text: "Parent Signature: _______________________      Educator Signature: _______________________", size: 16 })], spacing: { before: 250 } }),
         ];
       } else if (dutyId === "accountability") {
