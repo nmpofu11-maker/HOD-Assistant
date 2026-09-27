@@ -115,32 +115,32 @@ export const HodHandbookIndexView: React.FC<HodHandbookIndexViewProps> = ({ setA
             rows: [
               new TableRow({ children: [
                 new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "DATE / TIME", bold: true, size: 16 })] })], width: { size: 3000, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "2026-09-23 at 14:30", size: 16 })] })], width: { size: 6000, type: WidthType.DXA } })
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Date / Time]", size: 16 })] })], width: { size: 6000, type: WidthType.DXA } })
               ] }),
               new TableRow({ children: [
                 new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "VENUE", bold: true, size: 16 })] })], width: { size: 3000, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Secondary Mathematics Staffroom", size: 16 })] })], width: { size: 6000, type: WidthType.DXA } })
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Venue]", size: 16 })] })], width: { size: 6000, type: WidthType.DXA } })
               ] }),
               new TableRow({ children: [
                 new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "CHAIRPERSON", bold: true, size: 16 })] })], width: { size: 3000, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "HOD Mpofu (All Subjects)", size: 16 })] })], width: { size: 6000, type: WidthType.DXA } })
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Chairperson Name]", size: 16 })] })], width: { size: 6000, type: WidthType.DXA } })
               ] }),
               new TableRow({ children: [
                 new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "ATTENDEES", bold: true, size: 16 })] })], width: { size: 3000, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Shingi (Grade 10), Reggie (Grade 11-12), Luthando (Cambridge)", size: 16 })] })], width: { size: 6000, type: WidthType.DXA } })
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[List of Attendees]", size: 16 })] })], width: { size: 6000, type: WidthType.DXA } })
               ] }),
             ],
             width: { size: 9000, type: WidthType.DXA },
           }),
           new Paragraph({ spacing: { before: 200 } }),
           new Paragraph({ children: [new TextRun({ text: "1. WELCOME & CHAIRPERSON'S REMARKS", bold: true, size: 18, color: "1F4D3D" })] }),
-          new Paragraph({ children: [new TextRun({ text: "HOD Mpofu welcomed the department. Commended Shingi on completing the pre-moderation process for the Grade 10 Test 1 5 school days in advance under Policy §7.1. Stressed importance of consistent support.", size: 16 })], spacing: { after: 150 } }),
+          new Paragraph({ children: [new TextRun({ text: "[Narrative summary of welcome remarks here]", size: 16 })], spacing: { after: 150 } }),
           new Paragraph({ children: [new TextRun({ text: "2. CURRICULUM PACING SPOT-CHECK REVIEW (ATPs)", bold: true, size: 18, color: "1F4D3D" })] }),
-          new Paragraph({ children: [new TextRun({ text: "All grades on track. Grade 12 Calculus pacing is slightly tight due to mock examination prep; Reggie to implement 2 revision tutorials. Grade 10 Probability successfully completed.", size: 16 })], spacing: { after: 150 } }),
+          new Paragraph({ children: [new TextRun({ text: "[Narrative summary of curriculum pacing here]", size: 16 })], spacing: { after: 150 } }),
           new Paragraph({ children: [new TextRun({ text: "3. ASSESSMENT & MODERATION REVIEW (§7.1 & §7.2)", bold: true, size: 18, color: "1F4D3D" })] }),
-          new Paragraph({ children: [new TextRun({ text: "Policy §7.1 submission deadlines were perfectly met for the upcoming Grade 10 Test. Policy §7.2 requires a strict 10% stratified sample post-moderation audit in purple pen. HOD verified that Thabo N. and Lerato M.'s scripts are selected for audit.", size: 16 })], spacing: { after: 150 } }),
+          new Paragraph({ children: [new TextRun({ text: "[Narrative summary of assessment and moderation review here]", size: 16 })], spacing: { after: 150 } }),
           new Paragraph({ children: [new TextRun({ text: "4. LEARNER INTERVENTIONS & ACTION ROADMAPS", bold: true, size: 18, color: "1F4D3D" })] }),
-          new Paragraph({ children: [new TextRun({ text: "Learner progress checks completed. Identified at-risk borderline bands scoring <30%: Lerato M. (29%), Sipho K. (22%), Johan v. (18%), Zanele S. (9%), and Precious B. (12%). Appendix 10 action plans are activated under teacher supervision.", size: 16 })], spacing: { after: 150 } }),
+          new Paragraph({ children: [new TextRun({ text: "[Narrative summary of learner interventions here]", size: 16 })], spacing: { after: 150 } }),
           new Paragraph({ children: [new TextRun({ text: "5. DELEGATED ACTIONS TRACKER", bold: true, size: 18, color: "1F4D3D" })] }),
           new Table({
             rows: [
@@ -150,14 +150,9 @@ export const HodHandbookIndexView: React.FC<HodHandbookIndexViewProps> = ({ setA
                 new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "TARGET DATE", bold: true, size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
               ] }),
               new TableRow({ children: [
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Implement Grade 12 Calculus pacing catch-up tutorials", size: 16 })] })], width: { size: 4000, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Reggie", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "2026-09-24", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
-              ] }),
-              new TableRow({ children: [
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Initiate Appendix 10 homework checks for at-risk learners", size: 16 })] })], width: { size: 4000, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Shingi & Reggie", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "2026-09-21", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Action Task Description]", size: 16 })] })], width: { size: 4000, type: WidthType.DXA } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Responsible Person]", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Target Date]", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
               ] }),
             ],
             width: { size: 9000, type: WidthType.DXA },
@@ -180,26 +175,16 @@ export const HodHandbookIndexView: React.FC<HodHandbookIndexViewProps> = ({ setA
                 new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "STATUS & DATE", bold: true, size: 16 })] })], width: { size: 3000, type: WidthType.DXA } })
               ] }),
               new TableRow({ children: [
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Grade 10 Maths", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Probability, Coordinate Geometry, Functions", size: 16 })] })], width: { size: 3500, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Completed (2026-09-12)", size: 16 })] })], width: { size: 3000, type: WidthType.DXA } })
-              ] }),
-              new TableRow({ children: [
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Grade 11 Maths", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Circle Theorems, Similarity, Trigonometry", size: 16 })] })], width: { size: 3500, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Completed (2026-09-14)", size: 16 })] })], width: { size: 3000, type: WidthType.DXA } })
-              ] }),
-              new TableRow({ children: [
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Grade 12 Maths", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Differential Calculus, Optimization", size: 16 })] })], width: { size: 3500, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "In Progress (Target: 2026-09-22)", size: 16 })] })], width: { size: 3000, type: WidthType.DXA } })
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Grade]", size: 16 })] })], width: { size: 2500, type: WidthType.DXA } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Topics Assigned]", size: 16 })] })], width: { size: 3500, type: WidthType.DXA } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "[Status & Date]", size: 16 })] })], width: { size: 3000, type: WidthType.DXA } })
               ] }),
             ],
             width: { size: 9000, type: WidthType.DXA },
           }),
           new Paragraph({ spacing: { before: 200 } }),
           new Paragraph({ children: [new TextRun({ text: "HOD RECOMMENDATIONS & ACTIONS:", bold: true, size: 18, color: "1F4D3D" })] }),
-          new Paragraph({ children: [new TextRun({ text: "✓ Bi-weekly pacing checks indicate perfect compliance with CAPS ATP outlines across Grades 8-11. Grade 12 calculus requires a slight boost due to mock examination pacing, catch-up tutorials have been scheduled.", size: 16 })], spacing: { before: 100 } }),
+          new Paragraph({ children: [new TextRun({ text: "[Narrative summary of curriculum pacing here]", size: 16 })], spacing: { before: 100 } }),
           new Paragraph({ children: [new TextRun({ text: "HOD Signature: _______________________      Date: _______________________", size: 16 })], spacing: { before: 200 } }),
         ];
       } else if (dutyId === "teaching-learning") {

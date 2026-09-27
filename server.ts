@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
@@ -47,9 +48,7 @@ async function generateContentWithRetry(
     config?: any;
   }
 ) {
-  const modelsToTry = Array.from(
-    new Set([params.model || "gemini-3.6-flash", "gemini-3.6-flash", "gemini-flash-latest", "gemini-3.1-flash-lite"])
-  );
+  const modelsToTry = [params.model || "gemini-flash-latest", "gemini-flash-latest", "gemini-3.1-flash-lite"];
   let lastError: any = null;
 
   for (const model of modelsToTry) {
@@ -104,6 +103,122 @@ async function generateContentWithRetry(
   }
 
   throw lastError || new Error("Failed to generate content from Gemini after multiple attempts and fallbacks.");
+}
+
+// Persistence helper functions
+const DATA_DIR = path.join(process.cwd(), "data");
+function readJsonFile(filename: string): any[] {
+  const filePath = path.join(DATA_DIR, filename);
+  if (!fs.existsSync(filePath)) return [];
+  try {
+    return JSON.parse(fs.readFileSync(filePath, "utf-8"));
+  } catch (e) {
+    return [];
+  }
+}
+
+function writeJsonFile(filename: string, data: any[]): void {
+  fs.writeFileSync(path.join(DATA_DIR, filename), JSON.stringify(data, null, 2));
+}
+
+// Persistence Endpoints
+app.get("/api/data/:filename", (req, res) => res.json(readJsonFile(req.params.filename)));
+app.post("/api/data/:filename", (req, res) => {
+  const data = readJsonFile(req.params.filename);
+  data.push(req.body);
+  writeJsonFile(req.params.filename, data);
+  res.json({ success: true });
+});
+app.put("/api/data/:filename", (req, res) => {
+  writeJsonFile(req.params.filename, req.body);
+  res.json({ success: true });
+});
+
+// Endpoint: Upload Exam/Assessment Calendar
+app.post("/api/deadlines/upload-calendar", async (req, res) => {
+  try {
+    const { fileData, mimeType, fileName } = req.body;
+    if (!fileData) {
+      return res.status(400).json({ success: false, error: "Missing fileData" });
+    }
+
+    const { text } = await extractTextFromAnyFile(fileData, mimeType, fileName);
+
+    const ai = getGeminiClient();
+    const systemInstruction = `You are the HOD Assistant for Eagle House School.
+Extract assessment deadlines from the provided text into a JSON array of objects.
+Shape each object like: { teacherName, subject, grade, curriculum, taskName, testDate, totalMarks, term }.
+Return valid JSON ONLY with this structure:
+{
+  "deadlines": [
+    {
+      "teacherName": string,
+      "subject": string,
+      "grade": string,
+      "curriculum": "IEB" | "CAPS" | "Cambridge",
+      "taskName": string,
+      "testDate": string,
+      "totalMarks": number,
+      "term": number
+    }
+  ]
+}`;
+
+    const promptText = `Extract assessment deadlines from the following calendar content:
+${text}`;
+
+    const report = await parseAndValidate(ai, {
+      model: "gemini-flash-latest",
+      contents: [{ text: promptText }],
+      config: {
+        systemInstruction,
+        responseMimeType: "application/json",
+        temperature: 0.1,
+      },
+    }, z.object({ deadlines: z.array(DeadlineSchema) }));
+
+    res.json({ success: true, deadlines: report.deadlines });
+  } catch (error: any) {
+    console.error("Error in upload-calendar:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message || "Failed to process calendar.",
+    });
+  }
+});
+
+
+import { PreModerationSchema, PostModerationSchema, ScriptAnalysisSchema, MeetingSchema, ResultsSchema, DeadlineSchema } from "./src/utils/validation";
+import { z } from "zod";
+
+async function parseAndValidate<T>(
+  ai: GoogleGenAI,
+  params: any,
+  schema: z.ZodSchema<T>
+): Promise<T> {
+  const response = await generateContentWithRetry(ai, params);
+  let responseText = response.text?.trim() || "{}";
+  
+  try {
+    const json = JSON.parse(responseText);
+    return schema.parse(json);
+  } catch (err) {
+    console.warn("[Gemini Validation] Schema mismatch. Retrying with explicit instructions...");
+    
+    // Retry once with extra instruction
+    const retryParams = {
+        ...params,
+        contents: [
+            ...params.contents,
+            { text: "Your previous response was not valid JSON matching the required schema — return ONLY valid JSON this time following the requested structure." }
+        ]
+    };
+
+    const retryResponse = await generateContentWithRetry(ai, retryParams);
+    responseText = retryResponse.text?.trim() || "{}";
+    const json = JSON.parse(responseText);
+    return schema.parse(json);
+  }
 }
 
 // Health check endpoint
@@ -301,19 +416,17 @@ Evaluate all 12 checklist points rigorously, provide deep constructive mathemati
 
     parts.push({ text: promptText });
 
-    const response = await generateContentWithRetry(ai, {
-      model: "gemini-3.6-flash",
+    const report = await parseAndValidate(ai, {
+      model: "gemini-flash-latest",
       contents: { parts },
       config: {
         systemInstruction,
         responseMimeType: "application/json",
         temperature: 0.2,
       },
-    });
+    }, PreModerationSchema);
 
-    const responseText = response.text?.trim() || "{}";
-    const result = JSON.parse(responseText);
-    res.json({ success: true, report: result });
+    res.json({ success: true, report });
   } catch (error: any) {
     console.error("Error in pre-moderation:", error);
     res.status(500).json({
@@ -432,7 +545,7 @@ async function extractTextFromAnyFile(
     ];
 
     const response = await generateContentWithRetry(ai, {
-      model: "gemini-3.6-flash",
+      model: "gemini-flash-latest",
       contents: { parts },
       config: {
         systemInstruction,
@@ -472,7 +585,7 @@ async function extractTextFromAnyFile(
   ];
 
   const response = await generateContentWithRetry(ai, {
-    model: "gemini-3.6-flash",
+    model: "gemini-flash-latest",
     contents: { parts },
     config: {
       systemInstruction,
@@ -606,19 +719,17 @@ Return valid JSON ONLY with this structure:
 
 Perform a detailed audit and generate the post-moderation report in JSON.`;
 
-    const response = await generateContentWithRetry(ai, {
-      model: "gemini-3.6-flash",
+    const report = await parseAndValidate(ai, {
+      model: "gemini-flash-latest",
       contents: promptText,
       config: {
         systemInstruction,
         responseMimeType: "application/json",
         temperature: 0.2,
       },
-    });
+    }, PostModerationSchema);
 
-    const responseText = response.text?.trim() || "{}";
-    const result = JSON.parse(responseText);
-    res.json({ success: true, report: result });
+    res.json({ success: true, report });
   } catch (error: any) {
     console.error("Error in post-moderation:", error);
     res.status(500).json({
@@ -674,19 +785,17 @@ Perform a rigorous, exact mathematical and quality audit on the uploaded handwri
     });
     parts.push({ text: promptText });
 
-    const response = await generateContentWithRetry(ai, {
-      model: "gemini-3.6-flash",
+    const analysis = await parseAndValidate(ai, {
+      model: "gemini-flash-latest",
       contents: { parts },
       config: {
         systemInstruction,
         responseMimeType: "application/json",
         temperature: 0.1,
       },
-    });
+    }, ScriptAnalysisSchema);
 
-    const responseText = response.text?.trim() || "{}";
-    const result = JSON.parse(responseText);
-    res.json({ success: true, analysis: result });
+    res.json({ success: true, analysis });
   } catch (error: any) {
     console.error("Error in scanned script analysis:", error);
     res.status(500).json({
@@ -795,19 +904,17 @@ Return valid JSON ONLY with this exact format:
 
 Ensure all 10 agenda points corresponding to the "${templateType}" format are fully populated with realistic, professional discussion notes, decisions, and clear action items for Eagle House School Mathematics educators.`;
 
-    const response = await generateContentWithRetry(ai, {
-      model: "gemini-3.6-flash",
+    const meeting = await parseAndValidate(ai, {
+      model: "gemini-flash-latest",
       contents: prompt,
       config: {
         systemInstruction,
         responseMimeType: "application/json",
         temperature: 0.3,
       },
-    });
+    }, MeetingSchema);
 
-    const responseText = response.text?.trim() || "{}";
-    const result = JSON.parse(responseText);
-    res.json({ success: true, meeting: result });
+    res.json({ success: true, meeting });
   } catch (error: any) {
     console.error("Error generating meeting:", error);
     res.status(500).json({
@@ -992,18 +1099,15 @@ ${rawTextContent ? `\n--- SOURCE TEXT EXTRACTED ---\n${rawTextContent}` : ""}`;
     }
     contentParts.push({ text: promptText });
 
-    const response = await generateContentWithRetry(ai, {
-      model: "gemini-3.6-flash",
+    const result = await parseAndValidate(ai, {
+      model: "gemini-flash-latest",
       contents: contentParts,
       config: {
         systemInstruction,
         responseMimeType: "application/json",
         temperature: 0.2,
       },
-    });
-
-    const responseText = response.text?.trim() || "{}";
-    const result = JSON.parse(responseText);
+    }, MeetingSchema);
 
     if (!result.rawTranscribedText && rawTextContent) {
       result.rawTranscribedText = rawTextContent;
@@ -1097,19 +1201,17 @@ Return valid JSON ONLY with this structure:
 
 Provide a deep pedagogical diagnostic and actionable HOD interventions.`;
 
-    const response = await generateContentWithRetry(ai, {
-      model: "gemini-3.6-flash",
+    const analysis = await parseAndValidate(ai, {
+      model: "gemini-flash-latest",
       contents: prompt,
       config: {
         systemInstruction,
         responseMimeType: "application/json",
         temperature: 0.3,
       },
-    });
+    }, ResultsSchema);
 
-    const responseText = response.text?.trim() || "{}";
-    const result = JSON.parse(responseText);
-    res.json({ success: true, analysis: result });
+    res.json({ success: true, analysis });
   } catch (error: any) {
     console.error("Error analyzing results:", error);
     res.status(500).json({
@@ -1230,18 +1332,16 @@ ${extracted.text || fileData}`,
       });
     }
 
-    const response = await generateContentWithRetry(ai, {
-      model: "gemini-3.6-flash",
+    const result = await parseAndValidate(ai, {
+      model: "gemini-flash-latest",
       contents,
       config: {
         systemInstruction,
         responseMimeType: "application/json",
         temperature: 0.2,
       },
-    });
+    }, ResultsSchema);
 
-    const responseText = response.text?.trim() || "{}";
-    const result = JSON.parse(responseText);
     res.json({ success: true, analysis: result });
   } catch (error: any) {
     console.error("Error processing uploaded results:", error);
@@ -1292,7 +1392,7 @@ Provide professional, supportive, compliant, and actionable advice.`;
     });
 
     const response = await generateContentWithRetry(ai, {
-      model: "gemini-3.6-flash",
+      model: "gemini-flash-latest",
       contents,
       config: {
         systemInstruction,

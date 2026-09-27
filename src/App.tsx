@@ -126,6 +126,33 @@ export default function App() {
     setActiveTab("moderation");
   };
 
+  const handleClearDeadlines = async () => {
+    setDeadlines([]);
+    try {
+      await fetch("/api/data/deadlines.json", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify([]),
+      });
+    } catch (err) {
+      console.error("Failed to clear deadlines on server:", err);
+    }
+  };
+
+  const handleDeleteDeadline = async (id: string) => {
+    const updatedDeadlines = deadlines.filter((d) => d.id !== id);
+    setDeadlines(updatedDeadlines);
+    try {
+      await fetch("/api/data/deadlines.json", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedDeadlines),
+      });
+    } catch (err) {
+      console.error("Failed to delete deadline on server:", err);
+    }
+  };
+
   const handleSelectTeacherForDeadlines = (teacherName: string) => {
     setActiveTab("deadlines");
   };
@@ -329,6 +356,8 @@ export default function App() {
                 onAddDeadline={handleAddDeadline}
                 onUpdateStatus={handleUpdateDeadlineStatus}
                 onSelectForModeration={handleSelectForModeration}
+                onClearDeadlines={handleClearDeadlines}
+                onDeleteDeadline={handleDeleteDeadline}
                 currentTerm={currentTerm}
                 onTermChange={handleTermChange}
               />
