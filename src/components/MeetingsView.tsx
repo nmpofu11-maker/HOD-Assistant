@@ -1651,11 +1651,11 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
       }),
     };
     setSelectedMeeting(updated);
-    setMeetings(meetings.map((m) => (m.id === updated.id ? updated : m)));
+    updateMeetingsAndPersist(meetings.map((m) => (m.id === updated.id ? updated : m)));
   };
 
   const handleMeetingProcessed = (record: MeetingRecord, target: "minutes" | "agenda") => {
-    setMeetings((prev) => [record, ...prev]);
+    updateMeetingsAndPersist([record, ...meetings]);
     setSelectedMeeting(record);
     setViewSubTab("agenda");
     setActiveTab("scheduled");

@@ -135,13 +135,23 @@ export default function App() {
     }
   };
 
-  const handleUpdateDeadlineStatus = (
+  const handleUpdateDeadlineStatus = async (
     id: string,
     status: StaffDeadlineItem["preModStatus"]
   ) => {
-    setDeadlines((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, preModStatus: status } : item))
+    const updated = deadlines.map((item) =>
+      item.id === id ? { ...item, preModStatus: status } : item
     );
+    setDeadlines(updated);
+    try {
+      await fetch("/api/data/deadlines.json", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updated),
+      });
+    } catch (err) {
+      console.error("Failed to update deadline status on server:", err);
+    }
   };
 
   const handleSelectForModeration = (task: StaffDeadlineItem) => {

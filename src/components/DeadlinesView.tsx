@@ -112,6 +112,8 @@ export const DeadlinesView: React.FC<DeadlinesViewProps> = ({
   onAddDeadline,
   onUpdateStatus,
   onSelectForModeration,
+  onClearDeadlines,
+  onDeleteDeadline,
   currentTerm,
   onTermChange,
 }) => {

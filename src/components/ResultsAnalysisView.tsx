@@ -140,7 +140,9 @@ export const ResultsAnalysisView: React.FC<ResultsAnalysisViewProps> = ({
     fetch("/api/data/results.json")
       .then((res) => res.json())
       .then((data) => {
-        if (data && typeof data === "object" && data.id) {
+        if (Array.isArray(data) && data.length > 0) {
+          setAnalysisData(data[0]);
+        } else if (data && typeof data === "object" && data.id) {
           setAnalysisData(data);
         }
       })
@@ -307,12 +309,14 @@ export const ResultsAnalysisView: React.FC<ResultsAnalysisViewProps> = ({
 
       const data = result.data;
 
-      setAnalysisData({
+      const updatedAnalysis: ResultsAnalysisData = {
         ...analysisData,
         ...data.analysis,
         marksDistribution: data.analysis.marksDistribution || analysisData.marksDistribution,
         strandPerformance: data.analysis.strandPerformance || analysisData.strandPerformance,
-      });
+      };
+
+      updateAnalysisAndPersist(updatedAnalysis);
     } catch (err: any) {
       console.error(err);
       setAnalysisError(err.message || "Analysis error occurred.");

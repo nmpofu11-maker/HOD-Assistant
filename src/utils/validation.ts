@@ -72,6 +72,7 @@ export const MeetingSchema = z.object({
     status: z.enum(["Pending", "In Progress", "Completed"]),
   })),
   minutesSummary: z.string(),
+  rawTranscribedText: z.string().optional(),
 });
 
 export const ResultsSchema = z.object({
