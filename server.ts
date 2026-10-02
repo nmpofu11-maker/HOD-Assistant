@@ -128,6 +128,34 @@ function writeJsonFile(filename: string, data: any[]): void {
   fs.writeFileSync(path.join(DATA_DIR, filename), JSON.stringify(data, null, 2));
 }
 
+
+// Optional production protection for persistent data writes.
+// Leave HOD_ADMIN_KEY unset for local development; set it in production to require
+// Authorization: Bearer <key> on POST/PUT /api/data/*.
+function requireDataWriteAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
+  const configuredKey = process.env.HOD_ADMIN_KEY;
+  if (!configuredKey) return next();
+  const auth = req.header("authorization") || "";
+  if (auth === `Bearer ${configuredKey}`) return next();
+  return res.status(401).json({ success: false, error: "Authorisation required for data changes." });
+}
+
+const advisorRate = new Map<string, { count: number; resetAt: number }>();
+function advisorRateLimit(req: express.Request, res: express.Response, next: express.NextFunction) {
+  const now = Date.now();
+  const key = req.ip || "unknown";
+  const current = advisorRate.get(key);
+  if (!current || current.resetAt <= now) {
+    advisorRate.set(key, { count: 1, resetAt: now + 60_000 });
+    return next();
+  }
+  if (current.count >= 30) {
+    return res.status(429).json({ success: false, error: "Too many advisor requests. Please wait a minute and try again." });
+  }
+  current.count += 1;
+  return next();
+}
+
 // Persistence Endpoints
 // Only expose the application's known JSON stores. This prevents path traversal
 // and accidental reads/writes of arbitrary server files.
@@ -144,7 +172,7 @@ app.get("/api/data/:filename", (req, res) => {
   return res.json(readJsonFile(filename));
 });
 
-app.post("/api/data/:filename", (req, res) => {
+app.post("/api/data/:filename", requireDataWriteAuth, (req, res) => {
   const filename = validateDataFilename(req.params.filename);
   if (!filename) return res.status(404).json({ success: false, error: "Unknown data resource." });
   const data = readJsonFile(filename);
@@ -154,7 +182,7 @@ app.post("/api/data/:filename", (req, res) => {
   return res.json({ success: true });
 });
 
-app.put("/api/data/:filename", (req, res) => {
+app.put("/api/data/:filename", requireDataWriteAuth, (req, res) => {
   const filename = validateDataFilename(req.params.filename);
   if (!filename) return res.status(404).json({ success: false, error: "Unknown data resource." });
   if (!Array.isArray(req.body)) return res.status(400).json({ success: false, error: "Expected an array payload." });
@@ -219,6 +247,18 @@ ${text}`;
 import { PreModerationSchema, PostModerationSchema, ScriptAnalysisSchema, MeetingSchema, ResultsSchema, DeadlineSchema } from "./src/utils/validation";
 import { buildCurriculumContext, retrieveKnowledge } from "./src/data/hodKnowledgeBase";
 import { z } from "zod";
+
+const AdvisorRequestSchema = z.object({
+  query: z.string().trim().min(1).max(12000),
+  conversationHistory: z.array(z.object({
+    role: z.enum(["user", "assistant"]),
+    content: z.string().max(6000)
+  })).max(10).optional(),
+  department: z.string().max(200).optional(),
+  subject: z.string().max(120).optional(),
+  grade: z.string().max(30).optional(),
+  curriculum: z.enum(["IEB", "CAPS", "Cambridge"]).optional()
+});
 
 async function parseAndValidate<T>(
   ai: GoogleGenAI,
@@ -1382,8 +1422,12 @@ ${extracted.text || fileData}`,
 });
 
 // Endpoint: AI HOD Advisor / Assistant Chat for Departmental Guidance
-app.post("/api/hod/advisor", async (req, res) => {
+app.post("/api/hod/advisor", advisorRateLimit, async (req, res) => {
   try {
+    const parsedRequest = AdvisorRequestSchema.safeParse(req.body || {});
+    if (!parsedRequest.success) {
+      return res.status(400).json({ success: false, error: "Invalid advisor request. Please check the question and context fields." });
+    }
     const {
       query,
       conversationHistory,
@@ -1391,11 +1435,7 @@ app.post("/api/hod/advisor", async (req, res) => {
       subject,
       grade,
       curriculum
-    } = req.body || {};
-
-    if (typeof query !== "string" || !query.trim()) {
-      return res.status(400).json({ success: false, error: "Please enter a question." });
-    }
+    } = parsedRequest.data;
 
     const ai = getGeminiClient();
     const context = buildCurriculumContext(subject || department, grade, curriculum);
