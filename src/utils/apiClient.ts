@@ -118,7 +118,7 @@ export async function safeGet<T = any>(url: string, timeoutMs: number = 15000): 
   try {
     const response = await fetch(url, { signal: controller.signal });
     const contentType = response.headers.get("content-type") || "";
-    const json = contentType.includes("application/json") ? await response.json() : null;
+    const json: any = contentType.includes("application/json") ? await response.json() : null;
     if (!response.ok) return { success: false, error: json?.error || `Server returned error status ${response.status}`, data: json };
     return { success: true, data: json };
   } catch (err: any) {
