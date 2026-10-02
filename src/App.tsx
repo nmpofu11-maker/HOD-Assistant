@@ -11,6 +11,7 @@ import { AiAdvisorModal } from "./components/AiAdvisorModal";
 import { INITIAL_STAFF_MEMBERS } from "./data/staffData";
 import { INITIAL_DEADLINES } from "./data/curriculumData";
 import { StaffDeadlineItem } from "./types";
+import { safeGet, safePut } from "./utils/apiClient";
 import {
   ShieldCheck,
   Sparkles,
@@ -37,14 +38,10 @@ export default function App() {
   const [deadlines, setDeadlines] = useState<StaffDeadlineItem[]>(INITIAL_DEADLINES);
 
   useEffect(() => {
-    fetch("/api/data/deadlines.json")
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          setDeadlines(data);
-        }
-      })
-      .catch((err) => console.error("Failed to load deadlines:", err));
+    safeGet<StaffDeadlineItem[]>("/api/data/deadlines.json").then((result) => {
+      if (result.success && Array.isArray(result.data)) setDeadlines(result.data);
+      else if (!result.success) console.error("Failed to load deadlines:", result.error);
+    });
   }, []);
 
   const [isAdvisorModalOpen, setIsAdvisorModalOpen] = useState(false);
@@ -132,11 +129,8 @@ export default function App() {
     const updated = [newDeadline, ...deadlines];
     setDeadlines(updated);
     try {
-      await fetch("/api/data/deadlines.json", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updated),
-      });
+      const result = await safePut("/api/data/deadlines.json", updated);
+      if (!result.success) throw new Error(result.error || "Save failed.");
     } catch (err) {
       console.error("Failed to save new deadline on server:", err);
     }
@@ -151,11 +145,8 @@ export default function App() {
     );
     setDeadlines(updated);
     try {
-      await fetch("/api/data/deadlines.json", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updated),
-      });
+      const result = await safePut("/api/data/deadlines.json", updated);
+      if (!result.success) throw new Error(result.error || "Save failed.");
     } catch (err) {
       console.error("Failed to update deadline status on server:", err);
     }
@@ -168,11 +159,8 @@ export default function App() {
   const handleClearDeadlines = async () => {
     setDeadlines([]);
     try {
-      await fetch("/api/data/deadlines.json", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify([]),
-      });
+      const result = await safePut("/api/data/deadlines.json", []);
+      if (!result.success) throw new Error(result.error || "Save failed.");
     } catch (err) {
       console.error("Failed to clear deadlines on server:", err);
     }
