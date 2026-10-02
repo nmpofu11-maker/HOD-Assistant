@@ -48,7 +48,7 @@ async function generateContentWithRetry(
     config?: any;
   }
 ) {
-  const modelsToTry = [params.model || "gemini-flash-latest", "gemini-flash-latest", "gemini-3.1-flash-lite"];
+  const modelsToTry = [params.model || process.env.GEMINI_MODEL || "gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.1-flash-lite"];
   let lastError: any = null;
 
   for (const model of modelsToTry) {
@@ -58,9 +58,16 @@ async function generateContentWithRetry(
     while (attempts > 0) {
       try {
         console.log(`[Gemini Request] Attempting with model: ${model} (Remaining attempts: ${attempts})`);
+        const safeConfig = { ...(params.config || {}) };
+        // Gemini 3.8 Flash does not use legacy sampling parameters.
+        delete safeConfig.temperature;
+        delete safeConfig.top_p;
+        delete safeConfig.top_k;
+
         const response = await ai.models.generateContent({
           ...params,
           model,
+          config: safeConfig,
         });
         return response;
       } catch (err: any) {
@@ -1435,17 +1442,25 @@ ${sourceText}
 OPERATING RULES:
 ${context.operatingRules.map((rule) => `- ${rule}`).join("\n")}`;
 
-    const contents: any[] = [];
-    if (Array.isArray(conversationHistory)) {
-      conversationHistory.slice(-10).forEach((item: any) => {
-        if (!item || !item.content) return;
-        contents.push({
-          role: item.role === "user" ? "user" : "model",
-          parts: [{ text: String(item.content).slice(0, 8000) }]
-        });
-      });
-    }
-    contents.push({ role: "user", parts: [{ text: query.trim() }] });
+    const historyText = Array.isArray(conversationHistory)
+      ? conversationHistory
+          .slice(-10)
+          .filter((item: any) => item?.content)
+          .map((item: any) => `${item.role === "user" ? "HOD" : "Advisor"}: ${String(item.content).slice(0, 6000)}`)
+          .join("\n\n")
+      : "";
+
+    // Keep the request in a single user turn so the current Gemini generation
+    // API does not receive prefilled model turns.
+    const contents = [{
+      role: "user",
+      parts: [{
+        text: [
+          historyText ? `RECENT CONVERSATION:\n${historyText}` : "",
+          `CURRENT QUESTION:\n${query.trim()}`
+        ].filter(Boolean).join("\n\n")
+      }]
+    }];
 
     const response = await generateContentWithRetry(ai, {
       model: "gemini-flash-latest",
