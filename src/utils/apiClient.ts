@@ -99,7 +99,7 @@ export async function safePut<T = any>(
       signal: controller.signal,
     });
     const contentType = response.headers.get("content-type") || "";
-    const json = contentType.includes("application/json") ? await response.json() : null;
+    const json: any = contentType.includes("application/json") ? await response.json() : null;
     if (!response.ok || json?.success === false) {
       return { success: false, error: json?.error || `Server returned error status ${response.status}`, data: json };
     }
