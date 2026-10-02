@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { safePost } from "../utils/apiClient";
 import {
   Sparkles,
   X,
@@ -30,6 +31,19 @@ export const AiAdvisorModal: React.FC<AiAdvisorModalProps> = ({ isOpen, onClose 
   ]);
   const [inputQuery, setInputQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedSubject, setSelectedSubject] = useState("Mathematics");
+  const [selectedGrade, setSelectedGrade] = useState("Grade 10");
+  const [selectedCurriculum, setSelectedCurriculum] = useState("IEB");
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const endRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isOpen) setTimeout(() => inputRef.current?.focus(), 50);
+  }, [isOpen]);
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isLoading]);
 
   if (!isOpen) return null;
 
@@ -44,30 +58,19 @@ export const AiAdvisorModal: React.FC<AiAdvisorModalProps> = ({ isOpen, onClose 
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/hod/advisor", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: userText,
-          conversationHistory: newMessages.slice(-6),
-          department: "Mathematics & Mathematical Literacy",
-          curriculum: "IEB SAGS, CAPS ATP, Cambridge",
-        }),
+      const result = await safePost("/api/hod/advisor", {
+        query: userText,
+        conversationHistory: newMessages.slice(-10),
+        department: "Mathematics & Mathematical Literacy",
+        subject: selectedSubject,
+        grade: selectedGrade,
+        curriculum: selectedCurriculum,
       });
 
-      const contentType = response.headers.get("content-type") || "";
-      if (!contentType.includes("application/json")) {
-        const text = await response.text();
-        if (text.includes("<!doctype") || text.includes("<html")) {
-          throw new Error("The HOD AI service is initializing. Please retry in a few seconds.");
-        }
-        throw new Error(text || `Server returned status ${response.status}`);
-      }
+      if (!result.success) throw new Error(result.error || "Failed to retrieve guidance.");
 
-      const data = await response.json();
-      if (!data.success) throw new Error(data.error || "Failed to retrieve guidance.");
-
-      const replyContent = data.reply || data.advice || "No guidance received.";
+      const data: any = result.data;
+      const replyContent = data?.reply || data?.advice || "No guidance received.";
       setMessages([...newMessages, { role: "assistant", content: replyContent }]);
     } catch (err: any) {
       setMessages([
@@ -91,7 +94,7 @@ export const AiAdvisorModal: React.FC<AiAdvisorModalProps> = ({ isOpen, onClose 
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-2xl w-full h-[620px] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-3xl w-full h-[min(760px,92vh)] flex flex-col shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
         {/* Modal Header */}
         <div className="bg-slate-900 text-white p-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -106,7 +109,7 @@ export const AiAdvisorModal: React.FC<AiAdvisorModalProps> = ({ isOpen, onClose 
                 </span>
               </h3>
               <p className="text-[11px] text-slate-400">
-                Trained on Eagle House HOD Handbook, Assessment Policies §7.1/§7.2, and Curriculum SAGS
+                Grounded in Eagle House policy plus the supplied 2026 IEB/DBE curriculum sources
               </p>
             </div>
           </div>
@@ -119,6 +122,26 @@ export const AiAdvisorModal: React.FC<AiAdvisorModalProps> = ({ isOpen, onClose 
         </div>
 
         {/* Chat History */}
+        <div className="px-4 pt-3 pb-2 bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-700 flex flex-wrap gap-2">
+          <label className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500">
+            Subject
+            <select value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)} className="px-2 py-1 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">
+              <option>Mathematics</option><option>Mathematical Literacy</option><option>Other subject</option>
+            </select>
+          </label>
+          <label className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500">
+            Grade
+            <select value={selectedGrade} onChange={(e) => setSelectedGrade(e.target.value)} className="px-2 py-1 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">
+              <option>Grade 8</option><option>Grade 9</option><option>Grade 10</option><option>Grade 11</option><option>Grade 12</option>
+            </select>
+          </label>
+          <label className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500">
+            Framework
+            <select value={selectedCurriculum} onChange={(e) => setSelectedCurriculum(e.target.value)} className="px-2 py-1 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">
+              <option>IEB</option><option>CAPS</option><option>Cambridge</option>
+            </select>
+          </label>
+        </div>
         <div className="flex-1 overflow-y-auto p-4 space-y-4 text-xs">
           {messages.map((m, idx) => (
             <div
@@ -147,6 +170,7 @@ export const AiAdvisorModal: React.FC<AiAdvisorModalProps> = ({ isOpen, onClose 
             </div>
           ))}
 
+          <div ref={endRef} />
           {isLoading && (
             <div className="flex gap-3 justify-start items-center">
               <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
@@ -166,7 +190,7 @@ export const AiAdvisorModal: React.FC<AiAdvisorModalProps> = ({ isOpen, onClose 
             {samplePrompts.map((p, i) => (
               <button
                 key={i}
-                onClick={() => setInputQuery(p)}
+                onClick={() => { setInputQuery(p); setTimeout(() => inputRef.current?.focus(), 0); }}
                 className="text-[11px] px-2.5 py-1 rounded-full bg-white border border-slate-200 text-slate-700 hover:border-blue-400 hover:text-blue-700 transition-colors cursor-pointer"
               >
                 {p}
@@ -177,12 +201,19 @@ export const AiAdvisorModal: React.FC<AiAdvisorModalProps> = ({ isOpen, onClose 
 
         {/* Input Bar */}
         <form onSubmit={handleSendMessage} className="p-3 bg-white border-t border-slate-200 flex gap-2">
-          <input
-            type="text"
+          <textarea
+            ref={inputRef}
             value={inputQuery}
             onChange={(e) => setInputQuery(e.target.value)}
-            placeholder="Ask AI HOD Advisor for guidance or drafting..."
-            className="flex-1 px-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:outline-hidden focus:ring-1 focus:ring-blue-500"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                e.currentTarget.form?.requestSubmit();
+              }
+            }}
+            rows={2}
+            placeholder="Ask about curriculum, moderation, results, staff, meetings or draft a document..."
+            className="flex-1 resize-none px-3.5 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button
             type="submit"
@@ -193,6 +224,7 @@ export const AiAdvisorModal: React.FC<AiAdvisorModalProps> = ({ isOpen, onClose 
             <span>Send</span>
           </button>
         </form>
+        <div className="px-3 pb-3 bg-white dark:bg-slate-900 text-[10px] text-slate-400">Enter to send · Shift+Enter for a new line · AI guidance should be checked against the current official policy/source when compliance is critical.</div>
       </div>
     </div>
   );
