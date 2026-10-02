@@ -217,7 +217,7 @@ ${text}`;
 
 
 import { PreModerationSchema, PostModerationSchema, ScriptAnalysisSchema, MeetingSchema, ResultsSchema, DeadlineSchema } from "./src/utils/validation";
-import { buildCurriculumContext } from "./src/data/hodKnowledgeBase";
+import { buildCurriculumContext, retrieveKnowledge } from "./src/data/hodKnowledgeBase";
 import { z } from "zod";
 
 async function parseAndValidate<T>(
@@ -1399,14 +1399,16 @@ app.post("/api/hod/advisor", async (req, res) => {
 
     const ai = getGeminiClient();
     const context = buildCurriculumContext(subject || department, grade, curriculum);
+    const retrieved = retrieveKnowledge(query.trim(), subject || department, grade, curriculum, 8);
 
-    const sourceText = context.sourceSummary.map((source) =>
+    const sourceText = retrieved.map(({ chunk, score }) =>
       [
-        `SOURCE: ${source.title}`,
-        `AUTHORITY: ${source.authority}`,
-        `SCOPE: ${source.scope}`,
-        "KEY POINTS:",
-        ...source.keyPoints.map((point) => `- ${point}`)
+        `SOURCE ID: ${chunk.id}`,
+        `SOURCE: ${chunk.sourceTitle}`,
+        `AUTHORITY: ${chunk.authority}`,
+        `SCOPE: ${chunk.scope}`,
+        `RELEVANCE SCORE: ${score}`,
+        `EVIDENCE: ${chunk.text}`
       ].join("\n")
     ).join("\n\n");
 
@@ -1431,6 +1433,8 @@ IMPORTANT ACCURACY RULES:
 - If sources conflict or the question requires a current external document not supplied here, say so and recommend verification against the current official document.
 - Never present a recommendation as a mandatory requirement.
 - When useful, structure answers as: Answer; Evidence/requirement; Action steps; Documentation; Escalation/verification.
+- Ground factual claims in the retrieved evidence below. Do not treat relevance score as evidence strength.
+- When citing retrieved evidence, use the exact source title in square brackets, e.g. [Eagle House School Assessment Policy V2 2026].
 - For moderation, check validity, curriculum alignment, cognitive demand, mark totals, timing, memo quality, language, diagrams/data, accessibility and policy compliance.
 - For results, convert findings into specific interventions with owners, dates and measurable success criteria.
 - For difficult staff matters, remain professional, evidence-based and supportive; do not diagnose or speculate about people.
