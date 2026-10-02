@@ -196,7 +196,7 @@ Return valid JSON ONLY with this structure:
 ${text}`;
 
     const report = await parseAndValidate(ai, {
-      model: "gemini-flash-latest",
+      model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
       contents: [{ text: promptText }],
       config: {
         systemInstruction,
@@ -446,7 +446,7 @@ Evaluate all 12 checklist points rigorously, provide deep constructive mathemati
     parts.push({ text: promptText });
 
     const report = await parseAndValidate(ai, {
-      model: "gemini-flash-latest",
+      model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
       contents: { parts },
       config: {
         systemInstruction,
@@ -574,7 +574,7 @@ async function extractTextFromAnyFile(
     ];
 
     const response = await generateContentWithRetry(ai, {
-      model: "gemini-flash-latest",
+      model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
       contents: { parts },
       config: {
         systemInstruction,
@@ -614,7 +614,7 @@ async function extractTextFromAnyFile(
   ];
 
   const response = await generateContentWithRetry(ai, {
-    model: "gemini-flash-latest",
+    model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
     contents: { parts },
     config: {
       systemInstruction,
@@ -749,7 +749,7 @@ Return valid JSON ONLY with this structure:
 Perform a detailed audit and generate the post-moderation report in JSON.`;
 
     const report = await parseAndValidate(ai, {
-      model: "gemini-flash-latest",
+      model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
       contents: promptText,
       config: {
         systemInstruction,
@@ -815,7 +815,7 @@ Perform a rigorous, exact mathematical and quality audit on the uploaded handwri
     parts.push({ text: promptText });
 
     const analysis = await parseAndValidate(ai, {
-      model: "gemini-flash-latest",
+      model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
       contents: { parts },
       config: {
         systemInstruction,
@@ -934,7 +934,7 @@ Return valid JSON ONLY with this exact format:
 Ensure all 10 agenda points corresponding to the "${templateType}" format are fully populated with realistic, professional discussion notes, decisions, and clear action items for Eagle House School Mathematics educators.`;
 
     const meeting = await parseAndValidate(ai, {
-      model: "gemini-flash-latest",
+      model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
       contents: prompt,
       config: {
         systemInstruction,
@@ -1129,7 +1129,7 @@ ${rawTextContent ? `\n--- SOURCE TEXT EXTRACTED ---\n${rawTextContent}` : ""}`;
     contentParts.push({ text: promptText });
 
     const result = await parseAndValidate(ai, {
-      model: "gemini-flash-latest",
+      model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
       contents: contentParts,
       config: {
         systemInstruction,
@@ -1231,7 +1231,7 @@ Return valid JSON ONLY with this structure:
 Provide a deep pedagogical diagnostic and actionable HOD interventions.`;
 
     const analysis = await parseAndValidate(ai, {
-      model: "gemini-flash-latest",
+      model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
       contents: prompt,
       config: {
         systemInstruction,
@@ -1362,7 +1362,7 @@ ${extracted.text || fileData}`,
     }
 
     const result = await parseAndValidate(ai, {
-      model: "gemini-flash-latest",
+      model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
       contents,
       config: {
         systemInstruction,
@@ -1467,7 +1467,7 @@ ${context.operatingRules.map((rule) => `- ${rule}`).join("\n")}`;
     }];
 
     const response = await generateContentWithRetry(ai, {
-      model: "gemini-flash-latest",
+      model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
       contents,
       config: {
         systemInstruction,
