@@ -452,6 +452,17 @@ ${memoText || "(Memorandum text included in task or separate)"}
 Evaluate all 12 checklist points rigorously, provide deep constructive mathematical feedback, check formula & mark distribution, and return the complete JSON object.`;
 
     const parts: any[] = [];
+
+    const rawTask = taskFileData || fileData;
+    const rawTaskMime = taskFileMimeType || fileMimeType;
+    if (rawTask) {
+      const uploadCheck = validateUploadPayload(rawTask, undefined, rawTaskMime);
+      if (!uploadCheck.valid) return res.status(413).json({ success: false, error: uploadCheck.error });
+    }
+    if (memoFileData) {
+      const uploadCheck = validateUploadPayload(memoFileData, undefined, memoFileMimeType);
+      if (!uploadCheck.valid) return res.status(413).json({ success: false, error: uploadCheck.error });
+    }
     
     const isGeminiInlineAllowed = (mime?: string) => {
       if (!mime) return false;
@@ -460,8 +471,6 @@ Evaluate all 12 checklist points rigorously, provide deep constructive mathemati
     };
 
     // Support separate task file upload (PDF / Image only for inlineData)
-    const rawTask = taskFileData || fileData;
-    const rawTaskMime = taskFileMimeType || fileMimeType;
     if (rawTask && isGeminiInlineAllowed(rawTaskMime)) {
       const cleanData = rawTask.replace(/^data:[a-zA-Z0-9_\-+./]+;base64,/, "");
       parts.push({
