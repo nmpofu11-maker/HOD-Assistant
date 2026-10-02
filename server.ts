@@ -20,8 +20,8 @@ const PORT = 3000;
 app.use(express.static(path.join(process.cwd(), "public")));
 
 // Increase payload limit for base64 documents/images/PDFs
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+app.use(express.json({ limit: "40mb" }));
+app.use(express.urlencoded({ extended: true, limit: "40mb" }));
 
 // Lazy initialize Gemini API client with telemetry header
 function getGeminiClient(): GoogleGenAI {
@@ -326,7 +326,7 @@ app.post("/api/moderate/pre", async (req, res) => {
 You are conducting an official, rigorous Pre-Assessment Moderation on an assessment task and memorandum according to:
 1. Eagle House School Assessment Policy (Rule 7.1: Pre-assessment moderation).
 2. Curriculum standards:
-   - If IEB: IEB Subject Assessment Guidelines (SAGS) for Mathematics or Mathematical Literacy, including Bloom's/cognitive levels (Knowledge 20%, Routine 35%, Complex 30%, Problem Solving 15% for Maths; or Level 1-4 for Math Lit).
+   - If IEB: IEB Subject Assessment Guidelines (SAGS) for Mathematics or Mathematical Literacy, including Bloom's/cognitive levels (Knowledge 20%, Routine 30%, Complex 35%, Problem Solving 15% for Grade 12 Mathematics; or Level 1-4 for Math Lit).
    - If CAPS Senior Phase (Grades 8-9): CAPS ATP specifications, 40% SBA/60% Exam, cognitive demand (30% lower order, 40% middle order, 30% higher order).
    - If Cambridge: Cambridge Lower Secondary Checkpoint, IGCSE (0580/0607), or AS/A Level (9709) syllabus specifications and mark schemes (M, A, B marks).
 
