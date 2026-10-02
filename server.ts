@@ -1478,7 +1478,8 @@ ${context.operatingRules.map((rule) => `- ${rule}`).join("\n")}`;
     return res.json({
       success: true,
       reply: response.text?.trim() || "I could not generate a response. Please try again.",
-      advice: response.text?.trim() || ""
+      advice: response.text?.trim() || "",
+      sources: retrieved.map(({ chunk, score }) => ({ id: chunk.id, title: chunk.sourceTitle, authority: chunk.authority, relevance: score }))
     });
   } catch (error: any) {
     console.error("Error in HOD advisor:", error);
