@@ -128,6 +128,18 @@ function writeJsonFile(filename: string, data: any[]): void {
   fs.writeFileSync(path.join(DATA_DIR, filename), JSON.stringify(data, null, 2));
 }
 
+const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
+const MAX_UPLOAD_BASE64_LENGTH = Math.ceil((MAX_UPLOAD_BYTES * 4) / 3) + 1024 * 1024;
+
+function validateUploadPayload(fileData: unknown, fileName?: unknown, mimeType?: unknown) {
+  if (typeof fileData !== "string" || !fileData.trim()) return { valid: false, error: "Missing uploaded file data." };
+  const clean = fileData.replace(/^data:[a-zA-Z0-9_\-+./]+;base64,/, "");
+  if (clean.length > MAX_UPLOAD_BASE64_LENGTH) return { valid: false, error: "Uploaded file exceeds the 25MB limit." };
+  if (fileName !== undefined && typeof fileName !== "string") return { valid: false, error: "Invalid file name." };
+  if (mimeType !== undefined && typeof mimeType !== "string") return { valid: false, error: "Invalid file type." };
+  return { valid: true };
+}
+
 
 // Optional production protection for persistent data writes.
 // Leave HOD_ADMIN_KEY unset for local development; set it in production to require
