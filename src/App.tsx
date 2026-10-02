@@ -69,12 +69,19 @@ export default function App() {
   };
   
   const [currentTerm, setCurrentTerm] = useState<number>(() => {
+    const getTermFromDate = (date = new Date()) => {
+      const month = date.getMonth() + 1;
+      if (month <= 3) return 1;
+      if (month <= 6) return 2;
+      if (month <= 9) return 3;
+      return 4;
+    };
     try {
       const stored = localStorage.getItem("eaglehouse_current_term");
-      const parsed = stored ? parseInt(stored, 10) : 1;
-      return isNaN(parsed) || parsed < 1 || parsed > 4 ? 1 : parsed;
+      const parsed = stored ? parseInt(stored, 10) : getTermFromDate();
+      return Number.isFinite(parsed) && parsed >= 1 && parsed <= 4 ? parsed : getTermFromDate();
     } catch {
-      return 1;
+      return getTermFromDate();
     }
   });
 
