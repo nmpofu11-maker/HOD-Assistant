@@ -75,6 +75,72 @@ export const HOD_KNOWLEDGE_BASE = {
   ]
 } as const;
 
+
+export type KnowledgeChunk = {
+  id: string;
+  sourceTitle: string;
+  authority: string;
+  scope: string;
+  text: string;
+  tags: string[];
+};
+
+export const HOD_KNOWLEDGE_CHUNKS: KnowledgeChunk[] = [
+  ...HOD_KNOWLEDGE_BASE.sources.flatMap((source, sourceIndex) =>
+    source.keyPoints.map((point, pointIndex) => ({
+      id: `source-${sourceIndex + 1}-point-${pointIndex + 1}`,
+      sourceTitle: source.title,
+      authority: source.authority,
+      scope: source.scope,
+      text: point,
+      tags: [
+        source.title.toLowerCase(),
+        source.authority.toLowerCase(),
+        source.scope.toLowerCase(),
+        ...point.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean)
+      ]
+    }))
+  )
+];
+
+function normalise(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9%]+/g, " ").trim();
+}
+
+function scoreChunk(chunk: KnowledgeChunk, query: string, subject?: string, grade?: string, curriculum?: string): number {
+  const q = normalise(`${query} ${subject || ""} ${grade || ""} ${curriculum || ""}`);
+  const terms = new Set(q.split(/\s+/).filter((term) => term.length > 2));
+  let score = 0;
+
+  for (const term of terms) {
+    if (normalise(chunk.text).includes(term)) score += 4;
+    if (normalise(chunk.sourceTitle).includes(term)) score += 5;
+    if (normalise(chunk.scope).includes(term)) score += 2;
+    if (chunk.tags.some((tag) => tag.includes(term))) score += 1;
+  }
+
+  if (curriculum && normalise(chunk.authority).includes(normalise(curriculum))) score += 6;
+  if (subject && normalise(chunk.sourceTitle).includes(normalise(subject))) score += 6;
+  if (grade && chunk.text.toLowerCase().includes(grade.toLowerCase())) score += 3;
+
+  return score;
+}
+
+export function retrieveKnowledge(
+  query: string,
+  subject?: string,
+  grade?: string,
+  curriculum?: string,
+  limit = 8
+) {
+  const ranked = HOD_KNOWLEDGE_CHUNKS
+    .map((chunk) => ({ chunk, score: scoreChunk(chunk, query, subject, grade, curriculum) }))
+    .sort((a, b) => b.score - a.score);
+
+  const selected = ranked.filter((item) => item.score > 0).slice(0, limit);
+  return selected.length ? selected : ranked.slice(0, Math.min(limit, ranked.length));
+}
+
 export function buildCurriculumContext(subject?: string, grade?: string, curriculum?: string) {
   const q = `${subject || ""} ${grade || ""} ${curriculum || ""}`.toLowerCase();
   const relevant = HOD_KNOWLEDGE_BASE.sources.filter((s) => {
