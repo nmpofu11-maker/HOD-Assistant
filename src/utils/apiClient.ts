@@ -82,3 +82,49 @@ export async function safePost<T = any>(
     clearTimeout(timeoutId);
   }
 }
+
+
+export async function safePut<T = any>(
+  url: string,
+  payload: any,
+  timeoutMs: number = 30000
+): Promise<ApiResponse<T>> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+    const contentType = response.headers.get("content-type") || "";
+    const json = contentType.includes("application/json") ? await response.json() : null;
+    if (!response.ok || json?.success === false) {
+      return { success: false, error: json?.error || `Server returned error status ${response.status}`, data: json };
+    }
+    return { success: true, data: json };
+  } catch (err: any) {
+    if (err.name === "AbortError") return { success: false, error: "The save request timed out. Please try again." };
+    return { success: false, error: err.message || "Failed to save changes." };
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+export async function safeGet<T = any>(url: string, timeoutMs: number = 15000): Promise<ApiResponse<T>> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    const contentType = response.headers.get("content-type") || "";
+    const json = contentType.includes("application/json") ? await response.json() : null;
+    if (!response.ok) return { success: false, error: json?.error || `Server returned error status ${response.status}`, data: json };
+    return { success: true, data: json };
+  } catch (err: any) {
+    if (err.name === "AbortError") return { success: false, error: "The request timed out." };
+    return { success: false, error: err.message || "Failed to communicate with the server." };
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
