@@ -122,16 +122,37 @@ function writeJsonFile(filename: string, data: any[]): void {
 }
 
 // Persistence Endpoints
-app.get("/api/data/:filename", (req, res) => res.json(readJsonFile(req.params.filename)));
-app.post("/api/data/:filename", (req, res) => {
-  const data = readJsonFile(req.params.filename);
-  data.push(req.body);
-  writeJsonFile(req.params.filename, data);
-  res.json({ success: true });
+// Only expose the application's known JSON stores. This prevents path traversal
+// and accidental reads/writes of arbitrary server files.
+const ALLOWED_DATA_FILES = new Set(["deadlines.json", "meetings.json", "results.json"]);
+
+function validateDataFilename(filename: string): string | null {
+  const safe = path.basename(filename);
+  return ALLOWED_DATA_FILES.has(safe) ? safe : null;
+}
+
+app.get("/api/data/:filename", (req, res) => {
+  const filename = validateDataFilename(req.params.filename);
+  if (!filename) return res.status(404).json({ success: false, error: "Unknown data resource." });
+  return res.json(readJsonFile(filename));
 });
+
+app.post("/api/data/:filename", (req, res) => {
+  const filename = validateDataFilename(req.params.filename);
+  if (!filename) return res.status(404).json({ success: false, error: "Unknown data resource." });
+  const data = readJsonFile(filename);
+  if (!Array.isArray(data)) return res.status(500).json({ success: false, error: "Data store is invalid." });
+  data.push(req.body);
+  writeJsonFile(filename, data);
+  return res.json({ success: true });
+});
+
 app.put("/api/data/:filename", (req, res) => {
-  writeJsonFile(req.params.filename, req.body);
-  res.json({ success: true });
+  const filename = validateDataFilename(req.params.filename);
+  if (!filename) return res.status(404).json({ success: false, error: "Unknown data resource." });
+  if (!Array.isArray(req.body)) return res.status(400).json({ success: false, error: "Expected an array payload." });
+  writeJsonFile(filename, req.body);
+  return res.json({ success: true });
 });
 
 // Endpoint: Upload Exam/Assessment Calendar
@@ -189,6 +210,7 @@ ${text}`;
 
 
 import { PreModerationSchema, PostModerationSchema, ScriptAnalysisSchema, MeetingSchema, ResultsSchema, DeadlineSchema } from "./src/utils/validation";
+import { buildCurriculumContext } from "./src/data/hodKnowledgeBase";
 import { z } from "zod";
 
 async function parseAndValidate<T>(
@@ -1355,61 +1377,98 @@ ${extracted.text || fileData}`,
 // Endpoint: AI HOD Advisor / Assistant Chat for Departmental Guidance
 app.post("/api/hod/advisor", async (req, res) => {
   try {
-    const { query, conversationHistory } = req.body;
+    const {
+      query,
+      conversationHistory,
+      department = "Mathematics & Mathematical Literacy",
+      subject,
+      grade,
+      curriculum
+    } = req.body || {};
+
+    if (typeof query !== "string" || !query.trim()) {
+      return res.status(400).json({ success: false, error: "Please enter a question." });
+    }
+
     const ai = getGeminiClient();
+    const context = buildCurriculumContext(subject || department, grade, curriculum);
 
-    const systemInstruction = `You are the intelligent Head of Department (HOD) Assistant for Mathematics and Mathematical Literacy at Eagle House School (Praxis Borderless Learning).
-You are thoroughly grounded in:
-1. The Eagle House School HOD Handbook and Assessment Policy:
-   - 9 Core Areas: Department Leadership, Curriculum, Teaching & Learning, Assessment & Data, Learner Progress, Educator Development, Communication, Accountability, Department Improvement.
-   - Assessment rules: Pre-moderation 5 days prior (Policy 7.1); Post-moderation 10% sample in purple pen (Policy 7.2).
-   - Escalation Guide: Green (HOD manages independently), Amber (HOD works with Senior Leadership), Red (Immediate escalation for safeguarding/serious misconduct/legal/safety).
-   - Difficult Conversations 8-step protocol (Prepare, Meet privately, State concern clearly, Listen, Clarify expectations, Agree on actions, Document, Follow up).
-   - "What? So What? Now What?" feedback framework for learning walks.
-2. South African IEB SAGS for Mathematics and Mathematical Literacy.
-3. CAPS Senior Phase (Grades 8-9) Mathematics curriculum and ATPs.
-4. Cambridge Assessment International Education (Lower Secondary Checkpoint, IGCSE 0580/0607, Cambridge International AS/A Level 9709).
-5. Eagle House 2026 Academic Calendar dates:
-   - Term 1: Jan 13 - Mar 19, 2026
-   - Term 2: Apr 6 - Jun 25, 2026
-   - Term 3: Jul 20 - Sep 22, 2026
-   - Term 4: Oct 5 - Dec 8, 2026
+    const sourceText = context.sourceSummary.map((source) =>
+      [
+        `SOURCE: ${source.title}`,
+        `AUTHORITY: ${source.authority}`,
+        `SCOPE: ${source.scope}`,
+        "KEY POINTS:",
+        ...source.keyPoints.map((point) => `- ${point}`)
+      ].join("\n")
+    ).join("\n\n");
 
-Provide professional, supportive, compliant, and actionable advice.`;
+    const systemInstruction = `You are Eagle House School's HOD Assistant: a curriculum-literate, evidence-aware professional assistant for school leadership.
+
+Your job is to help an HOD make sound operational, curriculum, assessment and pedagogical decisions. You are not a generic chatbot.
+
+CURRENT CONTEXT:
+- Department: ${department}
+- Subject: ${subject || "Not specified"}
+- Grade: ${grade || "Not specified"}
+- Curriculum: ${curriculum || "Not specified"}
+
+SOURCE PRIORITY:
+1. Supplied Eagle House internal policy/guide for school-specific procedures.
+2. Named IEB/DBE/Cambridge source for external curriculum and assessment requirements.
+3. Clearly labelled professional recommendation where the sources do not settle the question.
+
+IMPORTANT ACCURACY RULES:
+- Do not invent policy clauses, statutory requirements, curriculum weightings, dates or syllabus content.
+- Distinguish "Eagle House policy" from "IEB/DBE/Cambridge requirement".
+- If sources conflict or the question requires a current external document not supplied here, say so and recommend verification against the current official document.
+- Never present a recommendation as a mandatory requirement.
+- When useful, structure answers as: Answer; Evidence/requirement; Action steps; Documentation; Escalation/verification.
+- For moderation, check validity, curriculum alignment, cognitive demand, mark totals, timing, memo quality, language, diagrams/data, accessibility and policy compliance.
+- For results, convert findings into specific interventions with owners, dates and measurable success criteria.
+- For difficult staff matters, remain professional, evidence-based and supportive; do not diagnose or speculate about people.
+- Keep answers concise enough for a working HOD, but provide detail when the task requires it.
+
+CURRICULUM AND POLICY KNOWLEDGE:
+${sourceText}
+
+OPERATING RULES:
+${context.operatingRules.map((rule) => `- ${rule}`).join("\n")}`;
 
     const contents: any[] = [];
-    if (conversationHistory && Array.isArray(conversationHistory)) {
-      conversationHistory.forEach((item: any) => {
+    if (Array.isArray(conversationHistory)) {
+      conversationHistory.slice(-10).forEach((item: any) => {
+        if (!item || !item.content) return;
         contents.push({
           role: item.role === "user" ? "user" : "model",
-          parts: [{ text: item.content }],
+          parts: [{ text: String(item.content).slice(0, 8000) }]
         });
       });
     }
-    contents.push({
-      role: "user",
-      parts: [{ text: query }],
-    });
+    contents.push({ role: "user", parts: [{ text: query.trim() }] });
 
     const response = await generateContentWithRetry(ai, {
       model: "gemini-flash-latest",
       contents,
       config: {
         systemInstruction,
-        temperature: 0.3,
+        temperature: 0.2,
       },
     });
 
-    res.json({
+    return res.json({
       success: true,
-      reply: response.text,
-      advice: response.text,
+      reply: response.text?.trim() || "I could not generate a response. Please try again.",
+      advice: response.text?.trim() || ""
     });
   } catch (error: any) {
     console.error("Error in HOD advisor:", error);
-    res.status(500).json({
+    const message = error?.message || "Failed to query HOD advisor.";
+    return res.status(500).json({
       success: false,
-      error: error.message || "Failed to query HOD advisor.",
+      error: message.includes("GEMINI_API_KEY")
+        ? "The AI service is not configured. Add GEMINI_API_KEY to the server environment."
+        : message
     });
   }
 });
