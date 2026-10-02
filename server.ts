@@ -520,6 +520,8 @@ async function extractTextFromAnyFile(
   mimeType?: string,
   fileName?: string
 ): Promise<{ text: string; detectedType: string; wordCount: number; charCount: number }> {
+  const uploadCheck = validateUploadPayload(fileData, fileName, mimeType);
+  if (!uploadCheck.valid) throw new Error(uploadCheck.error);
   const cleanBase64 = (fileData || "").replace(/^data:[a-zA-Z0-9_\-+./]+;base64,/, "");
   const normalizedMime = (mimeType || "").toLowerCase();
   const lowerName = (fileName || "").toLowerCase();
