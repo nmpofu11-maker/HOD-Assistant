@@ -19,6 +19,7 @@ interface AiAdvisorModalProps {
 interface Message {
   role: "user" | "assistant";
   content: string;
+  sources?: string[];
 }
 
 export const AiAdvisorModal: React.FC<AiAdvisorModalProps> = ({ isOpen, onClose }) => {
@@ -71,7 +72,10 @@ export const AiAdvisorModal: React.FC<AiAdvisorModalProps> = ({ isOpen, onClose 
 
       const data: any = result.data;
       const replyContent = data?.reply || data?.advice || "No guidance received.";
-      setMessages([...newMessages, { role: "assistant", content: replyContent }]);
+      const sources = Array.isArray(data?.sources)
+        ? data.sources.map((source: any) => source?.title).filter(Boolean)
+        : [];
+      setMessages([...newMessages, { role: "assistant", content: replyContent, sources }]);
     } catch (err: any) {
       setMessages([
         ...newMessages,
@@ -161,6 +165,18 @@ export const AiAdvisorModal: React.FC<AiAdvisorModalProps> = ({ isOpen, onClose 
                 }`}
               >
                 {m.content}
+                {m.sources && m.sources.length > 0 && (
+                  <div className="mt-3 pt-2.5 border-t border-slate-200 text-[10px] text-slate-500">
+                    <div className="flex items-center gap-1 font-semibold mb-1">
+                      <BookOpen className="w-3 h-3" /> Sources consulted
+                    </div>
+                    <ul className="space-y-0.5">
+                      {m.sources.slice(0, 4).map((source, sourceIndex) => (
+                        <li key={sourceIndex}>• {source}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
               {m.role === "user" && (
                 <div className="w-7 h-7 rounded-full bg-slate-800 text-white flex items-center justify-center shrink-0 mt-0.5">
