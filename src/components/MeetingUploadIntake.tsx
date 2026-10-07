@@ -625,6 +625,7 @@ export const MeetingUploadIntake: React.FC<MeetingUploadIntakeProps> = ({
               The AI OCR engine automatically transcribes the content into verbatim text and populates interactive, editable fields.
             </p>
           </div>
+        </div>
 
         {/* STEP 1: Destination Template Selector */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
