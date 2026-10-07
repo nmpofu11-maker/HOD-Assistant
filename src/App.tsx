@@ -11,7 +11,7 @@ import { DEMO_DEADLINES, DEMO_MEETINGS, DEMO_RESULTS_DATASET, DEMO_PRE_MODERATIO
 import { HodHandbookIndexView } from "./components/HodHandbookIndexView";
 import { WeeklyOverview } from "./components/WeeklyOverview";
 import { AiAdvisorModal } from "./components/AiAdvisorModal";
-import { StaffDeadlineItem, StaffMember, DepartmentConfigState, MeetingRecord, ResultsAnalysisData, PreModerationReport, PostModerationReport } from "./types";
+import { StaffDeadlineItem, StaffMember, DepartmentConfigState, MeetingRecord, ResultsAnalysisData, PreModerationReport, PostModerationReport, PeerModerationScheduleEntry } from "./types";
 import { safeGet, safePut } from "./utils/apiClient";
 import {
   ShieldCheck,
@@ -43,6 +43,7 @@ export default function App() {
   const [savedPreReports, setSavedPreReports] = useState<PreModerationReport[]>([]);
   const [savedPostReports, setSavedPostReports] = useState<PostModerationReport[]>([]);
   const [isDemoMode, setIsDemoMode] = useState(false);
+  const [peerModerationSchedule, setPeerModerationSchedule] = useState<PeerModerationScheduleEntry[]>([]);
 
   useEffect(() => {
     Promise.all([
@@ -51,11 +52,13 @@ export default function App() {
       safeGet<MeetingRecord[]>("/api/data/meetings.json"),
       safeGet<ResultsAnalysisData | ResultsAnalysisData[]>("/api/data/results.json"),
       safeGet<Array<PreModerationReport | PostModerationReport>>("/api/data/moderations.json"),
-    ]).then(([config, d, m, r, mod]) => {
+      safeGet<PeerModerationScheduleEntry[]>("/api/data/peer_moderation_schedule.json"),
+    ]).then(([config, d, m, r, mod, peerSchedule]) => {
       if (config.success && config.data) setDepartmentConfig(config.data);
       if (d.success && Array.isArray(d.data)) setDeadlines(d.data);
       if (m.success && Array.isArray(m.data)) setMeetings(m.data);
       if (r.success) setResultsData(Array.isArray(r.data) ? (r.data[0] || null) : (r.data || null));
+      if (peerSchedule.success && Array.isArray(peerSchedule.data)) setPeerModerationSchedule(peerSchedule.data);
       if (mod.success && Array.isArray(mod.data)) {
         setSavedPreReports(mod.data.filter((x): x is PreModerationReport => "checklist" in x));
         setSavedPostReports(mod.data.filter((x): x is PostModerationReport => "scriptFindings" in x));
@@ -77,6 +80,12 @@ export default function App() {
     const result = await safePut("/api/data/department_config.json", newConfig);
     if (!result.success) throw new Error(result.error || "Failed to save department configuration.");
     setDepartmentConfig(newConfig);
+  };
+
+  const handleSavePeerModerationSchedule = async (schedule: PeerModerationScheduleEntry[]) => {
+    const result = await safePut("/api/data/peer_moderation_schedule.json", schedule);
+    if (!result.success) throw new Error(result.error || "Failed to save peer moderation schedule.");
+    setPeerModerationSchedule(schedule);
   };
 
   const loadDemoData = async () => {
@@ -493,6 +502,7 @@ export default function App() {
                   if (backup.resultsData) { await safePut("/api/data/results.json", backup.resultsData); setResultsData(backup.resultsData); }
                   const mods = [...(backup.savedPreReports || []), ...(backup.savedPostReports || [])];
                   await safePut("/api/data/moderations.json", mods); setSavedPreReports(backup.savedPreReports || []); setSavedPostReports(backup.savedPostReports || []);
+                  if (Array.isArray(backup.peerModerationSchedule)) { await handleSavePeerModerationSchedule(backup.peerModerationSchedule); }
                   setIsDemoMode(false);
                 }}
               />
@@ -501,7 +511,7 @@ export default function App() {
             {activeTab === "curriculum" && <CurriculumView />}
 
             {activeTab === "staff" && (
-              <DepartmentSetupView config={departmentConfig} onSaveConfig={handleSaveDepartmentConfig} onSelectTeacherForDeadlines={handleSelectTeacherForDeadlines} />
+              <DepartmentSetupView config={departmentConfig} onSaveConfig={handleSaveDepartmentConfig} onSelectTeacherForDeadlines={handleSelectTeacherForDeadlines} peerModerationSchedule={peerModerationSchedule} onSavePeerModerationSchedule={handleSavePeerModerationSchedule} currentTerm={currentTerm} />
             )}
 
             {activeTab === "hod-index" && <HodHandbookIndexView setActiveTab={setActiveTab} />}
