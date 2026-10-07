@@ -35,6 +35,7 @@ import {
   EducatorAllocation,
   AcademicYearConfig,
   CurriculumType,
+  PeerModerationScheduleEntry,
 } from "../types";
 import { exportStaffDirectoryXlsx } from "../utils/xlsxExport";
 import { printTeacherAllocation } from "../utils/printExports";
@@ -44,12 +45,18 @@ interface DepartmentSetupViewProps {
   config: DepartmentConfigState;
   onSaveConfig: (newConfig: DepartmentConfigState) => Promise<void>;
   onSelectTeacherForDeadlines?: (teacherName: string) => void;
+  peerModerationSchedule: PeerModerationScheduleEntry[];
+  onSavePeerModerationSchedule: (schedule: PeerModerationScheduleEntry[]) => Promise<void>;
+  currentTerm: number;
 }
 
 export const DepartmentSetupView: React.FC<DepartmentSetupViewProps> = ({
   config,
   onSaveConfig,
   onSelectTeacherForDeadlines,
+  peerModerationSchedule,
+  onSavePeerModerationSchedule,
+  currentTerm,
 }) => {
   const [selectedYear, setSelectedYear] = useState<number>(config.currentAcademicYear);
   const [filterDepartment, setFilterDepartment] = useState<"maths" | "all">("maths");
@@ -429,9 +436,9 @@ export const DepartmentSetupView: React.FC<DepartmentSetupViewProps> = ({
         </div>
         <PeerModerationScheduleView
           yearConfig={currentYearObj}
-          schedule={[]}
-          currentTerm={1}
-          onSave={async () => {}}
+          schedule={peerModerationSchedule}
+          currentTerm={currentTerm}
+          onSave={onSavePeerModerationSchedule}
         />
       </div>
     );
