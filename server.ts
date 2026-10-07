@@ -469,7 +469,7 @@ You must return valid JSON ONLY with this exact structure:
 - Duration: ${duration || "60 mins"}
 - Total Marks: ${totalMarks || "50"}
 - Teacher/Examiner: ${teacherName || "Assigned Teacher"}
-- Moderator: ${moderatorName || "HOD Mpofu"}
+- Moderator: ${moderatorName || "HOD"}
 - Custom HOD Notes: ${customNotes || "None"}
 
 Task Content / Question Paper Content:
@@ -820,7 +820,7 @@ Return valid JSON ONLY with this structure:
 - Subject: ${subject} (${curriculum})
 - Grade: ${grade}
 - Teacher: ${teacherName}
-- Moderator: ${moderatorName || "HOD Mpofu"}
+- Moderator: ${moderatorName || "HOD"}
 - Total Cohort Size: ${totalLearners}
 - Scripts Sampled: ${sampleSize}
 - Sample Audit Records: ${JSON.stringify(sampleScriptsData, null, 2)}
@@ -932,9 +932,11 @@ app.post("/api/meetings/generate", async (req, res) => {
     const ai = getGeminiClient();
 
     let templateSpecificStructure = "";
-    if (templateType === "Moderation Meeting") {
+    if (templateType === "Follow-up Meeting") {
+      templateSpecificStructure = `Simple Follow-up Meeting Agenda:\n1. Welcome & Purpose\n2. Review Previous Action Items\n3. Key Matters Requiring Follow-up\n4. Decisions & Actions\n5. Any Other Business\n6. Next Steps & Next Meeting`;
+    } else if (templateType === "Moderation Meeting") {
       templateSpecificStructure = `Eagle House Moderation Meeting 10-Point Sequence (Policy §7.1 & §7.2 Quality Assurance):
-1. Quorum Verification & Internal Moderation Objectives (HOD Mpofu)
+1. Quorum Verification & Internal Moderation Objectives (HOD)
 2. Matters Arising & Action Audit from Prior Moderation Cycle (Senior Moderators)
 3. Assessment Blueprint & Cognitive Weighting Grid (Bloom's Taxonomy Levels 1–4 Balance)
 4. Policy §7.1 Compliance: 5-Day Pre-Moderation Lead-Time & Technical Formatting Review
@@ -946,7 +948,7 @@ app.post("/api/meetings/generate", async (req, res) => {
 10. Moderation Remedial Orders & Senior Leadership (SMT) Escalation`;
     } else if (templateType === "Curriculum Planning") {
       templateSpecificStructure = `Eagle House Curriculum Planning 10-Point Sequence (CAPS ATP & SAGS Milestones):
-1. Department Academic Vision & Term Strategic Targets (HOD Mpofu)
+1. Department Academic Vision & Term Strategic Targets (HOD)
 2. CAPS/IEB Annual Teaching Plan (ATP) Milestone Mapping & Pacing Calendar
 3. Prerequisite Diagnostic Gaps & Baseline Remediation Strategy
 4. Common Assessment Task (CAT) & SBA Schedule Synchronization
@@ -1038,7 +1040,7 @@ app.post("/api/meetings/parse-upload", async (req, res) => {
   try {
     const {
       targetType, // "minutes" | "agenda"
-      templateType = "Standard Staff Meeting", // "Standard Staff Meeting" | "Moderation Meeting" | "Curriculum Planning"
+      templateType = "Standard Staff Meeting", // "Standard Staff Meeting" | "Follow-up Meeting" | "Moderation Meeting" | "Curriculum Planning"
       inputFormat, // "typed_text" | "typed_file" | "recorded_audio" | "handwritten_ocr"
       fileData, // base64 string or plain text
       mimeType, // e.g. "image/png", "audio/mp3", "application/pdf", "text/plain", etc.
@@ -1088,7 +1090,7 @@ app.post("/api/meetings/parse-upload", async (req, res) => {
       templateSpecificStructure = `Simple Follow-up Meeting Agenda:\n1. Welcome & Purpose\n2. Review Previous Action Items\n3. Key Matters Requiring Follow-up\n4. Decisions & Actions\n5. Any Other Business\n6. Next Steps & Next Meeting`;
     } else if (templateType === "Moderation Meeting") {
       templateSpecificStructure = `Eagle House Moderation Meeting 10-Point Sequence (Policy §7.1 & §7.2 Quality Assurance):
-1. Quorum Verification & Internal Moderation Objectives (HOD Mpofu)
+1. Quorum Verification & Internal Moderation Objectives (HOD)
 2. Matters Arising & Action Audit from Prior Moderation Cycle (Senior Moderators)
 3. Assessment Blueprint & Cognitive Weighting Grid (Bloom's Taxonomy Levels 1–4 Balance)
 4. Policy §7.1 Compliance: 5-Day Pre-Moderation Lead-Time & Technical Formatting Review
@@ -1100,7 +1102,7 @@ app.post("/api/meetings/parse-upload", async (req, res) => {
 10. Moderation Remedial Orders & Senior Leadership (SMT) Escalation`;
     } else if (templateType === "Curriculum Planning") {
       templateSpecificStructure = `Eagle House Curriculum Planning 10-Point Sequence (CAPS ATP & SAGS Milestones):
-1. Department Academic Vision & Term Strategic Targets (HOD Mpofu)
+1. Department Academic Vision & Term Strategic Targets (HOD)
 2. CAPS/IEB Annual Teaching Plan (ATP) Milestone Mapping & Pacing Calendar
 3. Prerequisite Diagnostic Gaps & Baseline Remediation Strategy
 4. Common Assessment Task (CAT) & SBA Schedule Synchronization
