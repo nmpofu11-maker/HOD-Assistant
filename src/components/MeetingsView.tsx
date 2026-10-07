@@ -47,6 +47,7 @@ import {
   AgendaPointTemplateItem,
   MEETING_TEMPLATE_CONFIGS,
   FOLLOW_UP_MEETING_ITEMS,
+  HOD_STANDARD_10_AGENDA_ITEMS,
 } from "../utils/meetingTemplates";
 
 export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
