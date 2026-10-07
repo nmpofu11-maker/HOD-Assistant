@@ -39,10 +39,7 @@ import {
   FileType,
 } from "lucide-react";
 import { MeetingRecord, MeetingTemplateType } from "../types";
-import {
-  HOD_STANDARD_10_AGENDA_ITEMS,
-  MEETING_TEMPLATE_CONFIGS,
-} from "./MeetingsView";
+import { MEETING_TEMPLATE_CONFIGS } from "./MeetingsView";
 import { safePost } from "../utils/apiClient";
 
 interface MeetingUploadIntakeProps {
@@ -593,7 +590,7 @@ export const MeetingUploadIntake: React.FC<MeetingUploadIntakeProps> = ({
       `VENUE: ${parsedRecord.venue} | CHAIR: ${parsedRecord.chairperson}`,
       `ATTENDEES: ${parsedRecord.attendees.join(", ")}`,
       "",
-      "--- agenda SEQUENCE ---",
+      "--- AGENDA ITEMS ---",
       ...parsedRecord.agendaPoints.map(
         (p) => `${p.pointNumber}. ${p.title}\n${p.notes}\n`
       ),
