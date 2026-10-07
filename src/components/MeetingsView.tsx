@@ -59,18 +59,16 @@ export const STANDARD_STAFF_MEETING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Welcome & Apologies",
     guidelineDescription:
       "Formal opening, verification of quorum, recorded apologies, and chairperson remarks.",
-    defaultNotes:
-      "Meeting opened at 14:30. Quorum established. Full department attendance noted. HOD commended staff on punctuality.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "5 mins",
-    lead: "HOD Mpofu",
+    lead: "HOD",
   },
   {
     pointNumber: 2,
     title: "Matters Arising from Previous Minutes",
     guidelineDescription:
       "Action tracker review from preceding cycle, confirmation of completed tasks, accountability check.",
-    defaultNotes:
-      "Reviewed action items from prior meeting. Previous SBA portfolios successfully verified. All moderation sign-offs archived.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "10 mins",
     lead: "All Staff",
   },
@@ -79,8 +77,7 @@ export const STANDARD_STAFF_MEETING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Curriculum Progress & ATP Pacing Alignment",
     guidelineDescription:
       "Comparison of completed topics vs. CAPS ATPs & IEB SAGS milestones, syllabus coverage spot-checks, identification of delays, catch-up scheduling.",
-    defaultNotes:
-      "Bi-weekly pacing audit confirmed. Grades 8-11 are on schedule against ATPs. Grade 12 Calculus pacing is slightly compressed; two additional revision tutorial clinics scheduled.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "15 mins",
     lead: "Subject Teachers",
   },
@@ -89,18 +86,16 @@ export const STANDARD_STAFF_MEETING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Assessment & Moderation Compliance (§7.1 & §7.2)",
     guidelineDescription:
       "Enforcement of 5-day pre-moderation lead-time (§7.1), Bloom's Taxonomy cognitive level weighting (Levels 1-4), quality of marking guidelines, and post-moderation 10% stratified purple pen sample (§7.2).",
-    defaultNotes:
-      "Reiterated strict compliance with Policy §7.1: all test draft papers, full marking memos, and cognitive grid analyses must be submitted to the HOD at least 5 school days prior to assessment dates. Policy §7.2 post-moderation sampling requires a 10% stratified sample audited in purple pen within 48 hours of marking completion.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "15 mins",
-    lead: "HOD Mpofu",
+    lead: "HOD",
   },
   {
     pointNumber: 5,
     title: "Learner Performance & Diagnostic Data",
     guidelineDescription:
       "Diagnostic review of recent tests, grade-by-grade mark distributions, pass rates, identification of common conceptual misconceptions.",
-    defaultNotes:
-      "Analyzed diagnostic distributions from recent cycle tests. Common error patterns identified in Grade 10 analytical geometry and Grade 11 circle theorems. Remediation drills agreed upon.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "15 mins",
     lead: "All Staff",
   },
@@ -109,8 +104,7 @@ export const STANDARD_STAFF_MEETING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Learners Requiring Academic Intervention (Appendix 10)",
     guidelineDescription:
       "Review of at-risk learners scoring <30%, activation and monitoring of Appendix 10 action roadmaps, morning/afternoon support clinics, and communication with parents.",
-    defaultNotes:
-      "Reviewed active Appendix 10 support trackers for all learners scoring below 30% threshold. Mandatory remedial afternoon clinics running on Tuesdays and Thursdays.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "10 mins",
     lead: "Grade Teachers",
   },
@@ -119,40 +113,36 @@ export const STANDARD_STAFF_MEETING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Educator Support, Teaching Practice & Professional Development",
     guidelineDescription:
       "Peer learning walks, lesson observations feedback ('What? So What? Now What?'), pedagogical methodology sharing, and instructional coaching.",
-    defaultNotes:
-      "Department learning walks scheduled for upcoming fortnight focusing on higher-order cognitive questioning and active whiteboard problem-solving.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "10 mins",
-    lead: "HOD Mpofu",
+    lead: "HOD",
   },
   {
     pointNumber: 8,
     title: "Resources, Textbooks & Technology",
     guidelineDescription:
       "Textbook stock review, Casio scientific calculator compliance, graphing software (GeoGebra / Desmos), and exam paper printing requirements.",
-    defaultNotes:
-      "Inventory check of Grade 8-12 textbooks complete; 100% textbook allocation achieved. Examination paper copying requests must be logged 72 hours in advance.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "5 mins",
-    lead: "Luthando",
+    lead: "Department Resource Lead",
   },
   {
     pointNumber: 9,
     title: "Matters Requiring Escalation to Senior Leadership (SMT)",
     guidelineDescription:
       "Departmental issues, infrastructure needs, or learner pastoral concerns requiring SMT or Academic Head intervention (categorized Green/Amber/Red).",
-    defaultNotes:
-      "Classroom M3 ceiling projector requires maintenance (Amber Priority). Request submitted to Academic Head for additional scientific calculator loan kits.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "5 mins",
-    lead: "HOD Mpofu",
+    lead: "HOD",
   },
   {
     pointNumber: 10,
     title: "Any Other Business (AOB) & Date of Next Meeting",
     guidelineDescription:
       "Miscellaneous items, final summary of agreed action items, scheduling next cycle meeting, formal adjournment.",
-    defaultNotes:
-      "Next departmental cycle meeting scheduled for next month in the Mathematics Department office. Action items confirmed and assigned. Meeting formally adjourned at 15:45.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "5 mins",
-    lead: "HOD Mpofu",
+    lead: "HOD",
   },
 ];
 
@@ -166,18 +156,16 @@ export const MODERATION_MEETING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Quorum Verification & Internal Moderation Objectives",
     guidelineDescription:
       "Establish moderation panel quorum, assign senior moderators per grade, review moderation code of conduct, and align with Policy §7.",
-    defaultNotes:
-      "Moderation panel constituted with HOD and subject leads. Quorum verified. Moderation objectives aligned with HOD Handbook Policy §7.1 and §7.2.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "5 mins",
-    lead: "HOD Mpofu",
+    lead: "HOD",
   },
   {
     pointNumber: 2,
     title: "Matters Arising & Action Audit from Prior Moderation Cycle",
     guidelineDescription:
       "Audit of corrections mandated during prior cycle, verification of amended question papers, marking memos, and resolved discrepancies.",
-    defaultNotes:
-      "Audited corrections from preceding assessment cycle. All flagged mark discrepancies resolved; updated question bank and revised memos verified.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "10 mins",
     lead: "Senior Moderators",
   },
@@ -186,8 +174,7 @@ export const MODERATION_MEETING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Assessment Blueprint & Cognitive Weighting Grid (Bloom's Levels 1–4)",
     guidelineDescription:
       "Scrutiny of question paper blueprints against CAPS/IEB taxonomy: Knowledge L1 (20%), Routine L2 (35%), Complex L3 (30%), Problem Solving L4 (15%).",
-    defaultNotes:
-      "Cognitive weighting grids verified for all grade test drafts. Grade 10 Paper balanced at 20% L1, 35% L2, 30% L3, 15% L4. Grade 11 requires slight upward adjustment in Level 4 non-routine questions.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "15 mins",
     lead: "All Subject Teachers",
   },
@@ -196,18 +183,16 @@ export const MODERATION_MEETING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Policy §7.1 Compliance: 5-Day Pre-Moderation Lead Time Review",
     guidelineDescription:
       "Rigorous verification of draft submission deadlines (minimum 5 school days prior to test date). Formatting, typography, mark allocations, and diagram clarity.",
-    defaultNotes:
-      "100% adherence to 5-day pre-moderation lead time confirmed for upcoming Term 1 tests. All drafts reviewed for clarity, font consistency, mark allocations, and formula sheet accuracy.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "15 mins",
-    lead: "HOD Mpofu",
+    lead: "HOD",
   },
   {
     pointNumber: 5,
     title: "Marking Memorandum Standardization & Alternative Solutions Calibration",
     guidelineDescription:
       "Comprehensive walk-through of marking memoranda. Identification and recording of valid alternative learner solution methods and consequential mark allocations.",
-    defaultNotes:
-      "Marking memo standardization completed. Accepted 2 valid alternative geometric proof methods for Grade 11 Circle Geometry Q4. Consequential marking rules established for multi-step trigonometry.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "20 mins",
     lead: "Subject Specialists",
   },
@@ -216,8 +201,7 @@ export const MODERATION_MEETING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Policy §7.2 Post-Moderation: 10% Stratified Purple Pen Protocol",
     guidelineDescription:
       "Verification of 10% sample stratification (top, middle, bottom mark bands). Purple pen re-marking protocol, consistency of mark additions, and memo adherence.",
-    defaultNotes:
-      "Post-moderation protocol established: 10% stratified sample (high, average, at-risk) will be audited in purple pen within 48 hours of marking completion. Moderation stamps and signatures applied.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "15 mins",
     lead: "HOD & Internal Moderators",
   },
@@ -226,8 +210,7 @@ export const MODERATION_MEETING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Moderation Discrepancy & Mark Variance Resolution Register",
     guidelineDescription:
       "Protocol for mark variances exceeding 5% or 3 marks between teacher and moderator. Re-marking thresholds, adjustments register, and arbitration by HOD.",
-    defaultNotes:
-      "Variance tolerance set at ±3 marks or 5%. Any paper exceeding variance threshold will trigger full cohort re-audit by HOD. All adjustments recorded in statutory moderation register.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "10 mins",
     lead: "Moderation Panel",
   },
@@ -236,8 +219,7 @@ export const MODERATION_MEETING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Question Discrimination Index & Diagnostic Error Trends",
     guidelineDescription:
       "Item analysis on high-failure questions, ambiguous question phrasing, cognitive load barriers, and curriculum gaps.",
-    defaultNotes:
-      "Item discrimination analysis reviewed from prior test. Identified common misconception in 3D trigonometric angles of elevation; remediation exercise embedded.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "10 mins",
     lead: "Grade Leads",
   },
@@ -246,20 +228,18 @@ export const MODERATION_MEETING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Statutory Moderation Tool Sign-off & Appendix 7 Certification",
     guidelineDescription:
       "Completion and formal signing of Eagle House Official Moderation Instruments (Appendix 7), verification checklists, and HOD certification.",
-    defaultNotes:
-      "Official Appendix 7 moderation tools signed by internal moderators. Final pre-moderation compliance certificates signed off by HOD.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "5 mins",
-    lead: "HOD Mpofu",
+    lead: "HOD",
   },
   {
     pointNumber: 10,
     title: "Moderation Remedial Orders & SMT Escalation",
     guidelineDescription:
       "Summary of binding moderation directives, test paper security sign-off, date for final post-moderation file submission to SMT.",
-    defaultNotes:
-      "Final moderated master papers locked in secure department archive. Final moderation audit report scheduled for submission to Academic Head by Friday.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "5 mins",
-    lead: "HOD Mpofu",
+    lead: "HOD",
   },
 ];
 
@@ -270,18 +250,16 @@ export const CURRICULUM_PLANNING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Department Academic Vision & Term Strategic Targets",
     guidelineDescription:
       "Establish departmental achievement targets (e.g. 80%+ cohort pass rate, 25%+ distinctions, 0 unmanaged <30%), core pedagogical focus, and curriculum vision.",
-    defaultNotes:
-      "Chair opened session establishing Term 2 target: 80% pass rate in Mathematics with zero unmanaged failures below 30%. Core pillar: conceptual understanding over rote memorization.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "10 mins",
-    lead: "HOD Mpofu",
+    lead: "HOD",
   },
   {
     pointNumber: 2,
     title: "CAPS/IEB Annual Teaching Plan (ATP) Milestone Mapping & Pacing Calendar",
     guidelineDescription:
       "Week-by-week syllabus scheduling across Grades 8–12. Alignment with school calendar, examination periods, public holidays, and athletics days.",
-    defaultNotes:
-      "Reviewed 10-week ATP progression. Adjusted Grade 10 Euclidean Geometry pacing to absorb lost sports fixture hours. Grade 11 Functions and Grade 12 Calculus pacing calendars synchronized.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "15 mins",
     lead: "Subject Teachers",
   },
@@ -290,8 +268,7 @@ export const CURRICULUM_PLANNING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Prerequisite Diagnostic Gaps & Baseline Remediation Strategy",
     guidelineDescription:
       "Analysis of baseline diagnostic assessment results. Identification of prerequisite knowledge deficits from prior grade and structured 10-minute starter bridge lessons.",
-    defaultNotes:
-      "Diagnostic baseline identified algebra factorisation and fraction manipulation gaps in Grade 8 and 9. 2-week starter bridge drills integrated into daily lesson plans.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "15 mins",
     lead: "All Staff",
   },
@@ -300,8 +277,7 @@ export const CURRICULUM_PLANNING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Common Assessment Task (CAT) & SBA Schedule Synchronization",
     guidelineDescription:
       "Scheduling control tests, assignments, practical investigations, and portfolio tasks in accordance with NPA and locking 5-day pre-moderation deadlines (§7.1).",
-    defaultNotes:
-      "Formal assessment calendar locked. Grade 8–9 investigations scheduled for Week 4; Grade 10–12 Control Tests scheduled for Week 7. Pre-moderation deadlines locked 5 days ahead (§7.1).",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "10 mins",
     lead: "Assessment Coordinator",
   },
@@ -310,8 +286,7 @@ export const CURRICULUM_PLANNING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Pedagogical Methodology, Lesson Study & Differentiated CRA Instruction",
     guidelineDescription:
       "Sharing best instructional practices, Concrete-Representational-Abstract (CRA) models, peer learning walk schedule, and differentiated task tiers.",
-    defaultNotes:
-      "Adopted CRA visual modeling for teaching quadratic functions. Peer lesson observation pairings confirmed: Shingi with Reggie, Luthando with Mpofu.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "15 mins",
     lead: "Subject Leads",
   },
@@ -320,18 +295,16 @@ export const CURRICULUM_PLANNING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Textbook, Digital LMS & Technology Resource Allocation",
     guidelineDescription:
       "Audit of physical textbooks, online LMS learning modules (Google Classroom/Moodle), graphing software (GeoGebra/Desmos), and Casio calculator supply.",
-    defaultNotes:
-      "Resource check completed. 100% textbook allocation verified. Interactive GeoGebra classroom activities shared on department drive. Calculator loan kits prepared.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "10 mins",
-    lead: "Luthando",
+    lead: "Department Resource Lead",
   },
   {
     pointNumber: 7,
     title: "Inclusive Education & High-Potential / At-Risk Tiering Framework",
     guidelineDescription:
       "Identification of tier-3 at-risk learners (<30%) for Appendix 10 support roadmaps, and tier-1 high-potential learners for Mathematics Olympiad preparation (SAMO).",
-    defaultNotes:
-      "Support framework established: Grade 8–11 at-risk learners assigned to Tuesday/Thursday afternoon clinic roadmaps. High-potential learners enrolled in South African Mathematics Olympiad (SAMO).",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "10 mins",
     lead: "Grade Teachers",
   },
@@ -340,30 +313,27 @@ export const CURRICULUM_PLANNING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Educator Workload, Subject Allocations & Mentorship Pairing",
     guidelineDescription:
       "Review of teaching load distribution, class sizes, subject allocations, and novice educator mentorship.",
-    defaultNotes:
-      "Teaching allocations and period distribution reviewed. Mentorship check-ins scheduled fortnightly for junior grade educators.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "5 mins",
-    lead: "HOD Mpofu",
+    lead: "HOD",
   },
   {
     pointNumber: 9,
     title: "Cross-Curricular STEM Integration & Academic Enrichment",
     guidelineDescription:
       "Coordination with Physical Sciences, Life Sciences, and Accounting departments on shared mathematical skills (vectors, data handling, financial graphs).",
-    defaultNotes:
-      "Liaised with Physical Sciences on timing of vectors and kinematics in Grade 11. Coordinated financial mathematics with Accounting department.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "5 mins",
-    lead: "Reggie",
+    lead: "Subject Lead",
   },
   {
     pointNumber: 10,
     title: "Department Milestones Approval, SMT Submission & Adjournment",
     guidelineDescription:
       "Formal approval of term curriculum map, commitment signatures, submission to Senior Management Team (SMT), and next review date.",
-    defaultNotes:
-      "Term Curriculum Blueprint unanimously approved by department. HOD will submit final consolidated planning pack to SMT by Friday. Next meeting: Mid-term progress check.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "5 mins",
-    lead: "HOD Mpofu",
+    lead: "HOD",
   },
 ];
 
