@@ -396,12 +396,12 @@ export interface MeetingTemplateConfig {
 }
 
 export const FOLLOW_UP_MEETING_ITEMS: AgendaPointTemplateItem[] = [
-  { pointNumber: 1, title: "Welcome & Purpose", defaultNotes: "Confirm the purpose of the follow-up meeting and expected outcomes." },
-  { pointNumber: 2, title: "Review Previous Action Items", defaultNotes: "Review outstanding actions from the previous meeting and record progress." },
-  { pointNumber: 3, title: "Key Matters Requiring Follow-up", defaultNotes: "Discuss the specific matters that require attention since the previous meeting." },
-  { pointNumber: 4, title: "Decisions & Actions", defaultNotes: "Record decisions made, responsible persons and agreed deadlines." },
-  { pointNumber: 5, title: "Any Other Business", defaultNotes: "Record any additional matters raised for discussion." },
-  { pointNumber: 6, title: "Next Steps & Next Meeting", defaultNotes: "Confirm immediate next steps and the next meeting date if required." },
+  { pointNumber: 1, title: "Welcome & Purpose", guidelineDescription: "", defaultNotes: "Confirm the purpose of the follow-up meeting and expected outcomes.", timeAllocated: "", lead: "" },
+  { pointNumber: 2, title: "Review Previous Action Items", guidelineDescription: "", defaultNotes: "Review outstanding actions from the previous meeting and record progress.", timeAllocated: "", lead: "" },
+  { pointNumber: 3, title: "Key Matters Requiring Follow-up", guidelineDescription: "", defaultNotes: "Discuss the specific matters that require attention since the previous meeting.", timeAllocated: "", lead: "" },
+  { pointNumber: 4, title: "Decisions & Actions", guidelineDescription: "", defaultNotes: "Record decisions made, responsible persons and agreed deadlines.", timeAllocated: "", lead: "" },
+  { pointNumber: 5, title: "Any Other Business", guidelineDescription: "", defaultNotes: "Record any additional matters raised for discussion.", timeAllocated: "", lead: "" },
+  { pointNumber: 6, title: "Next Steps & Next Meeting", guidelineDescription: "", defaultNotes: "Confirm immediate next steps and the next meeting date if required.", timeAllocated: "", lead: "" },
 ];
 
 export const MEETING_TEMPLATE_CONFIGS: MeetingTemplateConfig[] = [
