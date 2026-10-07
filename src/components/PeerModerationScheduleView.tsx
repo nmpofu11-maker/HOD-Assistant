@@ -57,8 +57,13 @@ export const PeerModerationScheduleView: React.FC<PeerModerationScheduleViewProp
     setSaving(true);
     setError(null);
     try {
+      const invalidPeer = rows.find((r) => r.teacherId && r.moderatorId && r.teacherId === r.moderatorId);
+      if (invalidPeer) {
+        throw new Error("A peer moderator must be a different educator from the teacher being moderated.");
+      }
       const cleaned = rows.filter((r) => r.teacherId || r.moderatorId || r.className || r.taskName);
-      await onSave(cleaned);
+      const otherYears = schedule.filter((r) => r.academicYear !== yearConfig.year);
+      await onSave([...otherYears, ...cleaned]);
     } catch (e: any) {
       setError(e?.message || "The peer moderation schedule could not be saved.");
     } finally {
