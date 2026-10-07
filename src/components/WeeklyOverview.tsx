@@ -51,13 +51,7 @@ export const WeeklyOverview: React.FC<WeeklyOverviewProps> = ({
 
   const [selectedWeekStart, setSelectedWeekStart] = useState<Date>(() => getMonday(new Date()));
   const [selectedDayOffset, setSelectedDayOffset] = useState<number>(0);
-  const [customTasks, setCustomTasks] = useState<CustomTask[]>([]);  React.useEffect(() => {
-    if (!newTaskTeacher && staffList.length) {
-      setNewTaskTeacher(staffList.find((s) => s.isMathsDept && s.status === "active")?.name || "");
-    }
-  }, [staffList, newTaskTeacher]);
-
-  const getWeekDates = (startDate: Date) => {
+  const [customTasks, setCustomTasks] = useState<CustomTask[]>([]);  const getWeekDates = (startDate: Date) => {
     const dates = [];
     for (let i = 0; i < 7; i++) {
       const d = new Date(startDate);
@@ -70,6 +64,13 @@ export const WeeklyOverview: React.FC<WeeklyOverviewProps> = ({
   const weekDates = getWeekDates(selectedWeekStart);
 
   const formatDateISO = (d: Date) => d.toISOString().split("T")[0];
+
+  React.useEffect(() => {
+    if (!newTaskTeacher && staffList.length) {
+      setNewTaskTeacher(staffList.find((s) => s.isMathsDept && s.status === "active")?.name || "");
+    }
+  }, [staffList, newTaskTeacher]);
+
 
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDate, setNewTaskDate] = useState("");
