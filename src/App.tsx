@@ -495,6 +495,7 @@ export default function App() {
                 savedPostReports={savedPostReports}
                 departmentConfig={departmentConfig}
                 currentTerm={currentTerm}
+                peerModerationSchedule={peerModerationSchedule}
                 onImportFullBackup={async (backup) => {
                   if (backup.departmentConfig) await handleSaveDepartmentConfig(backup.departmentConfig);
                   if (Array.isArray(backup.deadlines)) { await safePut("/api/data/deadlines.json", backup.deadlines); setDeadlines(backup.deadlines); }
