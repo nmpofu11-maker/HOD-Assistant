@@ -4,7 +4,6 @@ import { DeadlinesView } from "./components/DeadlinesView";
 import { ResultsAnalysisView } from "./components/ResultsAnalysisView";
 import { MeetingsView } from "./components/MeetingsView";
 import { CurriculumView } from "./components/CurriculumView";
-import { StaffDirectoryView } from "./components/StaffDirectoryView";
 import { DepartmentSetupView } from "./components/DepartmentSetupView";
 import { DataManagementView } from "./components/DataManagementView";
 import { INITIAL_DEPARTMENT_CONFIG } from "./data/initialDepartmentConfig";
