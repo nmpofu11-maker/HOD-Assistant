@@ -625,7 +625,8 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
     apologies: [],
     teacherSignatures: [],
     agendaPoints: [],
-    actionItems: [],\n        minutesSummary: `${activeTemplateConfig.title} draft prepared for ${meetingTitle}.`,
+    actionItems: [],
+        minutesSummary: `${activeTemplateConfig.title} draft prepared for ${meetingTitle}.`,
         status: "Draft",
       };
 
