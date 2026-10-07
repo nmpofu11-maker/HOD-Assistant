@@ -24,6 +24,7 @@ import {
   ResultsAnalysisData,
   PreModerationReport,
   PostModerationReport,
+  PeerModerationScheduleEntry,
 } from "../types";
 import { exportDeadlinesXlsx, exportStaffDirectoryXlsx } from "../utils/xlsxExport";
 
@@ -40,6 +41,7 @@ interface DataManagementViewProps {
   onImportFullBackup?: (backupData: any) => Promise<void>;
   onResetDepartmentConfig?: () => Promise<void>;
   currentTerm: number;
+  peerModerationSchedule: PeerModerationScheduleEntry[];
 }
 
 export const DataManagementView: React.FC<DataManagementViewProps> = ({
@@ -55,6 +57,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
   onImportFullBackup,
   onResetDepartmentConfig,
   currentTerm,
+  peerModerationSchedule,
 }) => {
   const [importStatus, setImportStatus] = useState<string | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
@@ -74,6 +77,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
       resultsData,
       savedPreReports,
       savedPostReports,
+      peerModerationSchedule,
     };
 
     const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
