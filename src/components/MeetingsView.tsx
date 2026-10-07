@@ -411,7 +411,7 @@ export const MEETING_TEMPLATE_CONFIGS: MeetingTemplateConfig[] = [
     badge: "Simple",
     policyTag: "Department Follow-up",
     summary: "A short practical agenda for following up previous decisions and outstanding actions.",
-    iconName: "check-circle",
+    iconName: "clipboard",
     colorClasses: {
       activeBorder: "border-emerald-600 dark:border-emerald-500 ring-2 ring-emerald-500/20",
       activeBg: "bg-emerald-50/70 dark:bg-emerald-950/40",
@@ -645,184 +645,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
     apologies: [],
     teacherSignatures: [],
     agendaPoints: [],
-    actionItems: [],
-    minutesSummary: "",
-    status: "Draft",
-  });
-  const [selectedMeeting, setSelectedMeeting] = useState<MeetingRecord>(meetings[0] || blankMeeting());
-
-  // Toggle teacher signature
-  const toggleTeacherSignature = (teacherId: string) => {
-    const currentSignatures = selectedMeeting.teacherSignatures || defaultDepartmentTeachers;
-    const updatedSignatures = currentSignatures.map((sig) => {
-      if (sig.teacherId === teacherId) {
-        const nextSigned = !sig.signed;
-        return {
-          ...sig,
-          signed: nextSigned,
-          signedDate: nextSigned ? new Date().toISOString().split("T")[0] : "",
-        };
-      }
-      return sig;
-    });
-
-    const updatedMeeting = {
-      ...selectedMeeting,
-      teacherSignatures: updatedSignatures,
-    };
-
-    setSelectedMeeting(updatedMeeting);
-    updateMeetingsAndPersist(meetings.map((m) => (m.id === updatedMeeting.id ? updatedMeeting : m)));
-  };
-
-  // Generate automated agenda using AI with template-specific 10-point guideline structure
-  const handleGenerateAgenda = async () => {
-    setIsGenerating(true);
-    const activeTemplateConfig =
-      MEETING_TEMPLATE_CONFIGS.find((t) => t.id === selectedTemplate) ||
-      MEETING_TEMPLATE_CONFIGS[0];
-
-    // A follow-up agenda is intentionally simple: it does not invoke AI or the
-    // 10-point governance framework. The HOD can edit the six practical items.
-    if (selectedTemplate === "Follow-up Meeting") {
-      const followUpRecord: MeetingRecord = {
-        id: `MTG-${Date.now()}`,
-        title: meetingTitle || "Mathematics Department Follow-up Meeting",
-        date: meetingDate,
-        startTime,
-        endTime,
-        venue,
-        chairperson: "Mr. N. Mpofu (HOD)",
-        meetingType,
-        templateType: selectedTemplate,
-        attendees: defaultDepartmentTeachers.map((t) => t.name),
-        apologies: [],
-        teacherSignatures: defaultDepartmentTeachers.map((t) => ({ ...t, signed: false, signedDate: "" })),
-        agendaPoints: FOLLOW_UP_MEETING_ITEMS.map((item) => ({
-          pointNumber: item.pointNumber,
-          title: item.title,
-          notes: customFocus && item.pointNumber === 3
-            ? `${item.defaultNotes} Focus: ${customFocus}`
-            : item.defaultNotes,
-        })),
-        actionItems: [],
-        minutesSummary: "Simple follow-up meeting agenda. Edit the agenda points and action items before circulation.",
-        status: "Draft",
-      };
-      updateMeetingsAndPersist([followUpRecord, ...meetings]);
-      setSelectedMeeting(followUpRecord);
-      setActiveTab("scheduled");
-      setIsGenerating(false);
-      return;
-    }
-
-    try {
-      const result = await safePost("/api/meetings/generate", {
-        templateType: selectedTemplate,
-        meetingTitle,
-        meetingDate,
-        startTime,
-        endTime,
-        meetingType,
-        specificFocus: customFocus,
-        previousActionItems: selectedMeeting.actionItems,
-      });
-
-      if (!result.success || !result.data?.meeting) {
-        throw new Error(result.error || "Failed to generate meeting agenda.");
-      }
-
-      const data = result.data;
-
-      // Ensure all 10 template-specific points are present
-      const generatedPoints = data.meeting?.agendaPoints || [];
-      const complete10Points = activeTemplateConfig.items.map((std) => {
-        const found = generatedPoints.find((gp: any) => gp.pointNumber === std.pointNumber);
-        return {
-          pointNumber: std.pointNumber,
-          title: std.title,
-          notes: found?.notes || std.defaultNotes,
-        };
-      });
-
-      const newRecord: MeetingRecord = {
-        id: `MTG-${Date.now()}`,
-        title: data.meeting?.title || meetingTitle,
-        date: data.meeting?.date || meetingDate,
-        startTime,
-        endTime,
-        venue,
-        chairperson: "Mr. N. Mpofu (HOD)",
-        meetingType,
-        templateType: selectedTemplate,
-        attendees: ["Mr. N. Mpofu (HOD)", "Shingi", "Reggie", "Luthando"],
-        apologies: [],
-        teacherSignatures: defaultDepartmentTeachers.map((t) => ({ ...t, signed: false, signedDate: "" })),
-        agendaPoints: complete10Points,
-        actionItems: data.meeting?.actionItems?.length
-          ? data.meeting.actionItems
-          : [
-              {
-                id: `ACT-${Date.now()}-1`,
-                description: `Complete ${activeTemplateConfig.title} action tasks and statutory submissions`,
-                responsible: "Subject Teachers",
-                deadline: meetingDate,
-                status: "Pending",
-              },
-              {
-                id: `ACT-${Date.now()}-2`,
-                description: "Submit meeting summary documentation to Senior Leadership (SMT)",
-                responsible: "Mr. N. Mpofu (HOD)",
-                deadline: meetingDate,
-                status: "Pending",
-              },
-            ],
-        minutesSummary:
-          data.meeting?.minutesSummary ||
-          `Official ${activeTemplateConfig.title} draft conforming to Eagle House ${activeTemplateConfig.policyTag} guidelines.`,
-        status: "Draft",
-      };
-
-      updateMeetingsAndPersist([newRecord, ...meetings]);
-      setSelectedMeeting(newRecord);
-      setActiveTab("scheduled");
-    } catch (err: any) {
-      // Fallback: construct standard template matching selected template
-      const fallbackRecord: MeetingRecord = {
-        id: `MTG-${Date.now()}`,
-        title: meetingTitle,
-        date: meetingDate,
-        startTime,
-        endTime,
-        venue,
-        chairperson: "Mr. N. Mpofu (HOD)",
-        meetingType,
-        templateType: selectedTemplate,
-        attendees: ["Mr. N. Mpofu (HOD)", "Shingi", "Reggie", "Luthando"],
-        apologies: [],
-        teacherSignatures: defaultDepartmentTeachers.map((t) => ({ ...t, signed: false, signedDate: "" })),
-        agendaPoints: activeTemplateConfig.items.map((item) => ({
-          pointNumber: item.pointNumber,
-          title: item.title,
-          notes: `${item.defaultNotes} Focus: ${customFocus}`,
-        })),
-        actionItems: [
-          {
-            id: `ACT-${Date.now()}-1`,
-            description: `Execute ${activeTemplateConfig.title} directives as recorded`,
-            responsible: "Subject Teachers",
-            deadline: meetingDate,
-            status: "Pending",
-          },
-          {
-            id: `ACT-${Date.now()}-2`,
-            description: "Submit governance sign-off pack to Academic Head",
-            responsible: "Mr. N. Mpofu (HOD)",
-            deadline: meetingDate,
-            status: "Pending",
-          },
-        ],
-        minutesSummary: `Standard 10-point ${activeTemplateConfig.title} draft prepared for ${meetingTitle}.`,
+    actionItems: [],\n        minutesSummary: `${activeTemplateConfig.title} draft prepared for ${meetingTitle}.`,
         status: "Draft",
       };
 
@@ -1029,7 +852,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
             new Paragraph({
               children: [
                 new TextRun({
-                  text: `STATUTORY POLICY NOTICE (${targetTemplateConfig.policyTag.toUpperCase()}):`,
+                  text: targetTemplateType === "Follow-up Meeting" ? "MEETING NOTE:" : `TEMPLATE GUIDANCE (${targetTemplateConfig.policyTag.toUpperCase()}):`,
                   bold: true,
                   size: 16,
                   color: "1A365D",
@@ -1048,11 +871,11 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
               spacing: { after: 200 },
             }),
 
-            // 10-Point Agenda Table
+            // Agenda Agenda Table
             new Paragraph({
               children: [
                 new TextRun({
-                  text: targetTemplateType === "Follow-up Meeting" ? "AGENDA" : `STANDARDIZED 10-POINT ORDER OF BUSINESS (${targetTemplateConfig.title.toUpperCase()}):`,
+                  text: "AGENDA:",
                   bold: true,
                   size: 18,
                   color: "1A365D",
@@ -1072,7 +895,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
                       shading: { fill: "E2E8F0" },
                     }),
                     new TableCell({
-                      children: [new Paragraph({ children: [new TextRun({ text: "AGENDA TOPIC (STANDARDIZED)", bold: true, size: 15 })] })],
+                      children: [new Paragraph({ children: [new TextRun({ text: "AGENDA TOPIC", bold: true, size: 15 })] })],
                       width: { size: 3000, type: WidthType.DXA },
                       shading: { fill: "E2E8F0" },
                     }),
@@ -1082,7 +905,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
                       shading: { fill: "E2E8F0" },
                     }),
                     new TableCell({
-                      children: [new Paragraph({ children: [new TextRun({ text: "DISCUSSION FOCUS & STATUTORY OBJECTIVES", bold: true, size: 15 })] })],
+                      children: [new Paragraph({ children: [new TextRun({ text: "DISCUSSION FOCUS", bold: true, size: 15 })] })],
                       width: { size: 4000, type: WidthType.DXA },
                       shading: { fill: "E2E8F0" },
                     }),
@@ -1253,7 +1076,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
             new Paragraph({
               children: [
                 new TextRun({
-                  text: targetTemplateType === "Follow-up Meeting" ? "Follow-up agenda prepared for practical departmental use." : "I hereby confirm that this department meeting agenda has been constructed and circulated in strict adherence to the Eagle House School HOD Governance Handbook §1 standard 10-point framework.",
+                  text: targetTemplateType === "Follow-up Meeting" ? "Follow-up agenda prepared for practical departmental use." : "I hereby confirm that this department meeting agenda has been constructed and circulated in strict adherence to the Eagle House School HOD Governance Handbook §1 standard meeting record.",
                   size: 14,
                 }),
               ],
@@ -1338,11 +1161,11 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
               spacing: { after: 200 },
             }),
 
-            // 10-Point Minutes Details
+            // Agenda Minutes Details
             new Paragraph({
               children: [
                 new TextRun({
-                  text: "RECORDED MINUTES (STANDARDIZED 10-POINT SEQUENCE):",
+                  text: "RECORDED MINUTES:",
                   bold: true,
                   size: 18,
                   color: "1A365D",
@@ -1597,14 +1420,14 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
           <div className="flex items-center gap-2">
             <ClipboardList className="w-5 h-5 text-blue-700 dark:text-blue-400" />
             <h1 className="text-xl font-bold text-slate-900 dark:text-white">
-              Department Meetings & Standard 10-Point Agendas
+              Department Meetings & Agendas
             </h1>
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-700">
               HOD Handbook §1 Compliant
             </span>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Standardized 10-point sequence for Eagle House School department governance with teacher signatures, OCR/Audio intake, and Word (.docx) export.
+            Create, review and export practical department meeting agendas and minutes. Use a formal template when governance detail is required; use Follow-up Meeting for a short practical agenda.
           </p>
         </div>
 
@@ -1744,7 +1567,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
                         <Building className="w-3 h-3 text-slate-400" />
                         {m.venue || "Staffroom"}
                       </span>
-                      <span className="font-semibold text-blue-700 dark:text-blue-400">10-Point Sequence ✓</span>
+                      <span className="font-semibold text-blue-700 dark:text-blue-400">Agenda format ✓<//span>
                     </div>
                   </div>
                 );
@@ -1795,7 +1618,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
                 <button
                   onClick={() => exportAgendaDraftDocx(selectedMeeting)}
                   className="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all shadow-xs"
-                  title="Download clean official 10-point Agenda Draft with teacher signature spaces as a Microsoft Word document (.docx)"
+                  title="Download the meeting agenda as a Microsoft Word document (.docx)"
                 >
                   <Download className="w-4 h-4" />
                   <span>Download Agenda (.docx)</span>
@@ -1812,7 +1635,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
               </div>
             </div>
 
-            {/* Sub Tabs: 10-Point Agenda View vs Department Signatures */}
+            {/* Sub Tabs: Agenda Agenda View vs Department Signatures */}
             <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
               <button
                 onClick={() => setViewSubTab("agenda")}
@@ -1823,7 +1646,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
                 }`}
               >
                 <ListOrdered className="w-3.5 h-3.5" />
-                <span>10-Point Agenda & Minutes Draft</span>
+                <span>Agenda Agenda & Minutes Draft</span>
               </button>
 
               <button
@@ -1841,7 +1664,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
               </button>
             </div>
 
-            {/* TAB CONTENT: 10-Point Agenda Layout */}
+            {/* TAB CONTENT: Agenda Agenda Layout */}
             {viewSubTab === "agenda" && (() => {
               const activeTmpl =
                 MEETING_TEMPLATE_CONFIGS.find((t) => t.id === selectedMeeting.templateType) ||
@@ -1851,7 +1674,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
                   <div className="flex items-center justify-between">
                     <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
                       <ListOrdered className="w-4 h-4 text-blue-600" />
-                      {activeTmpl.title} — 10-Point Sequence
+                      {activeTmpl.title} — Agenda
                     </h3>
                     <span className="text-[11px] text-slate-500 font-medium">
                       {activeTmpl.policyTag} Guidelines
@@ -1914,7 +1737,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
                     Official Department Attendance & Sign-off Register
                   </div>
                   <p className="text-xs text-blue-800 mt-1">
-                    Every educator in the department signs this document to certify attendance, acknowledge discussion on Policy §7.1 / §7.2 moderation standards, and agree to the assigned deadlines.
+                    Educators can sign to confirm attendance and acknowledge the meeting record and agreed actions.
                   </p>
                 </div>
 
@@ -1977,7 +1800,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
                     Head of Department (HOD) Declaration & Certification:
                   </span>
                   <p className="text-slate-600 italic">
-                    "I hereby certify that this department meeting was convened in full accordance with the Eagle House School HOD Handbook §1 standardized 10-point sequence, and all assessment moderation guidelines (§7.1 and §7.2) were explicitly reviewed and recorded."
+                    "I hereby certify that this department meeting was convened in full accordance with the Eagle House School HOD Handbook §1 standardized meeting record, and all assessment moderation guidelines (§7.1 and §7.2) were explicitly reviewed and recorded."
                   </p>
                   <div className="flex items-center justify-between pt-2 border-t border-slate-200 text-[11px]">
                     <span className="font-semibold text-slate-800">
@@ -2084,11 +1907,11 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
               <div className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-amber-500" />
                 <h2 className="text-base font-bold text-slate-900 dark:text-white">
-                  Automated 10-Point Agenda & Minutes Generator
+                  Meeting Agenda & Minutes Generator
                 </h2>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Choose a meeting template format compliant with Eagle House School governance standards. The AI engine synthesizes a structured 10-point sequence, pre-populates department members, and generates a downloadable Word document (.docx).
+                Choose a meeting template format compliant with Eagle House School governance standards. The AI engine synthesizes a structured meeting record, pre-populates department members, and generates a downloadable Word document (.docx).
               </p>
             </div>
 
@@ -2143,7 +1966,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
                             </p>
                           </div>
                           <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
-                            <span>10 Points</span>
+                            <span>{tmpl.items.length} Items</span>
                             <span className="font-mono text-blue-600 dark:text-blue-400 font-semibold">{tmpl.badge}</span>
                           </div>
                         </button>
@@ -2263,7 +2086,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
               {isGenerating ? (
                 <>
                   <RotateCcw className="w-4 h-4 animate-spin" />
-                  <span>Synthesizing {selectedTemplate} 10-Point Sequence & Guidelines...</span>
+                  <span>Synthesizing {selectedTemplate} Agenda & Guidelines...</span>
                 </>
               ) : (
                 <>
@@ -2274,7 +2097,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
             </button>
           </div>
 
-          {/* Live Preview of Standard 10-Point Agenda Layout with Signature Section */}
+          {/* Live Preview of Agenda Layout with Signature Section */}
           {(() => {
             const previewTmpl =
               MEETING_TEMPLATE_CONFIGS.find((t) => t.id === selectedTemplate) ||
@@ -2305,13 +2128,13 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
                         chairperson: "Mr. N. Mpofu (HOD)",
                         meetingType,
                         templateType: selectedTemplate,
-                        attendees: ["Mr. N. Mpofu (HOD)", "Shingi", "Reggie", "Luthando"],
+                        attendees: defaultDepartmentTeachers.map((t) => t.name),
                         apologies: [],
                         teacherSignatures: defaultDepartmentTeachers,
                         agendaPoints: previewTmpl.items.map((item) => ({
                           pointNumber: item.pointNumber,
                           title: item.title,
-                          notes: `${item.defaultNotes} Focus: ${customFocus}`,
+                          notes: customFocus && item.pointNumber === 3 ? `${item.defaultNotes} Focus: ${customFocus}` : item.defaultNotes,
                         })),
                         actionItems: [],
                         minutesSummary: `Official preview draft conforming to ${previewTmpl.title} guidelines.`,
