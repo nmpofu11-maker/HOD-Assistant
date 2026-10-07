@@ -11,7 +11,7 @@ import { DEMO_DEADLINES, DEMO_MEETINGS, DEMO_RESULTS_DATASET, DEMO_PRE_MODERATIO
 import { HodHandbookIndexView } from "./components/HodHandbookIndexView";
 import { WeeklyOverview } from "./components/WeeklyOverview";
 import { AiAdvisorModal } from "./components/AiAdvisorModal";
-import { StaffDeadlineItem, StaffMember, DepartmentConfigState, MeetingRecord, ResultsAnalysisData, PreModerationReport, PostModerationReport, PeerModerationScheduleEntry } from "./types";
+import { StaffDeadlineItem, StaffMember, DepartmentConfigState, MeetingRecord, ResultsAnalysisData, PreModerationReport, PostModerationReport, PeerModerationScheduleEntry, DepartmentCalendarTask } from "./types";
 import { safeGet, safePut } from "./utils/apiClient";
 import {
   ShieldCheck,
@@ -44,6 +44,7 @@ export default function App() {
   const [savedPostReports, setSavedPostReports] = useState<PostModerationReport[]>([]);
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [peerModerationSchedule, setPeerModerationSchedule] = useState<PeerModerationScheduleEntry[]>([]);
+  const [calendarTasks, setCalendarTasks] = useState<DepartmentCalendarTask[]>([]);
 
   useEffect(() => {
     Promise.all([
@@ -54,7 +55,8 @@ export default function App() {
       safeGet<Array<PreModerationReport | PostModerationReport>>("/api/data/moderations.json"),
       safeGet<PeerModerationScheduleEntry[]>("/api/data/peer_moderation_schedule.json"),
       safeGet<{ active: boolean }>("/api/data/demo_mode.json"),
-    ]).then(([config, d, m, r, mod, peerSchedule, demoState]) => {
+      safeGet<DepartmentCalendarTask[]>("/api/data/calendar_tasks.json"),
+    ]).then(([config, d, m, r, mod, peerSchedule, demoState, calendar]) => {
       if (config.success && config.data) setDepartmentConfig(config.data);
       if (d.success && Array.isArray(d.data)) setDeadlines(d.data);
       if (m.success && Array.isArray(m.data)) setMeetings(m.data);
@@ -65,6 +67,7 @@ export default function App() {
         setSavedPostReports(mod.data.filter((x): x is PostModerationReport => "scriptFindings" in x));
       }
       setIsDemoMode(demoState.success && demoState.data?.active === true);
+      if (calendar.success && Array.isArray(calendar.data)) setCalendarTasks(calendar.data);
     }).catch((err) => console.error("Failed to load departmental data:", err));
   }, []);
 
@@ -81,6 +84,12 @@ export default function App() {
     const result = await safePut("/api/data/department_config.json", newConfig);
     if (!result.success) throw new Error(result.error || "Failed to save department configuration.");
     setDepartmentConfig(newConfig);
+  };
+
+  const handleSaveCalendarTasks = async (tasks: DepartmentCalendarTask[]) => {
+    const result = await safePut("/api/data/calendar_tasks.json", tasks);
+    if (!result.success) throw new Error(result.error || "Failed to save calendar tasks.");
+    setCalendarTasks(tasks);
   };
 
   const handleSavePeerModerationSchedule = async (schedule: PeerModerationScheduleEntry[]) => {
@@ -458,6 +467,8 @@ export default function App() {
               <WeeklyOverview
                 deadlines={deadlines}
                 staffList={staffList}
+                calendarTasks={calendarTasks}
+                onSaveCalendarTasks={handleSaveCalendarTasks}
                 persona={persona}
                 currentTerm={currentTerm}
               />
@@ -481,6 +492,7 @@ export default function App() {
                 departmentConfig={departmentConfig}
                 currentTerm={currentTerm}
                 peerModerationSchedule={peerModerationSchedule}
+                calendarTasks={calendarTasks}
                 onImportFullBackup={async (backup) => {
                   if (backup.departmentConfig) await handleSaveDepartmentConfig(backup.departmentConfig);
                   if (Array.isArray(backup.deadlines)) { await safePut("/api/data/deadlines.json", backup.deadlines); setDeadlines(backup.deadlines); }
@@ -489,6 +501,7 @@ export default function App() {
                   const mods = [...(backup.savedPreReports || []), ...(backup.savedPostReports || [])];
                   await safePut("/api/data/moderations.json", mods); setSavedPreReports(backup.savedPreReports || []); setSavedPostReports(backup.savedPostReports || []);
                   if (Array.isArray(backup.peerModerationSchedule)) { await handleSavePeerModerationSchedule(backup.peerModerationSchedule); }
+                  if (Array.isArray(backup.calendarTasks)) { await handleSaveCalendarTasks(backup.calendarTasks); }
                   setIsDemoMode(false);
                 }}
               />

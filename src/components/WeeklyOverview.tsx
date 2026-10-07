@@ -14,13 +14,15 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
-import { StaffDeadlineItem, StaffMember } from "../types";
+import { DepartmentCalendarTask, StaffDeadlineItem, StaffMember } from "../types";
 
 interface WeeklyOverviewProps {
   deadlines: StaffDeadlineItem[];
   staffList: StaffMember[];
   persona: string;
   currentTerm: number;
+  calendarTasks: DepartmentCalendarTask[];
+  onSaveCalendarTasks: (tasks: DepartmentCalendarTask[]) => Promise<void>;
 }
 
 interface CustomTask {
@@ -39,6 +41,8 @@ export const WeeklyOverview: React.FC<WeeklyOverviewProps> = ({
   staffList,
   persona,
   currentTerm,
+  calendarTasks,
+  onSaveCalendarTasks,
 }) => {
   const getMonday = (date: Date) => {
     const d = new Date(date);
@@ -51,7 +55,7 @@ export const WeeklyOverview: React.FC<WeeklyOverviewProps> = ({
 
   const [selectedWeekStart, setSelectedWeekStart] = useState<Date>(() => getMonday(new Date()));
   const [selectedDayOffset, setSelectedDayOffset] = useState<number>(0);
-  const [customTasks, setCustomTasks] = useState<CustomTask[]>([]);  const getWeekDates = (startDate: Date) => {
+  const [customTasks, setCustomTasks] = useState<CustomTask[]>(calendarTasks.map((task) => ({ ...task, type: task.type as "meeting" | "task" })));  const getWeekDates = (startDate: Date) => {
     const dates = [];
     for (let i = 0; i < 7; i++) {
       const d = new Date(startDate);
@@ -70,6 +74,10 @@ export const WeeklyOverview: React.FC<WeeklyOverviewProps> = ({
   const [newTaskTime, setNewTaskTime] = useState("");
   const [newTaskType, setNewTaskType] = useState<"meeting" | "task">("task");
   const [newTaskTeacher, setNewTaskTeacher] = useState("");
+  React.useEffect(() => {
+    setCustomTasks(calendarTasks.map((task) => ({ ...task, type: task.type as "meeting" | "task" })));
+  }, [calendarTasks]);
+
   React.useEffect(() => {
     if (!newTaskTeacher && staffList.length) {
       setNewTaskTeacher(staffList.find((s) => s.isMathsDept && s.status === "active")?.name || "");
@@ -92,14 +100,18 @@ export const WeeklyOverview: React.FC<WeeklyOverviewProps> = ({
       status: "Pending",
     };
 
-    setCustomTasks((prev) => [...prev, newTask]);
+    const updatedTasks = [...customTasks, newTask];
+    setCustomTasks(updatedTasks);
+    void onSaveCalendarTasks(updatedTasks.filter((task) => task.type !== "deadline").map((task) => ({ ...task, type: task.type as "meeting" | "task" }))).catch((error) => alert(error.message || "Could not save the calendar event."));
     setNewTaskTitle("");
     setNewTaskTime("");
     alert("Task successfully scheduled in the HOD departmental calendar!");
   };
 
   const handleDeleteTask = (id: string) => {
-    setCustomTasks((prev) => prev.filter((t) => t.id !== id));
+    const updatedTasks = customTasks.filter((t) => t.id !== id);
+    setCustomTasks(updatedTasks);
+    void onSaveCalendarTasks(updatedTasks.filter((task) => task.type !== "deadline").map((task) => ({ ...task, type: task.type as "meeting" | "task" }))).catch((error) => alert(error.message || "Could not delete the calendar event."));
   };
 
   // Aggregate and format all calendar items: Deadlines (Pre-mod dues, post-mod, test dates) + CustomTasks (Meetings, general tasks)

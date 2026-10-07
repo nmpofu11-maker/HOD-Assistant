@@ -323,3 +323,15 @@ export interface PeerModerationScheduleEntry {
   status: PeerModerationStatus;
   notes: string;
 }
+
+
+export interface DepartmentCalendarTask {
+  id: string;
+  title: string;
+  date: string;
+  type: "meeting" | "task";
+  teacher: string;
+  grade?: string;
+  time?: string;
+  status?: string;
+}
