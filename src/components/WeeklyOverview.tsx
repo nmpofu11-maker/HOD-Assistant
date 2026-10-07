@@ -19,7 +19,7 @@ import { StaffDeadlineItem, StaffMember } from "../types";
 interface WeeklyOverviewProps {
   deadlines: StaffDeadlineItem[];
   staffList: StaffMember[];
-  persona: "hod" | "shingi" | "reggie" | "luthando";
+  persona: string;
   currentTerm: number;
 }
 
@@ -40,69 +40,43 @@ export const WeeklyOverview: React.FC<WeeklyOverviewProps> = ({
   persona,
   currentTerm,
 }) => {
-  // Preset Weeks for Term 1 (which aligns with sample assessment/meeting dates)
-  const WEEKS_PRESETS = [
-    { label: "Term 1 Launch Week (Jan 19 - Jan 25, 2026)", start: "2026-01-19" },
-    { label: "Term 1 Week 7 (Feb 23 - Mar 01, 2026)", start: "2026-02-23" },
-    { label: "Term 1 Week 8 (Mar 02 - Mar 08, 2026)", start: "2026-03-02" },
-    { label: "Term 1 Week 9 (Mar 09 - Mar 15, 2026)", start: "2026-03-09" },
-    { label: "Term 2 Week 4 (May 04 - May 10, 2026)", start: "2026-05-04" },
-  ];
+  const getMonday = (date: Date) => {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    d.setDate(d.getDate() + diff);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  };
 
-  const [selectedWeekIndex, setSelectedWeekIndex] = useState(3); // Default to Week 9 (March 9 - March 15) which has test dates
-  const [selectedDayOffset, setSelectedDayOffset] = useState<number>(3); // Default to Thursday (Mar 12)
-  const [customTasks, setCustomTasks] = useState<CustomTask[]>([
-    {
-      id: "meeting-1",
-      title: "Maths Department Launch Meeting",
-      date: "2026-01-22",
-      type: "meeting",
-      teacher: "HOD Mpofu",
-      time: "14:30",
-      status: "Completed",
-    },
-    {
-      id: "meeting-2",
-      title: "Mathematics Department Cycle 2 Moderation Calibration",
-      date: "2026-03-12",
-      type: "meeting",
-      teacher: "HOD Mpofu",
-      time: "14:30",
-      status: "Scheduled",
-    },
-    {
-      id: "task-custom-1",
-      title: "Submit Grade 10 Algebra Memorandum to HOD Mpofu",
-      date: "2026-02-28",
-      type: "task",
-      teacher: "Shingi",
-      status: "Completed",
-    },
-    {
-      id: "task-custom-2",
-      title: "Collate Baseline test diagnostics for Grade 8-10 into Appendix 10 tracker",
-      date: "2026-02-23",
-      type: "task",
-      teacher: "HOD Mpofu",
-      status: "Completed",
-    },
-    {
-      id: "task-custom-3",
-      title: "Review Term 1 Control Test Draft",
-      date: "2026-03-05",
-      type: "task",
-      teacher: "Reggie",
-      status: "Pending",
-    },
-    {
-      id: "task-custom-4",
-      title: "Syllabus alignment review with CAPS requirements",
-      date: "2026-03-10",
-      type: "task",
-      teacher: "Luthando",
-      status: "In Progress",
-    },
-  ]);
+  const [selectedWeekStart, setSelectedWeekStart] = useState<Date>(() => getMonday(new Date()));
+  const [selectedDayOffset, setSelectedDayOffset] = useState<number>(0);
+  const [customTasks, setCustomTasks] = useState<CustomTask[]>([]);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskDate, setNewTaskDate] = useState("");
+  const [newTaskTime, setNewTaskTime] = useState("");
+  const [newTaskType, setNewTaskType] = useState<"meeting" | "task">("task");
+  const [newTaskTeacher, setNewTaskTeacher] = useState("");
+
+  React.useEffect(() => {
+    if (!newTaskTeacher && staffList.length) {
+      setNewTaskTeacher(staffList.find((s) => s.isMathsDept && s.status === "active")?.name || "");
+    }
+  }, [staffList, newTaskTeacher]);
+
+  const getWeekDates = (startDate: Date) => {
+    const dates = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(startDate);
+      d.setDate(startDate.getDate() + i);
+      dates.push(d);
+    }
+    return dates;
+  };
+
+  const weekDates = getWeekDates(selectedWeekStart);
+
+  const formatDateISO = (d: Date) => d.toISOString().split("T")[0];
 
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDate, setNewTaskDate] = useState("");
@@ -121,12 +95,6 @@ export const WeeklyOverview: React.FC<WeeklyOverviewProps> = ({
     }
     return dates;
   };
-
-  const currentWeekMonday = WEEKS_PRESETS[selectedWeekIndex].start;
-  const weekDates = getWeekDates(currentWeekMonday);
-
-  // Map dates to ISO strings for matching
-  const formatDateISO = (d: Date) => d.toISOString().split("T")[0];
 
   const handleAddTask = (e: React.FormEvent) => {
     e.preventDefault();
@@ -190,26 +158,16 @@ export const WeeklyOverview: React.FC<WeeklyOverviewProps> = ({
       }
     });
 
-    // Filter items strictly based on persona selection
     return items.filter((item) => {
       if (persona === "hod") return true;
-      if (persona === "shingi" && item.teacher === "Shingi") return true;
-      if (persona === "reggie" && item.teacher === "Reggie") return true;
-      if (persona === "luthando" && item.teacher === "Luthando") return true;
-
-      // Meetings are open to all attendees, so everyone sees HOD meetings
-      if (item.type === "meeting" && item.teacher === "HOD Mpofu") return true;
-
-      return false;
+      const educator = staffList.find((s) => s.id === persona);
+      if (!educator) return true;
+      return item.teacher === educator.name;
     });
-  };
 
   const getPersonaDisplayName = () => {
-    if (persona === "hod") return "HOD Mpofu (All Staff)";
-    if (persona === "shingi") return "Shingi (Grade 10)";
-    if (persona === "reggie") return "Reggie (Grade 11-12)";
-    if (persona === "luthando") return "Luthando (Cambridge)";
-    return persona;
+    if (persona === "hod") return "HOD / All Department";
+    return staffList.find((s) => s.id === persona)?.name || "Selected Educator";
   };
 
   // Fetch items for the currently active day selected card
@@ -243,38 +201,14 @@ export const WeeklyOverview: React.FC<WeeklyOverviewProps> = ({
       <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-1 text-xs">
           <span className="font-semibold text-slate-700">Academic Week:</span>
-          <select
-            value={selectedWeekIndex}
-            onChange={(e) => setSelectedWeekIndex(parseInt(e.target.value, 10))}
-            className="py-1.5 px-3 rounded-lg border border-slate-300 bg-white font-medium text-slate-900 focus:ring-1 focus:ring-teal-700 focus:outline-none"
-          >
-            {WEEKS_PRESETS.map((preset, idx) => (
-              <option key={idx} value={idx}>
-                {preset.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setSelectedWeekIndex((prev) => Math.max(0, prev - 1))}
-            disabled={selectedWeekIndex === 0}
-            className="p-1.5 hover:bg-slate-100 rounded-lg border border-slate-200 disabled:opacity-50 cursor-pointer"
-          >
-            <ChevronLeft className="w-4 h-4 text-slate-600" />
-          </button>
-          <span className="text-xs font-bold text-slate-800">
-            {weekDates[0].toLocaleDateString("en-US", { month: "short", day: "numeric" })} -{" "}
-            {weekDates[6].toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+          <span className="py-1.5 px-3 rounded-lg border border-slate-300 bg-slate-50 font-medium text-slate-900">
+            {weekDates[0].toLocaleDateString("en-ZA", { day: "2-digit", month: "short", year: "numeric" })} – {weekDates[6].toLocaleDateString("en-ZA", { day: "2-digit", month: "short", year: "numeric" })}
           </span>
-          <button
-            onClick={() => setSelectedWeekIndex((prev) => Math.min(WEEKS_PRESETS.length - 1, prev + 1))}
-            disabled={selectedWeekIndex === WEEKS_PRESETS.length - 1}
-            className="p-1.5 hover:bg-slate-100 rounded-lg border border-slate-200 disabled:opacity-50 cursor-pointer"
-          >
-            <ChevronRight className="w-4 h-4 text-slate-600" />
-          </button>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setSelectedWeekStart((d) => new Date(d.getFullYear(), d.getMonth(), d.getDate() - 7))} className="p-1.5 hover:bg-slate-100 rounded-lg border border-slate-200 cursor-pointer"><ChevronLeft className="w-4 h-4 text-slate-600" /></button>
+          <button onClick={() => setSelectedWeekStart(getMonday(new Date()))} className="px-2.5 py-1.5 hover:bg-slate-100 rounded-lg border border-slate-200 text-[11px] font-semibold cursor-pointer">Current Week</button>
+          <button onClick={() => setSelectedWeekStart((d) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7))} className="p-1.5 hover:bg-slate-100 rounded-lg border border-slate-200 cursor-pointer"><ChevronRight className="w-4 h-4 text-slate-600" /></button>
         </div>
       </div>
 
@@ -502,11 +436,9 @@ export const WeeklyOverview: React.FC<WeeklyOverviewProps> = ({
                   onChange={(e) => setNewTaskTeacher(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-300 bg-white rounded-lg focus:ring-1 focus:ring-teal-700 focus:outline-none"
                 >
-                  <option value="HOD Mpofu">HOD Mpofu</option>
-                  <option value="Shingi">Shingi</option>
-                  <option value="Reggie">Reggie</option>
-                  <option value="Luthando">Luthando</option>
-                  <option value="Sipho">Sipho</option>
+                  {staffList.filter((s) => s.isMathsDept && s.status === "active").map((s) => (
+                    <option key={s.id} value={s.name}>{s.name}</option>
+                  ))}
                 </select>
               </div>
             </div>
