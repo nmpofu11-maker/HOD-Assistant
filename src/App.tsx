@@ -5,12 +5,14 @@ import { ResultsAnalysisView } from "./components/ResultsAnalysisView";
 import { MeetingsView } from "./components/MeetingsView";
 import { CurriculumView } from "./components/CurriculumView";
 import { StaffDirectoryView } from "./components/StaffDirectoryView";
+import { DepartmentSetupView } from "./components/DepartmentSetupView";
+import { DataManagementView } from "./components/DataManagementView";
+import { INITIAL_DEPARTMENT_CONFIG } from "./data/initialDepartmentConfig";
+import { DEMO_DEADLINES, DEMO_MEETINGS, DEMO_RESULTS_DATASET, DEMO_PRE_MODERATION_REPORT, DEMO_POST_MODERATION_REPORT } from "./data/demonstrationDataset";
 import { HodHandbookIndexView } from "./components/HodHandbookIndexView";
 import { WeeklyOverview } from "./components/WeeklyOverview";
 import { AiAdvisorModal } from "./components/AiAdvisorModal";
-import { INITIAL_STAFF_MEMBERS } from "./data/staffData";
-import { INITIAL_DEADLINES } from "./data/curriculumData";
-import { StaffDeadlineItem } from "./types";
+import { StaffDeadlineItem, StaffMember, DepartmentConfigState, MeetingRecord, ResultsAnalysisData, PreModerationReport, PostModerationReport } from "./types";
 import { safeGet, safePut } from "./utils/apiClient";
 import {
   ShieldCheck,
@@ -34,15 +36,69 @@ import {
 
 export default function App() {
   const [activeTab, setActiveTab] = useState("moderation");
-  const [staffList, setStaffList] = useState(INITIAL_STAFF_MEMBERS);
-  const [deadlines, setDeadlines] = useState<StaffDeadlineItem[]>(INITIAL_DEADLINES);
+  const [departmentConfig, setDepartmentConfig] = useState<DepartmentConfigState>(INITIAL_DEPARTMENT_CONFIG);
+  const [staffList, setStaffList] = useState<StaffMember[]>([]);
+  const [deadlines, setDeadlines] = useState<StaffDeadlineItem[]>([]);
+  const [meetings, setMeetings] = useState<MeetingRecord[]>([]);
+  const [resultsData, setResultsData] = useState<ResultsAnalysisData | null>(null);
+  const [savedPreReports, setSavedPreReports] = useState<PreModerationReport[]>([]);
+  const [savedPostReports, setSavedPostReports] = useState<PostModerationReport[]>([]);
+  const [isDemoMode, setIsDemoMode] = useState(false);
 
   useEffect(() => {
-    safeGet<StaffDeadlineItem[]>("/api/data/deadlines.json").then((result) => {
-      if (result.success && Array.isArray(result.data)) setDeadlines(result.data);
-      else if (!result.success) console.error("Failed to load deadlines:", result.error);
-    });
+    Promise.all([
+      safeGet<DepartmentConfigState | null>("/api/data/department_config.json"),
+      safeGet<StaffDeadlineItem[]>("/api/data/deadlines.json"),
+      safeGet<MeetingRecord[]>("/api/data/meetings.json"),
+      safeGet<ResultsAnalysisData | ResultsAnalysisData[]>("/api/data/results.json"),
+      safeGet<Array<PreModerationReport | PostModerationReport>>("/api/data/moderations.json"),
+    ]).then(([config, d, m, r, mod]) => {
+      if (config.success && config.data) setDepartmentConfig(config.data);
+      if (d.success && Array.isArray(d.data)) setDeadlines(d.data);
+      if (m.success && Array.isArray(m.data)) setMeetings(m.data);
+      if (r.success) setResultsData(Array.isArray(r.data) ? (r.data[0] || null) : (r.data || null));
+      if (mod.success && Array.isArray(mod.data)) {
+        setSavedPreReports(mod.data.filter((x: any) => "checklist" in x));
+        setSavedPostReports(mod.data.filter((x: any) => "scriptFindings" in x));
+      }
+    }).catch((err) => console.error("Failed to load departmental data:", err));
   }, []);
+
+  useEffect(() => {
+    const year = departmentConfig.years.find((y) => y.year === departmentConfig.currentAcademicYear) || departmentConfig.years[0];
+    setStaffList((year?.educators || []).map((e): StaffMember => ({
+      id: e.id, name: e.name, role: e.role, email: e.email, status: e.status, notes: e.notes,
+      isMathsDept: e.isMathsDept,
+      allocations: e.allocations.map((a) => ({ id: a.id, curriculum: a.curriculum, grade: a.grade, subject: a.subject }))
+    })));
+  }, [departmentConfig]);
+
+  const handleSaveDepartmentConfig = async (newConfig: DepartmentConfigState) => {
+    const result = await safePut("/api/data/department_config.json", newConfig);
+    if (!result.success) throw new Error(result.error || "Failed to save department configuration.");
+    setDepartmentConfig(newConfig);
+  };
+
+  const loadDemoData = async () => {
+    const results = await Promise.all([
+      safePut("/api/data/deadlines.json", DEMO_DEADLINES),
+      safePut("/api/data/meetings.json", DEMO_MEETINGS),
+      safePut("/api/data/results.json", DEMO_RESULTS_DATASET),
+      safePut("/api/data/moderations.json", [DEMO_PRE_MODERATION_REPORT, DEMO_POST_MODERATION_REPORT]),
+    ]);
+    if (results.some((r) => !r.success)) throw new Error("One or more demonstration datasets could not be saved.");
+    setDeadlines(DEMO_DEADLINES); setMeetings(DEMO_MEETINGS); setResultsData(DEMO_RESULTS_DATASET);
+    setSavedPreReports([DEMO_PRE_MODERATION_REPORT]); setSavedPostReports([DEMO_POST_MODERATION_REPORT]); setIsDemoMode(true);
+  };
+
+  const clearDemoData = async () => {
+    const results = await Promise.all([
+      safePut("/api/data/deadlines.json", []), safePut("/api/data/meetings.json", []),
+      safePut("/api/data/results.json", []), safePut("/api/data/moderations.json", []),
+    ]);
+    if (results.some((r) => !r.success)) throw new Error("Could not clear demonstration data.");
+    setDeadlines([]); setMeetings([]); setResultsData(null); setSavedPreReports([]); setSavedPostReports([]); setIsDemoMode(false);
+  };
 
   const [isAdvisorModalOpen, setIsAdvisorModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -197,7 +253,8 @@ export default function App() {
     { id: "results", label: "Results & Interventions", icon: BarChart3 },
     { id: "meetings", label: "Meetings & Agendas", icon: ClipboardList },
     { id: "curriculum", label: "Curriculum & ATPs", icon: BookOpen },
-    { id: "staff", label: "Staff Allocations", icon: Users2 },
+    { id: "staff", label: "Department Setup", icon: Users2 },
+    { id: "data-management", label: "Data Management", icon: ShieldCheck },
     { id: "hod-index", label: "HOD Duties Index", icon: GraduationCap },
   ];
 
@@ -404,14 +461,34 @@ export default function App() {
             )}
 
             {activeTab === "meetings" && <MeetingsView staffList={filteredStaffList} />}
+            {activeTab === "data-management" && (
+              <DataManagementView
+                isDemoMode={isDemoMode}
+                onLoadDemoData={loadDemoData}
+                onClearDemoData={clearDemoData}
+                deadlines={deadlines}
+                meetings={meetings}
+                resultsData={resultsData}
+                savedPreReports={savedPreReports}
+                savedPostReports={savedPostReports}
+                departmentConfig={departmentConfig}
+                currentTerm={currentTerm}
+                onImportFullBackup={async (backup) => {
+                  if (backup.departmentConfig) await handleSaveDepartmentConfig(backup.departmentConfig);
+                  if (Array.isArray(backup.deadlines)) { await safePut("/api/data/deadlines.json", backup.deadlines); setDeadlines(backup.deadlines); }
+                  if (Array.isArray(backup.meetings)) { await safePut("/api/data/meetings.json", backup.meetings); setMeetings(backup.meetings); }
+                  if (backup.resultsData) { await safePut("/api/data/results.json", backup.resultsData); setResultsData(backup.resultsData); }
+                  const mods = [...(backup.savedPreReports || []), ...(backup.savedPostReports || [])];
+                  await safePut("/api/data/moderations.json", mods); setSavedPreReports(backup.savedPreReports || []); setSavedPostReports(backup.savedPostReports || []);
+                  setIsDemoMode(false);
+                }}
+              />
+            )}
 
             {activeTab === "curriculum" && <CurriculumView />}
 
             {activeTab === "staff" && (
-              <StaffDirectoryView
-                staffList={filteredStaffList}
-                onSelectTeacherForDeadlines={handleSelectTeacherForDeadlines}
-              />
+              <DepartmentSetupView config={departmentConfig} onSaveConfig={handleSaveDepartmentConfig} onSelectTeacherForDeadlines={handleSelectTeacherForDeadlines} />
             )}
 
             {activeTab === "hod-index" && <HodHandbookIndexView setActiveTab={setActiveTab} />}
