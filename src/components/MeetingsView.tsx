@@ -560,187 +560,12 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
     }
   };
 
-  // Department teachers roster for signatures
-  const defaultDepartmentTeachers = [
-    {
-      teacherId: "mpofu",
-      name: "Mr. N. Mpofu",
-      role: "Head of Department (HOD) — Chair",
-      allocation: "Grades 10-12 Math Lit, Grades 8-9 Tech",
-      signed: true,
-      signedDate: "2026-03-12",
-    },
-    {
-      teacherId: "shingi",
-      name: "Mr. / Ms. Shingi",
-      role: "Mathematics Educator",
-      allocation: "Grades 8, 10, 11, 12 Math, Cambridge AS Stats",
-      signed: true,
-      signedDate: "2026-03-12",
-    },
-    {
-      teacherId: "reggie",
-      name: "Mr. / Ms. Reggie",
-      role: "Mathematics Educator",
-      allocation: "Grades 9-10 Math, Cambridge IG2 & AS1",
-      signed: true,
-      signedDate: "2026-03-12",
-    },
-    {
-      teacherId: "luthando",
-      name: "Mr. / Ms. Luthando",
-      role: "Mathematics Educator",
-      allocation: "Cambridge Lower Secondary, IG1 Math, Economics",
-      signed: false,
-      signedDate: "",
-    },
-  ];
+  // Roster is supplied by the Department Configuration; never seed meeting attendees/signatures.
+  const defaultDepartmentTeachers: MeetingRecord["teacherSignatures"] = [];
 
-  // Active meeting records seeded with all 3 formats
-  const defaultMeetings: MeetingRecord[] = [
-    {
-      id: "MTG-2026-01",
-      title: "Term 1 Cycle 2 Mathematics Department Meeting",
-      date: "2026-03-12",
-      startTime: "14:30",
-      endTime: "15:45",
-      venue: "Secondary Mathematics Staffroom",
-      chairperson: "Mr. N. Mpofu (HOD)",
-      meetingType: "Regular Departmental",
-      templateType: "Standard Staff Meeting",
-      attendees: ["Mr. N. Mpofu (HOD)", "Shingi", "Reggie", "Luthando"],
-      apologies: [],
-      teacherSignatures: defaultDepartmentTeachers,
-      agendaPoints: STANDARD_STAFF_MEETING_ITEMS.map((item) => ({
-        pointNumber: item.pointNumber,
-        title: item.title,
-        notes: item.defaultNotes,
-      })),
-      actionItems: [
-        {
-          id: "ACT-1",
-          description: "Submit Term 1 formal test draft 5 school days prior to assessment date (§7.1)",
-          responsible: "Shingi & Reggie",
-          deadline: "2026-03-18",
-          status: "In Progress",
-        },
-        {
-          id: "ACT-2",
-          description: "Collate Baseline test diagnostics for Grade 8-10 into Appendix 10 tracker",
-          responsible: "Mr. N. Mpofu",
-          deadline: "2026-03-15",
-          status: "Completed",
-        },
-        {
-          id: "ACT-3",
-          description: "Verify Cambridge Lower Secondary scheme of work for Checkpoint",
-          responsible: "Luthando",
-          deadline: "2026-03-20",
-          status: "Completed",
-        },
-        {
-          id: "ACT-4",
-          description: "Conduct 10% stratified purple pen audit for Grade 11 Class Test (§7.2)",
-          responsible: "Mr. N. Mpofu",
-          deadline: "2026-03-22",
-          status: "Pending",
-        },
-      ],
-      minutesSummary:
-        "Standard department governance session: confirmed curriculum ATP pacing, reviewed baseline mark distributions, enforced Policy §7.1 pre-moderation lead-time, and tracked Appendix 10 remedial interventions.",
-      status: "Completed",
-    },
-    {
-      id: "MTG-2026-02",
-      title: "Term 1 Pre- & Post-Assessment Moderation Calibration",
-      date: "2026-03-20",
-      startTime: "14:00",
-      endTime: "15:30",
-      venue: "Assessment Moderation Centre",
-      chairperson: "Mr. N. Mpofu (HOD)",
-      meetingType: "Pre-Moderation Calibration",
-      templateType: "Moderation Meeting",
-      attendees: ["Mr. N. Mpofu (HOD)", "Shingi", "Reggie", "Luthando"],
-      apologies: [],
-      teacherSignatures: defaultDepartmentTeachers.map((t) => ({ ...t, signed: true, signedDate: "2026-03-20" })),
-      agendaPoints: MODERATION_MEETING_ITEMS.map((item) => ({
-        pointNumber: item.pointNumber,
-        title: item.title,
-        notes: item.defaultNotes,
-      })),
-      actionItems: [
-        {
-          id: "MOD-ACT-1",
-          description: "Lock cognitive weighting grid (20% L1, 35% L2, 30% L3, 15% L4) on Grade 10-12 drafts",
-          responsible: "Senior Moderators",
-          deadline: "2026-03-25",
-          status: "Completed",
-        },
-        {
-          id: "MOD-ACT-2",
-          description: "Deploy 10% stratified sample purple pen remark within 48h of marking completion (§7.2)",
-          responsible: "HOD Mpofu & Moderators",
-          deadline: "2026-03-28",
-          status: "In Progress",
-        },
-        {
-          id: "MOD-ACT-3",
-          description: "Sign and archive statutory Appendix 7 moderation instrument sheets with Academic Head",
-          responsible: "HOD Mpofu",
-          deadline: "2026-03-30",
-          status: "Pending",
-        },
-      ],
-      minutesSummary:
-        "Moderation Quality Assurance: evaluated cognitive weighting balance (Bloom's L1-L4), standardized marking guidelines for alternative mathematical methods, verified §7.1 5-day lead-time, and mandated §7.2 10% purple pen sampling.",
-      status: "Completed",
-    },
-    {
-      id: "MTG-2026-03",
-      title: "Term 2 Curriculum Planning & ATP Milestones Roadmapping",
-      date: "2026-04-08",
-      startTime: "09:00",
-      endTime: "11:30",
-      venue: "Secondary Mathematics Staffroom",
-      chairperson: "Mr. N. Mpofu (HOD)",
-      meetingType: "Regular Departmental",
-      templateType: "Curriculum Planning",
-      attendees: ["Mr. N. Mpofu (HOD)", "Shingi", "Reggie", "Luthando"],
-      apologies: [],
-      teacherSignatures: defaultDepartmentTeachers.map((t, idx) => ({ ...t, signed: idx < 2, signedDate: idx < 2 ? "2026-04-08" : "" })),
-      agendaPoints: CURRICULUM_PLANNING_ITEMS.map((item) => ({
-        pointNumber: item.pointNumber,
-        title: item.title,
-        notes: item.defaultNotes,
-      })),
-      actionItems: [
-        {
-          id: "CUR-ACT-1",
-          description: "Finalize week-by-week CAPS Annual Teaching Plan (ATP) milestone calendar for Term 2",
-          responsible: "All Subject Teachers",
-          deadline: "2026-04-12",
-          status: "In Progress",
-        },
-        {
-          id: "CUR-ACT-2",
-          description: "Prepare 10-minute starter bridge drills for algebra and fraction prerequisites",
-          responsible: "Reggie & Shingi",
-          deadline: "2026-04-14",
-          status: "Pending",
-        },
-        {
-          id: "CUR-ACT-3",
-          description: "Submit consolidated term curriculum blueprint to Senior Management Team (SMT)",
-          responsible: "HOD Mpofu",
-          deadline: "2026-04-15",
-          status: "Pending",
-        },
-      ],
-      minutesSummary:
-        "Strategic curriculum roadmapping: synchronized CAPS ATP pacing schedules, integrated 2-week baseline bridge drills, finalized formal assessment calendar (CAT/SBA), and adopted CRA instructional modeling.",
-      status: "Draft",
-    },
-  ];
+  // Operational meeting records are blank until the HOD creates or loads a record.
+  const defaultMeetings: MeetingRecord[] = [];
+
 
   const [meetings, setMeetings] = useState<MeetingRecord[]>(defaultMeetings);
 
@@ -748,7 +573,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
     fetch("/api/data/meetings.json")
       .then((res) => res.json())
       .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           setMeetings(data);
           setSelectedMeeting(data[0]);
         }
@@ -765,7 +590,25 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
     }).catch((err) => console.error("Failed to save meetings:", err));
   };
 
-  const [selectedMeeting, setSelectedMeeting] = useState<MeetingRecord>(meetings[0]);
+  const blankMeeting = (): MeetingRecord => ({
+    id: `MTG-${Date.now()}`,
+    title: "",
+    date: new Date().toISOString().split("T")[0],
+    startTime: "",
+    endTime: "",
+    venue: "",
+    chairperson: "",
+    meetingType: "Regular Departmental",
+    templateType: "Standard Staff Meeting",
+    attendees: [],
+    apologies: [],
+    teacherSignatures: [],
+    agendaPoints: [],
+    actionItems: [],
+    minutesSummary: "",
+    status: "Draft",
+  });
+  const [selectedMeeting, setSelectedMeeting] = useState<MeetingRecord>(meetings[0] || blankMeeting());
 
   // Toggle teacher signature
   const toggleTeacherSignature = (teacherId: string) => {
