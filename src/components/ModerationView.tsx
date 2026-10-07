@@ -18,7 +18,7 @@ import {
   BookOpen,
   Award,
 } from "lucide-react";
-import { PreModerationReport, PostModerationReport, StaffMember } from "../types";
+import { PreModerationReport, PostModerationReport, PostModerationScriptSample, StaffMember } from "../types";
 import { SAMPLE_MATH_PAPER } from "../data/curriculumData";
 import { exportPreModerationDocx, exportPostModerationDocx, exportPostModerationAssignmentScheduleDocx } from "../utils/docxExport";
 import { exportPreModerationXlsx } from "../utils/xlsxExport";
@@ -155,11 +155,11 @@ export const ModerationView: React.FC<ModerationViewProps> = ({
   const [savedSuccessMsg, setSavedSuccessMsg] = useState(false);
 
   // Post-moderation state
-  const [postTaskTitle, setPostTaskTitle] = useState("Grade 10 Mathematics Term 1 Test");
+  const [postTaskTitle, setPostTaskTitle] = useState("");
   const [postSubject, setPostSubject] = useState("Mathematics");
-  const [postGrade, setPostGrade] = useState("10A & 10B");
-  const [postTeacher, setPostTeacher] = useState("Shingi");
-  const [cohortSize, setCohortSize] = useState(48);
+  const [postGrade, setPostGrade] = useState("");
+  const [postTeacher, setPostTeacher] = useState("");
+  const [cohortSize, setCohortSize] = useState(0);
 
   // Automatic moderator assignment rule
   const computeAutomaticModerator = (subj: string, grd: string, teacherName: string) => {
@@ -176,7 +176,7 @@ export const ModerationView: React.FC<ModerationViewProps> = ({
     return hash % 2 === 0 ? "HOD Mpofu" : "Lutendo";
   };
 
-  const [assignedModerator, setAssignedModerator] = useState<string>("Shingi");
+  const [assignedModerator, setAssignedModerator] = useState<string>("");
   const [isManualModerator, setIsManualModerator] = useState<boolean>(false);
 
   React.useEffect(() => {
