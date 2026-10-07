@@ -51,14 +51,7 @@ export const WeeklyOverview: React.FC<WeeklyOverviewProps> = ({
 
   const [selectedWeekStart, setSelectedWeekStart] = useState<Date>(() => getMonday(new Date()));
   const [selectedDayOffset, setSelectedDayOffset] = useState<number>(0);
-  const [customTasks, setCustomTasks] = useState<CustomTask[]>([]);
-  const [newTaskTitle, setNewTaskTitle] = useState("");
-  const [newTaskDate, setNewTaskDate] = useState("");
-  const [newTaskTime, setNewTaskTime] = useState("");
-  const [newTaskType, setNewTaskType] = useState<"meeting" | "task">("task");
-  const [newTaskTeacher, setNewTaskTeacher] = useState("");
-
-  React.useEffect(() => {
+  const [customTasks, setCustomTasks] = useState<CustomTask[]>([]);  React.useEffect(() => {
     if (!newTaskTeacher && staffList.length) {
       setNewTaskTeacher(staffList.find((s) => s.isMathsDept && s.status === "active")?.name || "");
     }
@@ -152,6 +145,7 @@ export const WeeklyOverview: React.FC<WeeklyOverviewProps> = ({
       if (!educator) return true;
       return item.teacher === educator.name;
     });
+  };
 
   const getPersonaDisplayName = () => {
     if (persona === "hod") return "HOD / All Department";
