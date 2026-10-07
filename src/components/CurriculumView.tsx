@@ -1728,3 +1728,874 @@ export const CurriculumView: React.FC = () => {
     return [];
   });
 
+  const handleCreateResource = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newModuleName.trim() || !newDriveUrl.trim()) return;
+
+    const newItem: ResourceItem = {
+      id: `RES-${Date.now()}`,
+      subjectId: activeSubjectAtp.id,
+      term: selectedTerm,
+      year: 2026,
+      moduleName: newModuleName.trim(),
+      category: newModuleCategory,
+      driveUrl: newDriveUrl.trim(),
+      uploadedBy: newUploader,
+      dateAdded: new Date().toISOString().split("T")[0],
+    };
+
+    const updated = [newItem, ...resources];
+    setResources(updated);
+    try {
+      localStorage.setItem("eaglehouse_subject_resources", JSON.stringify(updated));
+    } catch {}
+
+    setNewModuleName("");
+    setNewDriveUrl("");
+    setIsAddResourceModalOpen(false);
+  };
+
+  // Fetching term details from school calendar
+  const activeCalendarTerm = EAGLE_HOUSE_CALENDAR.find((c) => c.term === selectedTerm) || EAGLE_HOUSE_CALENDAR[0];
+
+  // Fetch cycles for the active selected term
+  const activeCycles = activeSubjectAtp.terms[selectedTerm] || [];
+
+  return (
+    <div className="space-y-6" id="curriculum-view-root">
+      {/* 1. Header Section */}
+      <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-xs" id="curriculum-header">
+        <div className="space-y-1">
+          <span className="text-[10px] uppercase font-extrabold tracking-wider text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
+            EAGLE HOUSE GOVERNANCE SUITE
+          </span>
+          <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2" id="curriculum-title">
+            <BookOpen className="w-5.5 h-5.5 text-emerald-800" />
+            Curriculum Pacing, SBA & ATP Management
+          </h1>
+          <p className="text-xs text-slate-500 max-w-2xl leading-relaxed">
+            Verify progress against the Department of Education (DoE/DBE) CAPS Annual Teaching Plans (ATPs) with integrated IEB Subject Assessment Guidelines (SAGs), and appropriate Cambridge syllabi cycles.
+          </p>
+        </div>
+
+        {/* Major Framework Selectors */}
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-lg text-xs font-semibold shrink-0">
+          <button
+            onClick={() => {
+              setSelectedFramework("IEB");
+              const iebSub = SUBJECT_ATPS.find((s) => s.framework === "IEB");
+              if (iebSub) setSelectedSubjectId(iebSub.id);
+            }}
+            className={`px-3 py-1.5 rounded-md transition-all cursor-pointer ${
+              selectedFramework === "IEB"
+                ? "bg-emerald-800 text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+            id="framework-btn-ieb"
+          >
+            IEB Stream (Gr 10-12)
+          </button>
+          <button
+            onClick={() => {
+              setSelectedFramework("Cambridge");
+              const camSub = SUBJECT_ATPS.find((s) => s.framework === "Cambridge");
+              if (camSub) setSelectedSubjectId(camSub.id);
+            }}
+            className={`px-3 py-1.5 rounded-md transition-all cursor-pointer ${
+              selectedFramework === "Cambridge"
+                ? "bg-emerald-800 text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+            id="framework-btn-cambridge"
+          >
+            Cambridge (LS / IGCSE / AS)
+          </button>
+          <button
+            onClick={() => {
+              setSelectedFramework("CAPS");
+              const capsSub = SUBJECT_ATPS.find((s) => s.framework === "CAPS");
+              if (capsSub) setSelectedSubjectId(capsSub.id);
+            }}
+            className={`px-3 py-1.5 rounded-md transition-all cursor-pointer ${
+              selectedFramework === "CAPS"
+                ? "bg-emerald-800 text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+            id="framework-btn-caps"
+          >
+            CAPS Senior (Gr 8-9)
+          </button>
+        </div>
+      </div>
+
+      {/* 2. TERM SELECTOR TABS BAR */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4" id="term-selector-container">
+        <div className="flex items-center gap-2">
+          <Calendar className="w-5 h-5 text-emerald-800 shrink-0 animate-pulse" />
+          <div className="text-left">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide block">Academic Year Pacing</span>
+            <span className="text-xs font-extrabold text-slate-800">Select Term for Audit</span>
+          </div>
+        </div>
+
+        {/* Term Select Buttons */}
+        <div className="flex flex-wrap items-center gap-1 bg-slate-100 p-1 rounded-lg text-xs font-bold w-full md:w-auto">
+          {[1, 2, 3, 4].map((termNum) => (
+            <button
+              key={termNum}
+              onClick={() => setSelectedTerm(termNum)}
+              className={`flex-1 md:flex-none px-4 py-2 rounded-md transition-all cursor-pointer text-center ${
+                selectedTerm === termNum
+                  ? "bg-emerald-850 text-white shadow-xs"
+                  : "text-slate-600 hover:bg-slate-200/50 hover:text-slate-900"
+              }`}
+              id={`term-tab-${termNum}`}
+            >
+              Term {termNum}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Term Quick Focus Alert */}
+      <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4" id="term-focus-alert">
+        <div className="space-y-0.5 text-left">
+          <div className="flex items-center gap-1.5 font-bold text-emerald-900 text-xs uppercase">
+            <Clock className="w-4 h-4 text-emerald-700 shrink-0" />
+            <span>Active Term Schedule: {activeCalendarTerm.name}</span>
+          </div>
+          <p className="text-[11px] text-slate-600 leading-relaxed max-w-3xl">
+            <strong>SMT Focus Guideline:</strong> &ldquo;{activeCalendarTerm.focus}&rdquo;
+          </p>
+        </div>
+        <div className="px-3 py-1 bg-white border border-emerald-200 rounded-lg text-[10px] text-emerald-800 font-mono font-extrabold shadow-2xs shrink-0 self-start sm:self-center">
+          {activeCalendarTerm.startDate} to {activeCalendarTerm.endDate}
+        </div>
+      </div>
+
+      {/* Sub-View Switcher: ATP Pacing vs Subject Resource Library */}
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-3" id="curriculum-subview-tabs">
+        <button
+          onClick={() => setActiveSubView("atp")}
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            activeSubView === "atp"
+              ? "bg-emerald-800 text-white shadow-xs"
+              : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50"
+          }`}
+          id="subview-tab-atp"
+        >
+          <BookOpen className="w-4 h-4" />
+          <span>ATP Pacing & SBA Audit</span>
+        </button>
+        <button
+          onClick={() => setActiveSubView("library")}
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            activeSubView === "library"
+              ? "bg-emerald-800 text-white shadow-xs"
+              : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50"
+          }`}
+          id="subview-tab-library"
+        >
+          <Folder className="w-4 h-4" />
+          <span>Subject Resource Library (Google Drive Folders)</span>
+          <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-full text-[10px] font-mono">
+            {resources.filter(r => r.term === selectedTerm && r.subjectId === activeSubjectAtp.id).length}
+          </span>
+        </button>
+      </div>
+
+      {/* 3. Main Audit Engine & Tracker (ATP Mode) */}
+      {activeSubView === "atp" && (
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6" id="curriculum-main-grid">
+        {/* Left Control Sidebar */}
+        <div className="col-span-1 space-y-4" id="curriculum-sidebar">
+          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs space-y-4">
+            <span className="font-bold text-xs text-slate-800 uppercase tracking-wider block border-b border-slate-100 pb-2">
+              Pacing Controls
+            </span>
+
+            {/* Subject Selector */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-slate-500 uppercase block">
+                Select Academic Course
+              </label>
+              <div className="space-y-1">
+                {filteredSubjects.map((sub) => (
+                  <button
+                    key={sub.id}
+                    onClick={() => setSelectedSubjectId(sub.id)}
+                    className={`w-full text-left p-2.5 rounded-lg text-xs font-semibold transition-all border block relative ${
+                      selectedSubjectId === sub.id
+                        ? "bg-emerald-50 border-emerald-300 text-emerald-950"
+                        : "bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-700"
+                    }`}
+                    id={`subject-select-${sub.id}`}
+                  >
+                    <div className="font-bold block truncate">{sub.name}</div>
+                    <div className="text-[10px] text-slate-400 font-normal mt-0.5">{sub.phase}</div>
+                  </button>
+                ))}
+                {filteredSubjects.length === 0 && (
+                  <p className="text-xs text-slate-400 p-2 italic">No courses found in this stream.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Educator Selector */}
+            <div className="space-y-1.5 pt-2">
+              <label className="text-[11px] font-bold text-slate-500 uppercase block">
+                Assigned Educator
+              </label>
+              <div className="relative">
+                <select
+                  value={selectedEducator}
+                  onChange={(e) => setSelectedEducator(e.target.value)}
+                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 cursor-pointer focus:outline-none focus:ring-1 focus:ring-emerald-850 focus:border-emerald-855"
+                  id="educator-select-dropdown"
+                >
+                  {activeSubjectAtp.educators.map((edu) => (
+                    <option key={edu} value={edu}>
+                      {edu} (Mathematics)
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-2 top-2.5 pointer-events-none text-slate-400">
+                  <User className="w-3.5 h-3.5" />
+                </div>
+              </div>
+            </div>
+
+            {/* Department Summary Alert */}
+            <div className="bg-emerald-50/50 border border-emerald-100 rounded-lg p-3.5 space-y-1 text-left" id="hod-audit-mode-alert">
+              <div className="flex items-center gap-1 text-emerald-800 font-bold text-[11px] uppercase">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>HOD Audit Mode Active</span>
+              </div>
+              <p className="text-[10px] text-slate-600 leading-relaxed">
+                As Department Head, toggling any topic below updates the real-time compliance database for <strong>{selectedEducator}</strong>'s stream in <strong>Term {selectedTerm}</strong>.
+              </p>
+            </div>
+          </div>
+
+          {/* Quick Policy Checklist Card */}
+          <div className="bg-slate-900 text-slate-200 p-5 rounded-xl space-y-3.5 shadow-xs border border-slate-800" id="framework-specs-card">
+            <span className="font-bold text-xs text-emerald-400 uppercase tracking-wider block border-b border-slate-800 pb-2">
+              Framework Specs
+            </span>
+            <div className="space-y-2.5 text-xs">
+              <div>
+                <span className="text-slate-400 block text-[10px] uppercase font-bold">Framework Class</span>
+                <span className="font-bold text-white text-xs">{activeSubjectAtp.subTitle}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[10px] uppercase font-bold">Continuous SBA Weight</span>
+                <span className="font-bold text-white text-xs">{activePolicy.sbaWeight}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[10px] uppercase font-bold">Cognitive Ratios</span>
+                <p className="text-[11px] text-slate-300 leading-normal mt-0.5">
+                  {activePolicy.cognitiveDemands}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right 4-Week Cycle Sheets */}
+        <div className="col-span-1 lg:col-span-3 space-y-5" id="curriculum-cycles-container">
+          {/* Header Description Banner */}
+          <div className="bg-slate-50 p-4.5 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-4" id="curriculum-cycle-banner">
+            <div>
+              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                <Sliders className="w-4.5 h-4.5 text-emerald-800" />
+                <span>{activeSubjectAtp.name} - Term {selectedTerm} Pacing</span>
+              </h2>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Pacing tracker calibrated in strict 4-Week Cycles. Verify SBA task progression alongside syllabus coverage.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-slate-600">Educator:</span>
+              <span className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-extrabold text-emerald-800 shadow-2xs">
+                {selectedEducator}
+              </span>
+            </div>
+          </div>
+
+          {/* 4-Week Cycle Worksheets */}
+          <div className="space-y-4" id="cycles-list">
+            {activeCycles.map((cycle) => {
+              // Calculate Dynamically the Percentage Coverage for selected term
+              const totalTopics = cycle.topics.length;
+              const completedCount = cycle.topics.filter((_, idx) => {
+                const key = `${activeSubjectAtp.id}-${selectedEducator}-term${selectedTerm}-cycle${cycle.cycleNum}-topic${idx}`;
+                return !!topicCompletions[key];
+              }).length;
+              const percentage = totalTopics > 0 ? Math.round((completedCount / totalTopics) * 100) : 0;
+
+              // Fetch corresponding SBA status for selected term
+              const activeSbaStatus = sbaStatuses[`${activeSubjectAtp.id}-${selectedEducator}-term${selectedTerm}-cycle${cycle.cycleNum}`] || "Drafting & Mapping";
+
+              return (
+                <div
+                  key={cycle.cycleNum}
+                  className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden"
+                  id={`cycle-card-${cycle.cycleNum}`}
+                >
+                  {/* Cycle Header Status Bar */}
+                  <div className="bg-slate-50 px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 rounded-md bg-emerald-950/5 text-emerald-900 text-[10px] font-extrabold uppercase border border-emerald-950/10">
+                          {cycle.weeks}
+                        </span>
+                        <h3 className="font-extrabold text-slate-900 text-sm">
+                          Cycle {cycle.cycleNum} ATP Topics
+                        </h3>
+                      </div>
+                    </div>
+
+                    {/* Progress representation */}
+                    <div className="flex items-center gap-4">
+                      {/* Interactive Progress Bar */}
+                      <div className="flex items-center gap-2">
+                        <div className="w-24 bg-slate-200 h-2 rounded-full overflow-hidden shrink-0">
+                          <div
+                            className="bg-emerald-700 h-full rounded-full transition-all duration-500"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                        <span className="font-mono font-extrabold text-xs text-slate-800 w-10 text-right">
+                          {percentage}%
+                        </span>
+                      </div>
+
+                      {/* Status pill based on progress */}
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase shrink-0 border ${
+                          percentage === 100
+                            ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                            : percentage > 0
+                            ? "bg-amber-50 text-amber-800 border-amber-200"
+                            : "bg-slate-100 text-slate-500 border-slate-200"
+                        }`}
+                      >
+                        {percentage === 100 ? "Fully Covered" : percentage > 0 ? "In Progress" : "Not Started"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Cycle Body Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-5 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+                    {/* Topics Checklist (Col-Span 3) */}
+                    <div className="col-span-1 md:col-span-3 p-5 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
+                          Topic Checklist (Click to toggle coverage)
+                        </span>
+                        <span className="text-[10px] text-slate-500">
+                          {completedCount} of {totalTopics} Completed
+                        </span>
+                      </div>
+
+                      <div className="space-y-2">
+                        {cycle.topics.map((topic, idx) => {
+                          const isComp = !!topicCompletions[`${activeSubjectAtp.id}-${selectedEducator}-term${selectedTerm}-cycle${cycle.cycleNum}-topic${idx}`];
+                          return (
+                            <button
+                              key={idx}
+                              onClick={() => handleToggleTopic(activeSubjectAtp.id, selectedEducator, selectedTerm, cycle.cycleNum, idx)}
+                              className={`w-full text-left p-3 rounded-lg border text-xs font-semibold transition-all flex items-start gap-2.5 cursor-pointer ${
+                                isComp
+                                  ? "bg-emerald-50/40 border-emerald-100 text-slate-800"
+                                  : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
+                              }`}
+                              id={`topic-toggle-${cycle.cycleNum}-${idx}`}
+                            >
+                              <div className="mt-0.5 shrink-0">
+                                {isComp ? (
+                                  <CheckSquare className="w-4 h-4 text-emerald-700 shrink-0" />
+                                ) : (
+                                  <Square className="w-4 h-4 text-slate-300 shrink-0" />
+                                )}
+                              </div>
+                              <span className={isComp ? "line-through text-slate-400 font-normal" : ""}>
+                                {topic.name}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* SBA Coverage & Framework Specifications (Col-Span 2) */}
+                    <div className="col-span-1 md:col-span-2 p-5 bg-slate-50/50 space-y-4">
+                      {/* SBA coverage details */}
+                      <div className="space-y-3">
+                        <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
+                          SBA Milestone & Coverage
+                        </span>
+
+                        <div className="p-4 bg-white border border-slate-200 rounded-lg shadow-2xs space-y-2.5">
+                          <div>
+                            <span className="px-2 py-0.5 rounded bg-emerald-800 text-white font-mono text-[9px] font-extrabold uppercase tracking-wide">
+                              {cycle.sba.weighting}
+                            </span>
+                            <h4 className="font-bold text-slate-900 text-xs mt-1">{cycle.sba.name}</h4>
+                            <p className="text-[10px] text-slate-500">{cycle.sba.type}</p>
+                          </div>
+
+                          <div className="border-t border-slate-100 pt-2 flex flex-col gap-1 text-[10px] text-slate-600">
+                            <span className="flex items-center gap-1">
+                              <ShieldCheck className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+                              <span>{cycle.sba.policyRef}</span>
+                            </span>
+                          </div>
+
+                          {/* Interactive SBA Task Status Selector */}
+                          <div className="border-t border-slate-100 pt-3 space-y-1.5">
+                            <label className="text-[9px] font-extrabold text-slate-500 uppercase block">
+                              SBA Coverage Status
+                            </label>
+                            <div className="flex items-center gap-2">
+                              <select
+                                value={activeSbaStatus}
+                                onChange={(e) => handleUpdateSbaStatus(activeSubjectAtp.id, selectedEducator, selectedTerm, cycle.cycleNum, e.target.value)}
+                                className="p-1.5 bg-slate-50 border border-slate-200 rounded-md text-[10px] font-semibold text-slate-800 cursor-pointer focus:outline-none"
+                                id={`sba-status-select-${cycle.cycleNum}`}
+                              >
+                                <option value="Drafting & Mapping">Drafting & Mapping</option>
+                                <option value="In Pre-Moderation">In Pre-Moderation</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Administered & Scored">Administered & Scored</option>
+                              </select>
+                              <span className={`px-2 py-1 rounded-md text-[9px] font-extrabold border ${getSbaStatusBadge(activeSbaStatus)}`}>
+                                Active
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Framework specific guidelines */}
+                      <div className="space-y-1.5 pt-1">
+                        <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">
+                          Pacing & Quality Guidelines
+                        </span>
+                        <div className="p-3 bg-emerald-950/5 border border-emerald-900/10 rounded-lg">
+                          <p className="text-[10px] text-slate-600 leading-normal italic">
+                            &ldquo;{cycle.guideline}&rdquo;
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {activeCycles.length === 0 && (
+              <div className="p-8 bg-white border border-slate-200 rounded-xl text-center text-slate-400 italic">
+                No syllabus pacing cycles configured for Term {selectedTerm} in this subject.
+              </div>
+            )}
+          </div>
+
+          {/* Departmental Pacing Overview Map (At-a-Glance Table for the HOD) */}
+          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs space-y-4" id="curriculum-audit-map-card">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <div className="space-y-0.5 text-left">
+                <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <TrendingUp className="w-4 h-4 text-emerald-800" />
+                  <span>Mathematics Department ATP Coverage Audit Map - Term {selectedTerm}</span>
+                </h3>
+                <p className="text-[10px] text-slate-500">
+                  Head of Department consolidated summary of pacing coverage and SBA status across all streams for the selected term.
+                </p>
+              </div>
+              <button 
+                onClick={() => {
+                  // Reset checklist mock data to default completions for active term
+                  const updated: Record<string, boolean> = { ...topicCompletions };
+                  SUBJECT_ATPS.forEach((sub) => {
+                    const cycles = sub.terms[selectedTerm] || [];
+                    cycles.forEach((cyc) => {
+                      cyc.topics.forEach((_, idx) => {
+                        sub.educators.forEach((edu) => {
+                          const key = `${sub.id}-${edu}-term${selectedTerm}-cycle${cyc.cycleNum}-topic${idx}`;
+                          if (selectedTerm === 1) {
+                            if (cyc.cycleNum === 1) updated[key] = true;
+                            else if (cyc.cycleNum === 2 && idx < 2) updated[key] = true;
+                            else updated[key] = false;
+                          } else {
+                            updated[key] = false;
+                          }
+                        });
+                      });
+                    });
+                  });
+                  setTopicCompletions(updated);
+                }}
+                className="px-2.5 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 font-bold rounded-lg text-[10px] inline-flex items-center gap-1 cursor-pointer transition-all"
+                id="reset-audit-map-btn"
+              >
+                <RefreshCw className="w-3 h-3 text-slate-400" />
+                <span>Reset Term {selectedTerm}</span>
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-[11px]" id="consolidated-audit-table">
+                <thead>
+                  <tr className="bg-slate-50 text-slate-500 font-extrabold uppercase border-b border-slate-100">
+                    <th className="p-2.5">Subject Stream</th>
+                    <th className="p-2.5">Assigned Educator</th>
+                    <th className="p-2.5 text-center">Cycle 1 (W1-4)</th>
+                    <th className="p-2.5 text-center">Cycle 2 (W5-8)</th>
+                    <th className="p-2.5 text-center">Cycle 3 (W9-12)</th>
+                    <th className="p-2.5 text-right">Term Cumulative</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-slate-700 font-semibold">
+                  {SUBJECT_ATPS.map((sub) => {
+                    return sub.educators.map((edu, idx) => {
+                      // Calculate completions for Cycle 1, 2, 3 for this specific educator in the active selected term
+                      const getCyclePct = (cycleNum: number) => {
+                        const termCycles = sub.terms[selectedTerm] || [];
+                        const cyc = termCycles.find((c) => c.cycleNum === cycleNum);
+                        if (!cyc) return 0;
+                        const total = cyc.topics.length;
+                        const comp = cyc.topics.filter((_, tIdx) => {
+                          return !!topicCompletions[`${sub.id}-${edu}-term${selectedTerm}-cycle${cycleNum}-topic${tIdx}`];
+                        }).length;
+                        return total > 0 ? Math.round((comp / total) * 100) : 0;
+                      };
+
+                      const pct1 = getCyclePct(1);
+                      const pct2 = getCyclePct(2);
+                      const pct3 = getCyclePct(3);
+                      const avgPct = Math.round((pct1 + pct2 + pct3) / 3);
+
+                      return (
+                        <tr key={`${sub.id}-${edu}`} className="hover:bg-slate-50/50">
+                          {idx === 0 ? (
+                            <td className="p-2.5 font-bold text-slate-900 border-r border-slate-100 text-left align-middle" rowSpan={sub.educators.length}>
+                              <div className="font-bold">{sub.name}</div>
+                              <div className="text-[9px] text-slate-400 font-normal">{sub.framework}</div>
+                            </td>
+                          ) : null}
+                          <td className="p-2.5 text-slate-800 font-bold flex items-center gap-1.5 align-middle">
+                            <span className="w-2 h-2 rounded-full bg-emerald-700"></span>
+                            <span>{edu}</span>
+                          </td>
+                          <td className="p-2.5 text-center font-mono align-middle">
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] ${pct1 === 100 ? "bg-emerald-50 text-emerald-800" : pct1 > 0 ? "bg-amber-50 text-amber-800" : "bg-slate-100 text-slate-400"}`}>
+                              {pct1}%
+                            </span>
+                          </td>
+                          <td className="p-2.5 text-center font-mono align-middle">
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] ${pct2 === 100 ? "bg-emerald-50 text-emerald-800" : pct2 > 0 ? "bg-amber-50 text-amber-800" : "bg-slate-100 text-slate-400"}`}>
+                              {pct2}%
+                            </span>
+                          </td>
+                          <td className="p-2.5 text-center font-mono align-middle">
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] ${pct3 === 100 ? "bg-emerald-50 text-emerald-800" : pct3 > 0 ? "bg-amber-50 text-amber-800" : "bg-slate-100 text-slate-400"}`}>
+                              {pct3}%
+                            </span>
+                          </td>
+                          <td className="p-2.5 text-right align-middle">
+                            <div className="flex items-center justify-end gap-1.5 font-bold text-slate-900">
+                              <span className="font-mono text-xs">{avgPct}%</span>
+                              <div className="w-12 bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                                <div className="bg-emerald-800 h-full" style={{ width: `${avgPct}%` }} />
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    });
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      )}
+
+      {/* Subject Resource Library View */}
+      {activeSubView === "library" && (
+        <div className="space-y-6" id="subject-resource-library-section">
+          {/* Library Header Card */}
+          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+            <div className="space-y-1 text-left">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 font-mono text-[10px] font-extrabold uppercase border border-emerald-100">
+                  2026 Academic Year • Term {selectedTerm}
+                </span>
+                <span className="text-xs font-bold text-slate-500">
+                  {activeSubjectAtp.name} ({activeSubjectAtp.framework})
+                </span>
+              </div>
+              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <Folder className="w-5 h-5 text-emerald-800" />
+                <span>Subject Resource Library & Google Drive Folders</span>
+              </h2>
+              <p className="text-xs text-slate-500 max-w-2xl leading-relaxed">
+                Central repository of Google Drive folder links for modules, lesson plans, worksheets, and assessment memos aligned to active curriculum pacing.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setIsAddResourceModalOpen(true)}
+              className="px-4 py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white rounded-xl text-xs font-bold inline-flex items-center justify-center gap-2 shadow-sm cursor-pointer transition-all shrink-0"
+              id="open-add-resource-modal-btn"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Link Google Drive Folder</span>
+            </button>
+          </div>
+
+          {/* Category Filter & Search Bar */}
+          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-1.5 text-xs">
+              {[
+                { id: "all", label: "All Categories" },
+                { id: "Lesson Plans & Notes", label: "Lesson Plans & Notes" },
+                { id: "Worksheets & Memos", label: "Worksheets & Memos" },
+                { id: "Assessment Tasks", label: "Assessment Tasks" },
+                { id: "Interactive Resources", label: "Interactive Resources" },
+                { id: "Past Papers", label: "Past Papers" },
+              ].map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setResourceCategoryFilter(cat.id)}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                    resourceCategoryFilter === cat.id
+                      ? "bg-slate-900 text-white shadow-xs"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                  id={`cat-filter-${cat.id}`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="text-xs font-mono text-slate-500">
+              Showing resources for <strong className="text-slate-800">{activeSubjectAtp.name}</strong> (2026 Term {selectedTerm})
+            </div>
+          </div>
+
+          {/* Resources Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {resources
+              .filter((res) => {
+                const matchesSubject = res.subjectId === activeSubjectAtp.id;
+                const matchesTerm = res.term === selectedTerm;
+                const matchesCat = resourceCategoryFilter === "all" || res.category === resourceCategoryFilter;
+                return matchesSubject && matchesTerm && matchesCat;
+              })
+              .map((res) => (
+                <div key={res.id} className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs hover:shadow-md transition-all space-y-4 text-left flex flex-col justify-between">
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-100">
+                        {res.category}
+                      </span>
+                      <span className="text-[10px] font-mono text-slate-400">
+                        Term {res.term} • {res.year}
+                      </span>
+                    </div>
+
+                    <h3 className="text-sm font-bold text-slate-900 leading-snug">
+                      {res.moduleName}
+                    </h3>
+
+                    <div className="flex items-center gap-3 text-[11px] text-slate-500 font-medium">
+                      <span className="flex items-center gap-1">
+                        <User className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Uploaded by {res.uploadedBy}</span>
+                      </span>
+                      <span>•</span>
+                      <span>{res.dateAdded}</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                    <div className="truncate text-[10px] font-mono text-slate-400 bg-slate-50 p-1.5 rounded border border-slate-100 max-w-[220px]">
+                      {res.driveUrl}
+                    </div>
+                    <a
+                      href={res.driveUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3.5 py-2 bg-emerald-800 hover:bg-emerald-900 text-white rounded-lg text-xs font-bold inline-flex items-center gap-1.5 shrink-0 shadow-xs cursor-pointer transition-all"
+                      id={`open-drive-${res.id}`}
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>Open Drive Folder</span>
+                    </a>
+                  </div>
+                </div>
+              ))}
+          </div>
+
+          {resources.filter((res) => res.subjectId === activeSubjectAtp.id && res.term === selectedTerm && (resourceCategoryFilter === "all" || res.category === resourceCategoryFilter)).length === 0 && (
+            <div className="bg-white p-12 rounded-xl border border-slate-200 text-center space-y-3">
+              <div className="w-12 h-12 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto">
+                <Folder className="w-6 h-6" />
+              </div>
+              <h3 className="text-sm font-bold text-slate-800">No Google Drive Folders Linked for Term {selectedTerm}</h3>
+              <p className="text-xs text-slate-500 max-w-md mx-auto">
+                No modules have been linked for {activeSubjectAtp.name} in Term {selectedTerm} under this category. Click the button above to add a Google Drive link.
+              </p>
+              <button
+                onClick={() => setIsAddResourceModalOpen(true)}
+                className="px-4 py-2 bg-emerald-800 text-white rounded-lg text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer shadow-xs mt-2"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Link Google Drive Folder Now</span>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Add Resource Modal */}
+      {isAddResourceModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-4" id="add-resource-modal">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-xl max-w-lg w-full p-6 space-y-4 text-left animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-emerald-50 rounded-lg text-emerald-800">
+                  <Folder className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Link Google Drive Module Folder</h3>
+                  <p className="text-[11px] text-slate-500">Aligned to Active Curriculum Year (2026) & Term {selectedTerm}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsAddResourceModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 text-sm font-bold cursor-pointer"
+                id="close-resource-modal-btn"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateResource} className="space-y-4">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-1">
+                  Subject Stream / Grade
+                </label>
+                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800">
+                  {activeSubjectAtp.name} ({activeSubjectAtp.framework})
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-1">
+                    Academic Term
+                  </label>
+                  <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800">
+                    Term {selectedTerm} (2026)
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-1">
+                    Category
+                  </label>
+                  <select
+                    value={newModuleCategory}
+                    onChange={(e) => setNewModuleCategory(e.target.value as any)}
+                    className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none"
+                    id="new-resource-category"
+                  >
+                    <option value="Lesson Plans & Notes">Lesson Plans & Notes</option>
+                    <option value="Worksheets & Memos">Worksheets & Memos</option>
+                    <option value="Assessment Tasks">Assessment Tasks</option>
+                    <option value="Interactive Resources">Interactive Resources</option>
+                    <option value="Past Papers">Past Papers</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-1">
+                  Module / Topic Title <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Trigonometry Identities & Reduction Formulas"
+                  value={newModuleName}
+                  onChange={(e) => setNewModuleName(e.target.value)}
+                  className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:outline-none focus:border-emerald-800"
+                  id="new-resource-title"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-1">
+                  Google Drive Folder Link (URL) <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <LinkIcon className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="url"
+                    required
+                    placeholder="https://drive.google.com/drive/folders/..."
+                    value={newDriveUrl}
+                    onChange={(e) => setNewDriveUrl(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2.5 bg-white border border-slate-200 rounded-lg text-xs font-mono text-slate-800 focus:outline-none focus:border-emerald-800"
+                    id="new-resource-url"
+                  />
+                </div>
+                <p className="text-[10px] text-slate-400 mt-1">Paste the shared Google Drive folder link for teacher collaboration.</p>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-1">
+                  Assigned Teacher / Uploader
+                </label>
+                <select
+                  value={newUploader}
+                  onChange={(e) => setNewUploader(e.target.value)}
+                  className="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none"
+                  id="new-resource-uploader"
+                >
+                  {activeSubjectAtp.educators.map((edu) => (
+                    <option key={edu} value={edu}>{edu}</option>
+                  ))}
+                  <option value="Mpofu (HOD)">Mpofu (HOD)</option>
+                </select>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsAddResourceModalOpen(false)}
+                  className="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-emerald-800 text-white rounded-lg text-xs font-bold hover:bg-emerald-900 cursor-pointer shadow-xs"
+                  id="submit-resource-btn"
+                >
+                  Save Google Drive Link
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
