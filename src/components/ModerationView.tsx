@@ -1890,7 +1890,7 @@ Additional Materials: Geometrical instruments, Electronic calculator, Tracing pa
                                 if (confirm("Remove this report from records?")) {
                                   const filtered = savedPreReports.filter(r => r.id !== report.id);
                                   setSavedPreReports(filtered);
-                                  localStorage.setItem("eaglehouse_pre_reports", JSON.stringify(filtered));
+                                  safePut("/api/data/moderations.json", [...filtered, ...savedPostReports]).catch((err) => console.error("Failed to delete pre-moderation record:", err));
                                 }
                               }}
                               className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
@@ -1980,7 +1980,7 @@ Additional Materials: Geometrical instruments, Electronic calculator, Tracing pa
                                 if (confirm("Remove this post-moderation audit from records?")) {
                                   const filtered = savedPostReports.filter(r => r.id !== report.id);
                                   setSavedPostReports(filtered);
-                                  localStorage.setItem("eaglehouse_post_reports", JSON.stringify(filtered));
+                                  safePut("/api/data/moderations.json", [...savedPreReports, ...filtered]).catch((err) => console.error("Failed to delete post-moderation record:", err));
                                 }
                               }}
                               className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
