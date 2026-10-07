@@ -225,8 +225,9 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             )}
 
             <button
+              disabled={!isDemoMode}
               onClick={() => {
-                if (confirm("Are you sure you want to purge all demonstration data?")) {
+                if (isDemoMode && confirm("Exit demonstration mode and restore the departmental data that was preserved before the demo was loaded?")) {
                   onClearDemoData();
                 }
               }}
