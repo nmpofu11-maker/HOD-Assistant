@@ -23,7 +23,7 @@ import { SAMPLE_MATH_PAPER } from "../data/curriculumData";
 import { exportPreModerationDocx, exportPostModerationDocx, exportPostModerationAssignmentScheduleDocx } from "../utils/docxExport";
 import { exportPreModerationXlsx } from "../utils/xlsxExport";
 import { SbaWeightingsView } from "./SbaWeightingsView";
-import { safePost } from "../utils/apiClient";
+import { safePost, safeGet, safePut } from "../utils/apiClient";
 
 interface ModerationViewProps {
   staffList: StaffMember[];
@@ -48,25 +48,16 @@ export const ModerationView: React.FC<ModerationViewProps> = ({
   }, [initialTab]);
 
   // Saved reports state (HOD Institutional Archive records)
-  const [savedPreReports, setSavedPreReports] = useState<PreModerationReport[]>(() => {
-    try {
-      const stored = localStorage.getItem("eaglehouse_pre_reports");
-      const parsed = stored ? JSON.parse(stored) : [];
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  });
+  const [savedPreReports, setSavedPreReports] = useState<PreModerationReport[]>([]);
+  const [savedPostReports, setSavedPostReports] = useState<PostModerationReport[]>([]);
 
-  const [savedPostReports, setSavedPostReports] = useState<PostModerationReport[]>(() => {
-    try {
-      const stored = localStorage.getItem("eaglehouse_post_reports");
-      const parsed = stored ? JSON.parse(stored) : [];
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  });
+  React.useEffect(() => {
+    safeGet<Array<PreModerationReport | PostModerationReport>>("/api/data/moderations.json").then((result) => {
+      if (!result.success || !Array.isArray(result.data)) return;
+      setSavedPreReports(result.data.filter((x: any) => "checklist" in x));
+      setSavedPostReports(result.data.filter((x: any) => "scriptFindings" in x));
+    }).catch((err) => console.error("Failed to load moderation archive:", err));
+  }, []);
 
   const [selectedArchiveTeacher, setSelectedArchiveTeacher] = useState<string>("all");
   const [savedPostSuccessMsg, setSavedPostSuccessMsg] = useState(false);
@@ -102,7 +93,7 @@ export const ModerationView: React.FC<ModerationViewProps> = ({
       updated = [reportWithTask, ...savedPreReports];
     }
     setSavedPreReports(updated);
-    localStorage.setItem("eaglehouse_pre_reports", JSON.stringify(updated));
+    safePut("/api/data/moderations.json", [...updated, ...savedPostReports]).catch((err) => console.error("Failed to persist pre-moderation archive:", err));
     setSavedSuccessMsg(true);
     setTimeout(() => setSavedSuccessMsg(false), 3000);
   };
@@ -126,7 +117,7 @@ export const ModerationView: React.FC<ModerationViewProps> = ({
       updated = [reportWithTask, ...savedPostReports];
     }
     setSavedPostReports(updated);
-    localStorage.setItem("eaglehouse_post_reports", JSON.stringify(updated));
+    safePut("/api/data/moderations.json", [...savedPreReports, ...updated]).catch((err) => console.error("Failed to persist post-moderation archive:", err));
     setSavedPostSuccessMsg(true);
     setTimeout(() => setSavedPostSuccessMsg(false), 3000);
   };
@@ -134,17 +125,17 @@ export const ModerationView: React.FC<ModerationViewProps> = ({
   // Pre-moderation input form state
   const [subject, setSubject] = useState("Mathematics");
   const [curriculum, setCurriculum] = useState<"IEB" | "CAPS" | "Cambridge">("IEB");
-  const [grade, setGrade] = useState("10A & 10B");
-  const [teacher, setTeacher] = useState("Shingi");
-  const [moderator, setModerator] = useState("HOD Mpofu");
-  const [paper, setPaper] = useState("Paper 1 (Algebra & Functions)");
-  const [testType, setTestType] = useState("Term 1 Control Test");
-  const [code, setCode] = useState("MATH-GR10-T1");
-  const [testDate, setTestDate] = useState("2026-03-05");
-  const [duration, setDuration] = useState("60 mins");
-  const [totalMarks, setTotalMarks] = useState(50);
-  const [documentText, setDocumentText] = useState(SAMPLE_MATH_PAPER.documentText);
-  const [memoText, setMemoText] = useState(SAMPLE_MATH_PAPER.memoText);
+  const [grade, setGrade] = useState("");
+  const [teacher, setTeacher] = useState("");
+  const [moderator, setModerator] = useState("");
+  const [paper, setPaper] = useState("");
+  const [testType, setTestType] = useState("");
+  const [code, setCode] = useState("");
+  const [testDate, setTestDate] = useState("");
+  const [duration, setDuration] = useState("");
+  const [totalMarks, setTotalMarks] = useState(0);
+  const [documentText, setDocumentText] = useState("");
+  const [memoText, setMemoText] = useState("");
   const [customNotes, setCustomNotes] = useState("");
   const [uploadedTaskName, setUploadedTaskName] = useState("");
   const [taskFileBase64, setTaskFileBase64] = useState<string | null>(null);
@@ -194,12 +185,8 @@ export const ModerationView: React.FC<ModerationViewProps> = ({
     }
   }, [postSubject, postGrade, postTeacher, isManualModerator]);
 
-  // Exactly 3 learners moderated: Best (Top), Mid (Average), Low (Weak) marks
-  const [postScripts, setPostScripts] = useState([
-    { learnerCode: "LRN-TOP-01", band: "Top" as const, originalMark: 47, moderatedMark: 47, variance: 0, auditNotes: "Best mark sample (Top): flawless algebraic reasoning and mark calculation." },
-    { learnerCode: "LRN-MID-15", band: "Average" as const, originalMark: 31, moderatedMark: 31, variance: 0, auditNotes: "Mid mark sample (Average/Median): method allocation verified accurate." },
-    { learnerCode: "LRN-LOW-42", band: "Weak" as const, originalMark: 16, moderatedMark: 16, variance: 0, auditNotes: "Low mark sample (Weak): fundamental conceptual gaps noted, remedial action planned." },
-  ]);
+  // Post-moderation samples must be supplied by the HOD; never seed fabricated learner marks.
+  const [postScripts, setPostScripts] = useState<PostModerationScriptSample[]>([]);
 
   const handleExportAssignmentSchedule = () => {
     const assignments = [
