@@ -684,7 +684,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
     updateMeetingsAndPersist(meetings.map((m) => (m.id === updatedMeeting.id ? updatedMeeting : m)));
   };
 
-  // Generate automated agenda using AI with template-specific 10-point guideline structure
+  // Generate an agenda using the selected template. Follow-up meetings are generated locally without AI.
   const handleGenerateAgenda = async () => {
     setIsGenerating(true);
     const activeTemplateConfig =
@@ -796,23 +796,8 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
           title: item.title,
           notes: customFocus && item.pointNumber === 3 ? `${item.defaultNotes} Focus: ${customFocus}` : item.defaultNotes,
         })),
-        actionItems: [
-          {
-            id: `ACT-${Date.now()}-1`,
-            description: `Execute ${activeTemplateConfig.title} directives as recorded`,
-            responsible: "Subject Teachers",
-            deadline: meetingDate,
-            status: "Pending",
-          },
-          {
-            id: `ACT-${Date.now()}-2`,
-            description: "Submit governance sign-off pack to Academic Head",
-            responsible: "Mr. N. Mpofu (HOD)",
-            deadline: meetingDate,
-            status: "Pending",
-          },
-        ],
-        minutesSummary: `${activeTemplateConfig.title} draft prepared for ${meetingTitle}.`
+        actionItems: [],
+        minutesSummary: `${activeTemplateConfig.title} draft prepared for ${meetingTitle}.`,
         status: "Draft",
       };
 
