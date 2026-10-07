@@ -406,6 +406,28 @@ export const FOLLOW_UP_MEETING_ITEMS: AgendaPointTemplateItem[] = [
 
 export const MEETING_TEMPLATE_CONFIGS: MeetingTemplateConfig[] = [
   {
+    id: "Follow-up Meeting",
+    title: "Follow-up Meeting",
+    badge: "Simple",
+    policyTag: "Department Follow-up",
+    summary: "A short practical agenda for following up previous decisions and outstanding actions.",
+    iconName: "check-circle",
+    colorClasses: {
+      activeBorder: "border-emerald-600 dark:border-emerald-500 ring-2 ring-emerald-500/20",
+      activeBg: "bg-emerald-50/70 dark:bg-emerald-950/40",
+      activeText: "text-emerald-900 dark:text-emerald-200",
+      badgeBg: "bg-emerald-100 dark:bg-emerald-900/60",
+      badgeText: "text-emerald-800 dark:text-emerald-300",
+      accentDot: "bg-emerald-600",
+      cardBorder: "border-slate-200 dark:border-slate-800",
+    },
+    defaultTitle: "Mathematics Department Follow-up Meeting",
+    defaultMeetingType: "Regular Departmental",
+    defaultFocus: "Review outstanding actions, address follow-up matters, agree decisions and confirm next steps.",
+    items: FOLLOW_UP_MEETING_ITEMS,
+    quickPresets: [],
+  },
+  {
     id: "Standard Staff Meeting",
     title: "Standard Staff Meeting",
     badge: "HOD Handbook §1",
