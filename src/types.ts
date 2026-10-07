@@ -190,6 +190,7 @@ export interface DepartmentMeeting {
 
 export type MeetingTemplateType =
   | "Standard Staff Meeting"
+  | "Follow-up Meeting"
   | "Moderation Meeting"
   | "Curriculum Planning";
 

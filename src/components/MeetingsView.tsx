@@ -395,7 +395,38 @@ export interface MeetingTemplateConfig {
   }[];
 }
 
+export const FOLLOW_UP_MEETING_ITEMS: AgendaPointTemplateItem[] = [
+  { pointNumber: 1, title: "Welcome & Purpose", defaultNotes: "Confirm the purpose of the follow-up meeting and expected outcomes." },
+  { pointNumber: 2, title: "Review Previous Action Items", defaultNotes: "Review outstanding actions from the previous meeting and record progress." },
+  { pointNumber: 3, title: "Key Matters Requiring Follow-up", defaultNotes: "Discuss the specific matters that require attention since the previous meeting." },
+  { pointNumber: 4, title: "Decisions & Actions", defaultNotes: "Record decisions made, responsible persons and agreed deadlines." },
+  { pointNumber: 5, title: "Any Other Business", defaultNotes: "Record any additional matters raised for discussion." },
+  { pointNumber: 6, title: "Next Steps & Next Meeting", defaultNotes: "Confirm immediate next steps and the next meeting date if required." },
+];
+
 export const MEETING_TEMPLATE_CONFIGS: MeetingTemplateConfig[] = [
+  {
+    id: "Follow-up Meeting",
+    title: "Follow-up Meeting",
+    badge: "Simple",
+    policyTag: "Department Follow-up",
+    summary: "A short practical agenda for following up previous decisions and outstanding actions.",
+    iconName: "check-circle",
+    colorClasses: {
+      activeBorder: "border-emerald-600 dark:border-emerald-500 ring-2 ring-emerald-500/20",
+      activeBg: "bg-emerald-50/70 dark:bg-emerald-950/40",
+      activeText: "text-emerald-900 dark:text-emerald-200",
+      badgeBg: "bg-emerald-100 dark:bg-emerald-900/60",
+      badgeText: "text-emerald-800 dark:text-emerald-300",
+      accentDot: "bg-emerald-600",
+      cardBorder: "border-slate-200 dark:border-slate-800",
+    },
+    defaultTitle: "Mathematics Department Follow-up Meeting",
+    defaultMeetingType: "Regular Departmental",
+    defaultFocus: "Review outstanding actions, address follow-up matters, agree decisions and confirm next steps.",
+    items: FOLLOW_UP_MEETING_ITEMS,
+    quickPresets: [],
+  },
   {
     id: "Standard Staff Meeting",
     title: "Standard Staff Meeting",
@@ -651,6 +682,40 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
       MEETING_TEMPLATE_CONFIGS.find((t) => t.id === selectedTemplate) ||
       MEETING_TEMPLATE_CONFIGS[0];
 
+    // A follow-up agenda is intentionally simple: it does not invoke AI or the
+    // 10-point governance framework. The HOD can edit the six practical items.
+    if (selectedTemplate === "Follow-up Meeting") {
+      const followUpRecord: MeetingRecord = {
+        id: `MTG-${Date.now()}`,
+        title: meetingTitle || "Mathematics Department Follow-up Meeting",
+        date: meetingDate,
+        startTime,
+        endTime,
+        venue,
+        chairperson: "Mr. N. Mpofu (HOD)",
+        meetingType,
+        templateType: selectedTemplate,
+        attendees: defaultDepartmentTeachers.map((t) => t.name),
+        apologies: [],
+        teacherSignatures: defaultDepartmentTeachers.map((t) => ({ ...t, signed: false, signedDate: "" })),
+        agendaPoints: FOLLOW_UP_MEETING_ITEMS.map((item) => ({
+          pointNumber: item.pointNumber,
+          title: item.title,
+          notes: customFocus && item.pointNumber === 3
+            ? `${item.defaultNotes} Focus: ${customFocus}`
+            : item.defaultNotes,
+        })),
+        actionItems: [],
+        minutesSummary: "Simple follow-up meeting agenda. Edit the agenda points and action items before circulation.",
+        status: "Draft",
+      };
+      updateMeetingsAndPersist([followUpRecord, ...meetings]);
+      setSelectedMeeting(followUpRecord);
+      setActiveTab("scheduled");
+      setIsGenerating(false);
+      return;
+    }
+
     try {
       const result = await safePost("/api/meetings/generate", {
         templateType: selectedTemplate,
@@ -833,7 +898,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
               alignment: AlignmentType.CENTER,
               children: [
                 new TextRun({
-                  text: `OFFICIAL AGENDA — ${targetTemplateConfig.title.toUpperCase()}`,
+                  text: `${targetTemplateType === "Follow-up Meeting" ? "MEETING AGENDA — " : "OFFICIAL AGENDA — "}${targetTemplateConfig.title.toUpperCase()}`,
                   bold: true,
                   size: 24,
                   color: "1A365D",
@@ -844,7 +909,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
               alignment: AlignmentType.CENTER,
               children: [
                 new TextRun({
-                  text: `STANDARDIZED 10-POINT SEQUENCE (${targetTemplateConfig.policyTag.toUpperCase()})`,
+                  text: targetTemplateType === "Follow-up Meeting" ? "SIMPLE FOLLOW-UP AGENDA" : `STANDARDIZED 10-POINT SEQUENCE (${targetTemplateConfig.policyTag.toUpperCase()})`,
                   bold: true,
                   size: 16,
                   color: "2B6CB0",
@@ -987,7 +1052,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
             new Paragraph({
               children: [
                 new TextRun({
-                  text: `STANDARDIZED 10-POINT ORDER OF BUSINESS (${targetTemplateConfig.title.toUpperCase()}):`,
+                  text: targetTemplateType === "Follow-up Meeting" ? "AGENDA" : `STANDARDIZED 10-POINT ORDER OF BUSINESS (${targetTemplateConfig.title.toUpperCase()}):`,
                   bold: true,
                   size: 18,
                   color: "1A365D",
@@ -1081,7 +1146,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
             new Paragraph({
               children: [
                 new TextRun({
-                  text: "By signing below, each departmental member acknowledges receipt of this agenda, confirms attendance, and commits to the moderation, pacing, and intervention deadlines stipulated herein.",
+                  text: targetTemplateType === "Follow-up Meeting" ? "Notes / decisions / action items can be recorded during the meeting." : "By signing below, each departmental member acknowledges receipt of this agenda, confirms attendance, and commits to the moderation, pacing, and intervention deadlines stipulated herein.",
                   italics: true,
                   size: 14,
                   color: "4A5568",
@@ -1188,7 +1253,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
             new Paragraph({
               children: [
                 new TextRun({
-                  text: "I hereby confirm that this department meeting agenda has been constructed and circulated in strict adherence to the Eagle House School HOD Governance Handbook §1 standard 10-point framework.",
+                  text: targetTemplateType === "Follow-up Meeting" ? "Follow-up agenda prepared for practical departmental use." : "I hereby confirm that this department meeting agenda has been constructed and circulated in strict adherence to the Eagle House School HOD Governance Handbook §1 standard 10-point framework.",
                   size: 14,
                 }),
               ],
