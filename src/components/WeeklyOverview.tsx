@@ -55,7 +55,7 @@ export const WeeklyOverview: React.FC<WeeklyOverviewProps> = ({
 
   const [selectedWeekStart, setSelectedWeekStart] = useState<Date>(() => getMonday(new Date()));
   const [selectedDayOffset, setSelectedDayOffset] = useState<number>(0);
-  const [customTasks, setCustomTasks] = useState<DepartmentCalendarTask[]>(calendarTasks);  const getWeekDates = (startDate: Date) => {
+  const [customTasks, setCustomTasks] = useState<CustomTask[]>(calendarTasks.map((task) => ({ ...task, type: task.type as "meeting" | "task" })));  const getWeekDates = (startDate: Date) => {
     const dates = [];
     for (let i = 0; i < 7; i++) {
       const d = new Date(startDate);
@@ -75,7 +75,7 @@ export const WeeklyOverview: React.FC<WeeklyOverviewProps> = ({
   const [newTaskType, setNewTaskType] = useState<"meeting" | "task">("task");
   const [newTaskTeacher, setNewTaskTeacher] = useState("");
   React.useEffect(() => {
-    setCustomTasks(calendarTasks);
+    setCustomTasks(calendarTasks.map((task) => ({ ...task, type: task.type as "meeting" | "task" })));
   }, [calendarTasks]);
 
   React.useEffect(() => {
@@ -102,7 +102,7 @@ export const WeeklyOverview: React.FC<WeeklyOverviewProps> = ({
 
     const updatedTasks = [...customTasks, newTask];
     setCustomTasks(updatedTasks);
-    void onSaveCalendarTasks(updatedTasks).catch((error) => alert(error.message || "Could not save the calendar event."));
+    void onSaveCalendarTasks(updatedTasks.filter((task) => task.type !== "deadline").map((task) => ({ ...task, type: task.type as "meeting" | "task" }))).catch((error) => alert(error.message || "Could not save the calendar event."));
     setNewTaskTitle("");
     setNewTaskTime("");
     alert("Task successfully scheduled in the HOD departmental calendar!");
@@ -111,7 +111,7 @@ export const WeeklyOverview: React.FC<WeeklyOverviewProps> = ({
   const handleDeleteTask = (id: string) => {
     const updatedTasks = customTasks.filter((t) => t.id !== id);
     setCustomTasks(updatedTasks);
-    void onSaveCalendarTasks(updatedTasks).catch((error) => alert(error.message || "Could not delete the calendar event."));
+    void onSaveCalendarTasks(updatedTasks.filter((task) => task.type !== "deadline").map((task) => ({ ...task, type: task.type as "meeting" | "task" }))).catch((error) => alert(error.message || "Could not delete the calendar event."));
   };
 
   // Aggregate and format all calendar items: Deadlines (Pre-mod dues, post-mod, test dates) + CustomTasks (Meetings, general tasks)
