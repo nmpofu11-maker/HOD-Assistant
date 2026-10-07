@@ -898,7 +898,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
               alignment: AlignmentType.CENTER,
               children: [
                 new TextRun({
-                  text: `OFFICIAL AGENDA — ${targetTemplateConfig.title.toUpperCase()}`,
+                  text: `${targetTemplateType === "Follow-up Meeting" ? "MEETING AGENDA — " : "OFFICIAL AGENDA — "}${targetTemplateConfig.title.toUpperCase()}`,
                   bold: true,
                   size: 24,
                   color: "1A365D",
@@ -909,7 +909,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
               alignment: AlignmentType.CENTER,
               children: [
                 new TextRun({
-                  text: `STANDARDIZED 10-POINT SEQUENCE (${targetTemplateConfig.policyTag.toUpperCase()})`,
+                  text: targetTemplateType === "Follow-up Meeting" ? "SIMPLE FOLLOW-UP AGENDA" : `STANDARDIZED 10-POINT SEQUENCE (${targetTemplateConfig.policyTag.toUpperCase()})`,
                   bold: true,
                   size: 16,
                   color: "2B6CB0",
@@ -1052,7 +1052,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
             new Paragraph({
               children: [
                 new TextRun({
-                  text: `STANDARDIZED 10-POINT ORDER OF BUSINESS (${targetTemplateConfig.title.toUpperCase()}):`,
+                  text: targetTemplateType === "Follow-up Meeting" ? "AGENDA" : `STANDARDIZED 10-POINT ORDER OF BUSINESS (${targetTemplateConfig.title.toUpperCase()}):`,
                   bold: true,
                   size: 18,
                   color: "1A365D",
@@ -1146,7 +1146,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
             new Paragraph({
               children: [
                 new TextRun({
-                  text: "By signing below, each departmental member acknowledges receipt of this agenda, confirms attendance, and commits to the moderation, pacing, and intervention deadlines stipulated herein.",
+                  text: targetTemplateType === "Follow-up Meeting" ? "Notes / decisions / action items can be recorded during the meeting." : "By signing below, each departmental member acknowledges receipt of this agenda, confirms attendance, and commits to the moderation, pacing, and intervention deadlines stipulated herein.",
                   italics: true,
                   size: 14,
                   color: "4A5568",
@@ -1253,7 +1253,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
             new Paragraph({
               children: [
                 new TextRun({
-                  text: "I hereby confirm that this department meeting agenda has been constructed and circulated in strict adherence to the Eagle House School HOD Governance Handbook §1 standard 10-point framework.",
+                  text: targetTemplateType === "Follow-up Meeting" ? "Follow-up agenda prepared for practical departmental use." : "I hereby confirm that this department meeting agenda has been constructed and circulated in strict adherence to the Eagle House School HOD Governance Handbook §1 standard 10-point framework.",
                   size: 14,
                 }),
               ],
