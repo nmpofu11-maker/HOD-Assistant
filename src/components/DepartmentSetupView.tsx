@@ -11,6 +11,8 @@ import {
   Layers,
   Save,
   Download,
+  Printer,
+  CalendarCheck2,
   Search,
   Filter,
   ArrowUpDown,
@@ -35,6 +37,8 @@ import {
   CurriculumType,
 } from "../types";
 import { exportStaffDirectoryXlsx } from "../utils/xlsxExport";
+import { printTeacherAllocation } from "../utils/printExports";
+import { PeerModerationScheduleView } from "./PeerModerationScheduleView";
 
 interface DepartmentSetupViewProps {
   config: DepartmentConfigState;
@@ -56,6 +60,8 @@ export const DepartmentSetupView: React.FC<DepartmentSetupViewProps> = ({
   const [saveError, setSaveError] = useState<string | null>(null);
 
   // Modal states
+  const [setupSection, setSetupSection] = useState<"allocations" | "peer-moderation">("allocations");
+
   const [isEducatorModalOpen, setIsEducatorModalOpen] = useState(false);
   const [editingEducator, setEditingEducator] = useState<DepartmentEducator | null>(null);
   const [educatorForm, setEducatorForm] = useState<{
@@ -411,6 +417,26 @@ export const DepartmentSetupView: React.FC<DepartmentSetupViewProps> = ({
     await handleTriggerSave(newConfig);
   };
 
+  if (setupSection === "peer-moderation") {
+    return (
+      <div className="space-y-5">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white">Department Setup</h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Manage educator allocations and peer moderation assignments from one authoritative configuration.</p>
+          </div>
+          <button onClick={() => setSetupSection("allocations")} className="px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl text-xs font-semibold">← Teacher Allocations</button>
+        </div>
+        <PeerModerationScheduleView
+          yearConfig={currentYearObj}
+          schedule={[]}
+          currentTerm={1}
+          onSave={async () => {}}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header Banner */}
@@ -451,6 +477,22 @@ export const DepartmentSetupView: React.FC<DepartmentSetupViewProps> = ({
               <span>{saveError}</span>
             </div>
           )}
+
+          <button
+            onClick={() => printTeacherAllocation(currentYearObj)}
+            className="px-3 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors"
+          >
+            <Printer className="w-3.5 h-3.5" />
+            <span>Print Allocation</span>
+          </button>
+
+          <button
+            onClick={() => setSetupSection("peer-moderation")}
+            className="px-3 py-2 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors"
+          >
+            <CalendarCheck2 className="w-3.5 h-3.5" />
+            <span>Peer Moderation Schedule</span>
+          </button>
 
           <button
             onClick={() => exportStaffDirectoryXlsx(educatorsList)}
