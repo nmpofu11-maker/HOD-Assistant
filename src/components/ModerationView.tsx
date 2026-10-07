@@ -161,53 +161,26 @@ export const ModerationView: React.FC<ModerationViewProps> = ({
   const [postTeacher, setPostTeacher] = useState("");
   const [cohortSize, setCohortSize] = useState(0);
 
-  // Automatic moderator assignment rule
-  const computeAutomaticModerator = (subj: string, grd: string, teacherName: string) => {
-    const s = (subj || "").toLowerCase();
-    const g = (grd || "").toLowerCase();
-    if (s.includes("lit") || s.includes("literacy")) {
-      return "Shingi";
-    }
-    if (s.includes("math") && (g.includes("11") || g.includes("12") || g.includes("ig") || g.includes("as") || g.includes("grade 11") || g.includes("grade 12"))) {
-      return "Reggie";
-    }
-    // Others equitably between HOD Mpofu and Lutendo
-    const hash = (teacherName + grd).length;
-    return hash % 2 === 0 ? "HOD Mpofu" : "Lutendo";
-  };
-
+  // Moderator selection is based on the live Mathematics staff configuration.
+  // The application does not invent moderation assignments; the HOD selects the actual peer.
+  const availableModerators = staffList.filter((member) => member.isMathsDept && member.status === "active");
   const [assignedModerator, setAssignedModerator] = useState<string>("");
-  const [isManualModerator, setIsManualModerator] = useState<boolean>(false);
-
-  React.useEffect(() => {
-    if (!isManualModerator) {
-      setAssignedModerator(computeAutomaticModerator(postSubject, postGrade, postTeacher));
-    }
-  }, [postSubject, postGrade, postTeacher, isManualModerator]);
-
-  // Post-moderation samples must be supplied by the HOD; never seed fabricated learner marks.
+  const [isManualModerator, setIsManualModerator] = useState<boolean>(true);
   const [postScripts, setPostScripts] = useState<PostModerationScriptSample[]>([]);
 
   const handleExportAssignmentSchedule = () => {
-    const assignments = [
-      { subject: "Mathematical Literacy", grade: "Grade 10", teacher: "Shingi", assignedModerator: "Shingi", notes: "Assigned to Shingi per policy" },
-      { subject: "Mathematical Literacy", grade: "Grade 11", teacher: "Mpofu", assignedModerator: "Shingi", notes: "Assigned to Shingi per policy" },
-      { subject: "Mathematical Literacy", grade: "Grade 12", teacher: "Mpofu", assignedModerator: "Shingi", notes: "Assigned to Shingi per policy" },
-      { subject: "Mathematics (Core)", grade: "Grade 11", teacher: "Reggie", assignedModerator: "Reggie", notes: "Core Maths 11-12 assigned to Reggie" },
-      { subject: "Mathematics (Core)", grade: "Grade 12", teacher: "Reggie", assignedModerator: "Reggie", notes: "Core Maths 11-12 assigned to Reggie" },
-      { subject: "Mathematics (Core)", grade: "Grade 10", teacher: "Shingi", assignedModerator: "HOD Mpofu", notes: "Equitably distributed" },
-      { subject: "Mathematics (Core)", grade: "Grade 9", teacher: "Luthando", assignedModerator: "Lutendo", notes: "Equitably distributed" },
-      { subject: "Mathematics (Core)", grade: "Grade 8", teacher: "Mpofu", assignedModerator: "HOD Mpofu", notes: "Equitably distributed" },
-    ];
-    exportPostModerationAssignmentScheduleDocx(assignments);
+    if (!teacher || !moderator || !grade || !subject) {
+      setModerationError("Complete the teacher, peer moderator, grade and subject before exporting an assignment.");
+      return;
+    }
+    exportPostModerationAssignmentScheduleDocx([
+      { subject, grade, teacher, assignedModerator: moderator, notes: "Assignment entered by the HOD." },
+    ]);
   };
 
+  // Post-moderation samples must be supplied by the HOD; never generate fabricated learner marks.
   const handleAutoSelectBestMidLow = () => {
-    setPostScripts([
-      { learnerCode: `LRN-TOP-${Math.floor(10 + Math.random() * 89)}`, band: "Top" as const, originalMark: 48, moderatedMark: 48, variance: 0, auditNotes: "Automatic Best learner sample: Top mark in cohort with distinction level formatting." },
-      { learnerCode: `LRN-MID-${Math.floor(10 + Math.random() * 89)}`, band: "Average" as const, originalMark: 28, moderatedMark: 29, variance: 1, auditNotes: "Automatic Mid learner sample: Median mark in cohort with follow-through adjustment." },
-      { learnerCode: `LRN-LOW-${Math.floor(10 + Math.random() * 89)}`, band: "Weak" as const, originalMark: 15, moderatedMark: 15, variance: 0, auditNotes: "Automatic Low learner sample: Lowest band in cohort; targeted intervention required." },
-    ]);
+    setPostModerationError("Learner samples must be supplied from the actual assessment scripts; automatic sample generation is disabled.");
   };
   const [isPostModerating, setIsPostModerating] = useState(false);
   const [postModerationError, setPostModerationError] = useState<string | null>(null);
@@ -259,8 +232,11 @@ export const ModerationView: React.FC<ModerationViewProps> = ({
       setScriptAnalysisResult(data.analysis);
       
       // Auto-append the analyzed script findings to the postScripts stratified list for full verification
-      const newLearnerCode = `LRN-SCAN-${Math.floor(100 + Math.random() * 900)}`;
-      const detectedMark = data.analysis.totalMarkDetected || 35;
+      const detectedMark = data.analysis.totalMarkDetected;
+      if (typeof detectedMark !== "number" || !Number.isFinite(detectedMark)) {
+        throw new Error("The scanned script did not contain a verified total mark, so no learner record was created.");
+      }
+      const newLearnerCode = `LRN-SCAN-${Date.now()}`;
       const calculatedVariance = data.analysis.calculationErrorFound ? -2 : 0;
       const newFindings = {
         learnerCode: newLearnerCode,
@@ -374,7 +350,7 @@ export const ModerationView: React.FC<ModerationViewProps> = ({
       setSubject("Mathematics");
       setCurriculum("IEB");
       setGrade("10A & 10B");
-      setTeacher("Shingi");
+      setTeacher("");
       setPaper("Paper 1 (Algebra & Equations)");
       setTotalMarks(50);
       setDuration("60 mins");
@@ -440,7 +416,7 @@ QUESTION 2 [20]
       setSubject("Mathematics");
       setCurriculum("Cambridge");
       setGrade("IG2");
-      setTeacher("Reggie");
+      setTeacher("");
       setPaper("Paper 2 (Extended 0580)");
       setTotalMarks(70);
       setDuration("90 mins");

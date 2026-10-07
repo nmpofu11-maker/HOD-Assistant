@@ -748,9 +748,9 @@ export const ResultsAnalysisView: React.FC<ResultsAnalysisViewProps> = ({
                     onChange={(e) => setUploadTeacher(e.target.value)}
                     className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white font-semibold text-slate-900"
                   >
-                    <option value="Shingi">Shingi (Maths)</option>
-                    <option value="Reggie">Reggie (Math Lit)</option>
-                    <option value="Luthando">Luthando (Cambridge)</option>
+                    {staffList.filter((member) => member.isMathsDept && member.status === "active").map((member) => (
+                      <option key={member.id} value={member.name}>{member.name}</option>
+                    ))}
                     <option value="Sipho">Sipho (Grade 9)</option>
                   </select>
                 </div>
