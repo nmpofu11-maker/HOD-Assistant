@@ -395,6 +395,15 @@ export interface MeetingTemplateConfig {
   }[];
 }
 
+export const FOLLOW_UP_MEETING_ITEMS: AgendaPointTemplateItem[] = [
+  { pointNumber: 1, title: "Welcome & Purpose", defaultNotes: "Confirm the purpose of the follow-up meeting and expected outcomes." },
+  { pointNumber: 2, title: "Review Previous Action Items", defaultNotes: "Review outstanding actions from the previous meeting and record progress." },
+  { pointNumber: 3, title: "Key Matters Requiring Follow-up", defaultNotes: "Discuss the specific matters that require attention since the previous meeting." },
+  { pointNumber: 4, title: "Decisions & Actions", defaultNotes: "Record decisions made, responsible persons and agreed deadlines." },
+  { pointNumber: 5, title: "Any Other Business", defaultNotes: "Record any additional matters raised for discussion." },
+  { pointNumber: 6, title: "Next Steps & Next Meeting", defaultNotes: "Confirm immediate next steps and the next meeting date if required." },
+];
+
 export const MEETING_TEMPLATE_CONFIGS: MeetingTemplateConfig[] = [
   {
     id: "Standard Staff Meeting",
@@ -650,6 +659,40 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
     const activeTemplateConfig =
       MEETING_TEMPLATE_CONFIGS.find((t) => t.id === selectedTemplate) ||
       MEETING_TEMPLATE_CONFIGS[0];
+
+    // A follow-up agenda is intentionally simple: it does not invoke AI or the
+    // 10-point governance framework. The HOD can edit the six practical items.
+    if (selectedTemplate === "Follow-up Meeting") {
+      const followUpRecord: MeetingRecord = {
+        id: `MTG-${Date.now()}`,
+        title: meetingTitle || "Mathematics Department Follow-up Meeting",
+        date: meetingDate,
+        startTime,
+        endTime,
+        venue,
+        chairperson: "Mr. N. Mpofu (HOD)",
+        meetingType,
+        templateType: selectedTemplate,
+        attendees: defaultDepartmentTeachers.map((t) => t.name),
+        apologies: [],
+        teacherSignatures: defaultDepartmentTeachers.map((t) => ({ ...t, signed: false, signedDate: "" })),
+        agendaPoints: FOLLOW_UP_MEETING_ITEMS.map((item) => ({
+          pointNumber: item.pointNumber,
+          title: item.title,
+          notes: customFocus && item.pointNumber === 3
+            ? `${item.defaultNotes} Focus: ${customFocus}`
+            : item.defaultNotes,
+        })),
+        actionItems: [],
+        minutesSummary: "Simple follow-up meeting agenda. Edit the agenda points and action items before circulation.",
+        status: "Draft",
+      };
+      updateMeetingsAndPersist([followUpRecord, ...meetings]);
+      setSelectedMeeting(followUpRecord);
+      setActiveTab("scheduled");
+      setIsGenerating(false);
+      return;
+    }
 
     try {
       const result = await safePost("/api/meetings/generate", {
