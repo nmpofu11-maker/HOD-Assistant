@@ -567,17 +567,15 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
   const [templateFilter, setTemplateFilter] = useState<"All" | MeetingTemplateType>("All");
 
   // Generator inputs
-  const [meetingTitle, setMeetingTitle] = useState("Term 1 Cycle 2 Mathematics Department Meeting");
-  const [meetingDate, setMeetingDate] = useState("2026-03-12");
-  const [startTime, setStartTime] = useState("14:30");
-  const [endTime, setEndTime] = useState("15:45");
-  const [venue, setVenue] = useState("Secondary Mathematics Staffroom");
+  const [meetingTitle, setMeetingTitle] = useState("Department Meeting");
+  const [meetingDate, setMeetingDate] = useState(new Date().toISOString().split("T")[0]);
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [venue, setVenue] = useState("");
   const [meetingType, setMeetingType] = useState<
     "Regular Departmental" | "Pre-Moderation Calibration" | "Post-Exam Review" | "Urgent / Escalation"
   >("Regular Departmental");
-  const [customFocus, setCustomFocus] = useState(
-    "Curriculum pacing spot-check against ATP, assessment compliance (§7.1 pre-mod & §7.2 post-mod), diagnostic data review, and Appendix 10 academic support trackers."
-  );
+  const [customFocus, setCustomFocus] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Template switch handler
@@ -591,8 +589,20 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
     }
   };
 
-  // Roster is supplied by the Department Configuration; never seed meeting attendees/signatures.
-  const defaultDepartmentTeachers: MeetingRecord["teacherSignatures"] = [];
+  // The Department Configuration roster is the source of truth for meeting attendees/signatures.
+  const defaultDepartmentTeachers: NonNullable<MeetingRecord["teacherSignatures"]> = staffList
+    .filter((teacher) => teacher.isMathsDept && teacher.status !== "inactive")
+    .map((teacher) => ({
+      teacherId: teacher.id,
+      name: teacher.name,
+      role: teacher.role || "Educator",
+      allocation:
+        teacher.allocations.length > 0
+          ? teacher.allocations.map((a) => `${a.subject} — Grade ${a.grade} (${a.curriculum})`).join("; ")
+          : "Department allocation not specified",
+      signed: false,
+      signedDate: "",
+    }));
 
   // Operational meeting records are blank until the HOD creates or loads a record.
   const defaultMeetings: MeetingRecord[] = [];
@@ -1135,7 +1145,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
               spacing: { after: 200 },
               children: [
                 new TextRun({
-                  text: `OFFICIAL MEETING MINUTES & ACCOUNTABILITY TRACKER\n${record.title.toUpperCase()}`,
+                  text: `MEETING MINUTES & ACTION TRACKER\n${record.title.toUpperCase()}`,
                   bold: true,
                   size: 22,
                   color: "2B6CB0",
@@ -1495,7 +1505,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
 
             {/* Template Filter Pills */}
             <div className="flex flex-wrap gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-[11px]">
-              {(["All", "Standard Staff Meeting", "Moderation Meeting", "Curriculum Planning"] as const).map((filter) => {
+              {(["All", "Follow-up Meeting", "Standard Staff Meeting", "Moderation Meeting", "Curriculum Planning"] as const).map((filter) => {
                 const isSelected = templateFilter === filter;
                 return (
                   <button
@@ -1931,7 +1941,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                     {MEETING_TEMPLATE_CONFIGS.map((tmpl) => {
                       const isSelected = selectedTemplate === tmpl.id;
                       return (
@@ -2066,14 +2076,14 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
 
               <div className="md:col-span-2">
                 <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Department Context, Discussion Focus & Statutory Items
+                  Discussion Focus
                 </label>
                 <textarea
                   rows={3}
                   value={customFocus}
                   onChange={(e) => setCustomFocus(e.target.value)}
                   className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-700 text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-                  placeholder="Specify upcoming assessment tasks, moderation notes, ATP topics to review, or learner intervention groups..."
+                  placeholder="What needs to be discussed or decided at this meeting?"
                 />
               </div>
             </div>
@@ -2091,7 +2101,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
               ) : (
                 <>
                   <Sparkles className="w-4 h-4 text-amber-300" />
-                  <span>Generate Official {selectedTemplate} Agenda & Minutes Draft</span>
+                  <span>Generate {selectedTemplate} Agenda & Minutes Draft</span>
                 </>
               )}
             </button>
@@ -2137,7 +2147,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
                           notes: customFocus && item.pointNumber === 3 ? `${item.defaultNotes} Focus: ${customFocus}` : item.defaultNotes,
                         })),
                         actionItems: [],
-                        minutesSummary: `Official preview draft conforming to ${previewTmpl.title} guidelines.`,
+                        minutesSummary: `${previewTmpl.title} preview draft prepared for departmental use.`,
                         status: "Draft",
                       })
                     }
@@ -2148,11 +2158,11 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
                   </button>
                 </div>
 
-                {/* 10 Points in Preview */}
+                {/* Agenda items in Preview */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-                      {previewTmpl.title} Sequence (10 Points)
+                      {previewTmpl.title} Agenda ({previewTmpl.items.length} items)
                     </h4>
                     <span className="text-[11px] text-slate-500 font-mono">{previewTmpl.badge}</span>
                   </div>
