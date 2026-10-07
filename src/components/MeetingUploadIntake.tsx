@@ -39,7 +39,7 @@ import {
   FileType,
 } from "lucide-react";
 import { MeetingRecord, MeetingTemplateType } from "../types";
-import { MEETING_TEMPLATE_CONFIGS } from "./MeetingsView";
+import { MEETING_TEMPLATE_CONFIGS } from "../utils/meetingTemplates";
 import { safePost } from "../utils/apiClient";
 
 interface MeetingUploadIntakeProps {
