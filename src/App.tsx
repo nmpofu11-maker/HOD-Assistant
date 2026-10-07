@@ -57,8 +57,8 @@ export default function App() {
       if (m.success && Array.isArray(m.data)) setMeetings(m.data);
       if (r.success) setResultsData(Array.isArray(r.data) ? (r.data[0] || null) : (r.data || null));
       if (mod.success && Array.isArray(mod.data)) {
-        setSavedPreReports(mod.data.filter((x: any) => "checklist" in x));
-        setSavedPostReports(mod.data.filter((x: any) => "scriptFindings" in x));
+        setSavedPreReports(mod.data.filter((x): x is PreModerationReport => "checklist" in x));
+        setSavedPostReports(mod.data.filter((x): x is PostModerationReport => "scriptFindings" in x));
       }
       if ((r.success && (Array.isArray(r.data) ? r.data[0]?.id : r.data?.id)?.includes("DEMO")) || (m.success && m.data?.some?.((x: any) => String(x.id || "").includes("DEMO")))) setIsDemoMode(true);
     }).catch((err) => console.error("Failed to load departmental data:", err));
