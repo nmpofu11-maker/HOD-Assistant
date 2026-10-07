@@ -575,7 +575,7 @@ export const DepartmentSetupView: React.FC<DepartmentSetupViewProps> = ({
             <span className="text-xs text-slate-500">active educators</span>
           </div>
           <p className="text-[11px] text-slate-400 mt-1">
-            Mpofu (HOD), Shingi, Reggie, Luthando
+            {educatorsList.filter((e) => e.isMathsDept && e.status === "active").map((e) => e.name).join(", ") || "No active Mathematics educators configured"}
           </p>
         </div>
 
