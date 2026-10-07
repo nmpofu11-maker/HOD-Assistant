@@ -574,8 +574,18 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
-          setMeetings(data);
-          setSelectedMeeting(data[0]);
+          const normalizedMeetings = data
+            .filter((record): record is MeetingRecord => Boolean(record && typeof record === "object"))
+            .map((record) => ({
+              ...record,
+              attendees: Array.isArray(record.attendees) ? record.attendees : [],
+              apologies: Array.isArray(record.apologies) ? record.apologies : [],
+              teacherSignatures: Array.isArray(record.teacherSignatures) ? record.teacherSignatures : [],
+              agendaPoints: Array.isArray(record.agendaPoints) ? record.agendaPoints : [],
+              actionItems: Array.isArray(record.actionItems) ? record.actionItems : [],
+            }));
+          setMeetings(normalizedMeetings);
+          setSelectedMeeting(normalizedMeetings[0] || blankMeeting());
         }
       })
       .catch((err) => console.error("Failed to load meetings:", err));
