@@ -250,8 +250,12 @@ export const MeetingUploadIntake: React.FC<MeetingUploadIntakeProps> = ({
               notes: h.defaultNotes,
             })),
         actionItems: Array.isArray(rec.actionItems) ? rec.actionItems : [],
-        minutesSummary:\n          rec.minutesSummary ||\n          `${activeTmplConfig.title} record prepared from the uploaded source.`,
-        transcriptionSummary:\n          rec.transcriptionSummary ||\n          `Source material processed for the ${activeTmplConfig.title} template.`,
+        minutesSummary:
+          rec.minutesSummary ||
+          `${activeTmplConfig.title} record prepared from the uploaded source.`,
+        transcriptionSummary:
+          rec.transcriptionSummary ||
+          `Source material processed for the ${activeTmplConfig.title} template`,
         rawTranscribedText: extractedOcrText,
         sourceType: format,
         status: targetDoc === "agenda" ? "Draft" : "Completed",
