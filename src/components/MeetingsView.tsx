@@ -59,18 +59,16 @@ export const STANDARD_STAFF_MEETING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Welcome & Apologies",
     guidelineDescription:
       "Formal opening, verification of quorum, recorded apologies, and chairperson remarks.",
-    defaultNotes:
-      "Meeting opened at 14:30. Quorum established. Full department attendance noted. HOD commended staff on punctuality.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "5 mins",
-    lead: "HOD Mpofu",
+    lead: "HOD",
   },
   {
     pointNumber: 2,
     title: "Matters Arising from Previous Minutes",
     guidelineDescription:
       "Action tracker review from preceding cycle, confirmation of completed tasks, accountability check.",
-    defaultNotes:
-      "Reviewed action items from prior meeting. Previous SBA portfolios successfully verified. All moderation sign-offs archived.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "10 mins",
     lead: "All Staff",
   },
@@ -79,8 +77,7 @@ export const STANDARD_STAFF_MEETING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Curriculum Progress & ATP Pacing Alignment",
     guidelineDescription:
       "Comparison of completed topics vs. CAPS ATPs & IEB SAGS milestones, syllabus coverage spot-checks, identification of delays, catch-up scheduling.",
-    defaultNotes:
-      "Bi-weekly pacing audit confirmed. Grades 8-11 are on schedule against ATPs. Grade 12 Calculus pacing is slightly compressed; two additional revision tutorial clinics scheduled.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "15 mins",
     lead: "Subject Teachers",
   },
@@ -89,18 +86,16 @@ export const STANDARD_STAFF_MEETING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Assessment & Moderation Compliance (§7.1 & §7.2)",
     guidelineDescription:
       "Enforcement of 5-day pre-moderation lead-time (§7.1), Bloom's Taxonomy cognitive level weighting (Levels 1-4), quality of marking guidelines, and post-moderation 10% stratified purple pen sample (§7.2).",
-    defaultNotes:
-      "Reiterated strict compliance with Policy §7.1: all test draft papers, full marking memos, and cognitive grid analyses must be submitted to the HOD at least 5 school days prior to assessment dates. Policy §7.2 post-moderation sampling requires a 10% stratified sample audited in purple pen within 48 hours of marking completion.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "15 mins",
-    lead: "HOD Mpofu",
+    lead: "HOD",
   },
   {
     pointNumber: 5,
     title: "Learner Performance & Diagnostic Data",
     guidelineDescription:
       "Diagnostic review of recent tests, grade-by-grade mark distributions, pass rates, identification of common conceptual misconceptions.",
-    defaultNotes:
-      "Analyzed diagnostic distributions from recent cycle tests. Common error patterns identified in Grade 10 analytical geometry and Grade 11 circle theorems. Remediation drills agreed upon.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "15 mins",
     lead: "All Staff",
   },
@@ -109,8 +104,7 @@ export const STANDARD_STAFF_MEETING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Learners Requiring Academic Intervention (Appendix 10)",
     guidelineDescription:
       "Review of at-risk learners scoring <30%, activation and monitoring of Appendix 10 action roadmaps, morning/afternoon support clinics, and communication with parents.",
-    defaultNotes:
-      "Reviewed active Appendix 10 support trackers for all learners scoring below 30% threshold. Mandatory remedial afternoon clinics running on Tuesdays and Thursdays.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "10 mins",
     lead: "Grade Teachers",
   },
@@ -119,40 +113,36 @@ export const STANDARD_STAFF_MEETING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Educator Support, Teaching Practice & Professional Development",
     guidelineDescription:
       "Peer learning walks, lesson observations feedback ('What? So What? Now What?'), pedagogical methodology sharing, and instructional coaching.",
-    defaultNotes:
-      "Department learning walks scheduled for upcoming fortnight focusing on higher-order cognitive questioning and active whiteboard problem-solving.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "10 mins",
-    lead: "HOD Mpofu",
+    lead: "HOD",
   },
   {
     pointNumber: 8,
     title: "Resources, Textbooks & Technology",
     guidelineDescription:
       "Textbook stock review, Casio scientific calculator compliance, graphing software (GeoGebra / Desmos), and exam paper printing requirements.",
-    defaultNotes:
-      "Inventory check of Grade 8-12 textbooks complete; 100% textbook allocation achieved. Examination paper copying requests must be logged 72 hours in advance.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "5 mins",
-    lead: "Luthando",
+    lead: "Department Resource Lead",
   },
   {
     pointNumber: 9,
     title: "Matters Requiring Escalation to Senior Leadership (SMT)",
     guidelineDescription:
       "Departmental issues, infrastructure needs, or learner pastoral concerns requiring SMT or Academic Head intervention (categorized Green/Amber/Red).",
-    defaultNotes:
-      "Classroom M3 ceiling projector requires maintenance (Amber Priority). Request submitted to Academic Head for additional scientific calculator loan kits.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "5 mins",
-    lead: "HOD Mpofu",
+    lead: "HOD",
   },
   {
     pointNumber: 10,
     title: "Any Other Business (AOB) & Date of Next Meeting",
     guidelineDescription:
       "Miscellaneous items, final summary of agreed action items, scheduling next cycle meeting, formal adjournment.",
-    defaultNotes:
-      "Next departmental cycle meeting scheduled for next month in the Mathematics Department office. Action items confirmed and assigned. Meeting formally adjourned at 15:45.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "5 mins",
-    lead: "HOD Mpofu",
+    lead: "HOD",
   },
 ];
 
@@ -166,18 +156,16 @@ export const MODERATION_MEETING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Quorum Verification & Internal Moderation Objectives",
     guidelineDescription:
       "Establish moderation panel quorum, assign senior moderators per grade, review moderation code of conduct, and align with Policy §7.",
-    defaultNotes:
-      "Moderation panel constituted with HOD and subject leads. Quorum verified. Moderation objectives aligned with HOD Handbook Policy §7.1 and §7.2.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "5 mins",
-    lead: "HOD Mpofu",
+    lead: "HOD",
   },
   {
     pointNumber: 2,
     title: "Matters Arising & Action Audit from Prior Moderation Cycle",
     guidelineDescription:
       "Audit of corrections mandated during prior cycle, verification of amended question papers, marking memos, and resolved discrepancies.",
-    defaultNotes:
-      "Audited corrections from preceding assessment cycle. All flagged mark discrepancies resolved; updated question bank and revised memos verified.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "10 mins",
     lead: "Senior Moderators",
   },
@@ -186,8 +174,7 @@ export const MODERATION_MEETING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Assessment Blueprint & Cognitive Weighting Grid (Bloom's Levels 1–4)",
     guidelineDescription:
       "Scrutiny of question paper blueprints against CAPS/IEB taxonomy: Knowledge L1 (20%), Routine L2 (35%), Complex L3 (30%), Problem Solving L4 (15%).",
-    defaultNotes:
-      "Cognitive weighting grids verified for all grade test drafts. Grade 10 Paper balanced at 20% L1, 35% L2, 30% L3, 15% L4. Grade 11 requires slight upward adjustment in Level 4 non-routine questions.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "15 mins",
     lead: "All Subject Teachers",
   },
@@ -196,18 +183,16 @@ export const MODERATION_MEETING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Policy §7.1 Compliance: 5-Day Pre-Moderation Lead Time Review",
     guidelineDescription:
       "Rigorous verification of draft submission deadlines (minimum 5 school days prior to test date). Formatting, typography, mark allocations, and diagram clarity.",
-    defaultNotes:
-      "100% adherence to 5-day pre-moderation lead time confirmed for upcoming Term 1 tests. All drafts reviewed for clarity, font consistency, mark allocations, and formula sheet accuracy.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "15 mins",
-    lead: "HOD Mpofu",
+    lead: "HOD",
   },
   {
     pointNumber: 5,
     title: "Marking Memorandum Standardization & Alternative Solutions Calibration",
     guidelineDescription:
       "Comprehensive walk-through of marking memoranda. Identification and recording of valid alternative learner solution methods and consequential mark allocations.",
-    defaultNotes:
-      "Marking memo standardization completed. Accepted 2 valid alternative geometric proof methods for Grade 11 Circle Geometry Q4. Consequential marking rules established for multi-step trigonometry.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "20 mins",
     lead: "Subject Specialists",
   },
@@ -216,8 +201,7 @@ export const MODERATION_MEETING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Policy §7.2 Post-Moderation: 10% Stratified Purple Pen Protocol",
     guidelineDescription:
       "Verification of 10% sample stratification (top, middle, bottom mark bands). Purple pen re-marking protocol, consistency of mark additions, and memo adherence.",
-    defaultNotes:
-      "Post-moderation protocol established: 10% stratified sample (high, average, at-risk) will be audited in purple pen within 48 hours of marking completion. Moderation stamps and signatures applied.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "15 mins",
     lead: "HOD & Internal Moderators",
   },
@@ -226,8 +210,7 @@ export const MODERATION_MEETING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Moderation Discrepancy & Mark Variance Resolution Register",
     guidelineDescription:
       "Protocol for mark variances exceeding 5% or 3 marks between teacher and moderator. Re-marking thresholds, adjustments register, and arbitration by HOD.",
-    defaultNotes:
-      "Variance tolerance set at ±3 marks or 5%. Any paper exceeding variance threshold will trigger full cohort re-audit by HOD. All adjustments recorded in statutory moderation register.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "10 mins",
     lead: "Moderation Panel",
   },
@@ -236,8 +219,7 @@ export const MODERATION_MEETING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Question Discrimination Index & Diagnostic Error Trends",
     guidelineDescription:
       "Item analysis on high-failure questions, ambiguous question phrasing, cognitive load barriers, and curriculum gaps.",
-    defaultNotes:
-      "Item discrimination analysis reviewed from prior test. Identified common misconception in 3D trigonometric angles of elevation; remediation exercise embedded.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "10 mins",
     lead: "Grade Leads",
   },
@@ -246,20 +228,18 @@ export const MODERATION_MEETING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Statutory Moderation Tool Sign-off & Appendix 7 Certification",
     guidelineDescription:
       "Completion and formal signing of Eagle House Official Moderation Instruments (Appendix 7), verification checklists, and HOD certification.",
-    defaultNotes:
-      "Official Appendix 7 moderation tools signed by internal moderators. Final pre-moderation compliance certificates signed off by HOD.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "5 mins",
-    lead: "HOD Mpofu",
+    lead: "HOD",
   },
   {
     pointNumber: 10,
     title: "Moderation Remedial Orders & SMT Escalation",
     guidelineDescription:
       "Summary of binding moderation directives, test paper security sign-off, date for final post-moderation file submission to SMT.",
-    defaultNotes:
-      "Final moderated master papers locked in secure department archive. Final moderation audit report scheduled for submission to Academic Head by Friday.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "5 mins",
-    lead: "HOD Mpofu",
+    lead: "HOD",
   },
 ];
 
@@ -270,18 +250,16 @@ export const CURRICULUM_PLANNING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Department Academic Vision & Term Strategic Targets",
     guidelineDescription:
       "Establish departmental achievement targets (e.g. 80%+ cohort pass rate, 25%+ distinctions, 0 unmanaged <30%), core pedagogical focus, and curriculum vision.",
-    defaultNotes:
-      "Chair opened session establishing Term 2 target: 80% pass rate in Mathematics with zero unmanaged failures below 30%. Core pillar: conceptual understanding over rote memorization.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "10 mins",
-    lead: "HOD Mpofu",
+    lead: "HOD",
   },
   {
     pointNumber: 2,
     title: "CAPS/IEB Annual Teaching Plan (ATP) Milestone Mapping & Pacing Calendar",
     guidelineDescription:
       "Week-by-week syllabus scheduling across Grades 8–12. Alignment with school calendar, examination periods, public holidays, and athletics days.",
-    defaultNotes:
-      "Reviewed 10-week ATP progression. Adjusted Grade 10 Euclidean Geometry pacing to absorb lost sports fixture hours. Grade 11 Functions and Grade 12 Calculus pacing calendars synchronized.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "15 mins",
     lead: "Subject Teachers",
   },
@@ -290,8 +268,7 @@ export const CURRICULUM_PLANNING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Prerequisite Diagnostic Gaps & Baseline Remediation Strategy",
     guidelineDescription:
       "Analysis of baseline diagnostic assessment results. Identification of prerequisite knowledge deficits from prior grade and structured 10-minute starter bridge lessons.",
-    defaultNotes:
-      "Diagnostic baseline identified algebra factorisation and fraction manipulation gaps in Grade 8 and 9. 2-week starter bridge drills integrated into daily lesson plans.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "15 mins",
     lead: "All Staff",
   },
@@ -300,8 +277,7 @@ export const CURRICULUM_PLANNING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Common Assessment Task (CAT) & SBA Schedule Synchronization",
     guidelineDescription:
       "Scheduling control tests, assignments, practical investigations, and portfolio tasks in accordance with NPA and locking 5-day pre-moderation deadlines (§7.1).",
-    defaultNotes:
-      "Formal assessment calendar locked. Grade 8–9 investigations scheduled for Week 4; Grade 10–12 Control Tests scheduled for Week 7. Pre-moderation deadlines locked 5 days ahead (§7.1).",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "10 mins",
     lead: "Assessment Coordinator",
   },
@@ -310,8 +286,7 @@ export const CURRICULUM_PLANNING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Pedagogical Methodology, Lesson Study & Differentiated CRA Instruction",
     guidelineDescription:
       "Sharing best instructional practices, Concrete-Representational-Abstract (CRA) models, peer learning walk schedule, and differentiated task tiers.",
-    defaultNotes:
-      "Adopted CRA visual modeling for teaching quadratic functions. Peer lesson observation pairings confirmed: Shingi with Reggie, Luthando with Mpofu.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "15 mins",
     lead: "Subject Leads",
   },
@@ -320,18 +295,16 @@ export const CURRICULUM_PLANNING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Textbook, Digital LMS & Technology Resource Allocation",
     guidelineDescription:
       "Audit of physical textbooks, online LMS learning modules (Google Classroom/Moodle), graphing software (GeoGebra/Desmos), and Casio calculator supply.",
-    defaultNotes:
-      "Resource check completed. 100% textbook allocation verified. Interactive GeoGebra classroom activities shared on department drive. Calculator loan kits prepared.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "10 mins",
-    lead: "Luthando",
+    lead: "Department Resource Lead",
   },
   {
     pointNumber: 7,
     title: "Inclusive Education & High-Potential / At-Risk Tiering Framework",
     guidelineDescription:
       "Identification of tier-3 at-risk learners (<30%) for Appendix 10 support roadmaps, and tier-1 high-potential learners for Mathematics Olympiad preparation (SAMO).",
-    defaultNotes:
-      "Support framework established: Grade 8–11 at-risk learners assigned to Tuesday/Thursday afternoon clinic roadmaps. High-potential learners enrolled in South African Mathematics Olympiad (SAMO).",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "10 mins",
     lead: "Grade Teachers",
   },
@@ -340,30 +313,27 @@ export const CURRICULUM_PLANNING_ITEMS: AgendaPointTemplateItem[] = [
     title: "Educator Workload, Subject Allocations & Mentorship Pairing",
     guidelineDescription:
       "Review of teaching load distribution, class sizes, subject allocations, and novice educator mentorship.",
-    defaultNotes:
-      "Teaching allocations and period distribution reviewed. Mentorship check-ins scheduled fortnightly for junior grade educators.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "5 mins",
-    lead: "HOD Mpofu",
+    lead: "HOD",
   },
   {
     pointNumber: 9,
     title: "Cross-Curricular STEM Integration & Academic Enrichment",
     guidelineDescription:
       "Coordination with Physical Sciences, Life Sciences, and Accounting departments on shared mathematical skills (vectors, data handling, financial graphs).",
-    defaultNotes:
-      "Liaised with Physical Sciences on timing of vectors and kinematics in Grade 11. Coordinated financial mathematics with Accounting department.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "5 mins",
-    lead: "Reggie",
+    lead: "Subject Lead",
   },
   {
     pointNumber: 10,
     title: "Department Milestones Approval, SMT Submission & Adjournment",
     guidelineDescription:
       "Formal approval of term curriculum map, commitment signatures, submission to Senior Management Team (SMT), and next review date.",
-    defaultNotes:
-      "Term Curriculum Blueprint unanimously approved by department. HOD will submit final consolidated planning pack to SMT by Friday. Next meeting: Mid-term progress check.",
+    defaultNotes: "Record the discussion, decisions and actions for this agenda item.",
     timeAllocated: "5 mins",
-    lead: "HOD Mpofu",
+    lead: "HOD",
   },
 ];
 
@@ -396,12 +366,12 @@ export interface MeetingTemplateConfig {
 }
 
 export const FOLLOW_UP_MEETING_ITEMS: AgendaPointTemplateItem[] = [
-  { pointNumber: 1, title: "Welcome & Purpose", defaultNotes: "Confirm the purpose of the follow-up meeting and expected outcomes." },
-  { pointNumber: 2, title: "Review Previous Action Items", defaultNotes: "Review outstanding actions from the previous meeting and record progress." },
-  { pointNumber: 3, title: "Key Matters Requiring Follow-up", defaultNotes: "Discuss the specific matters that require attention since the previous meeting." },
-  { pointNumber: 4, title: "Decisions & Actions", defaultNotes: "Record decisions made, responsible persons and agreed deadlines." },
-  { pointNumber: 5, title: "Any Other Business", defaultNotes: "Record any additional matters raised for discussion." },
-  { pointNumber: 6, title: "Next Steps & Next Meeting", defaultNotes: "Confirm immediate next steps and the next meeting date if required." },
+  { pointNumber: 1, title: "Welcome & Purpose", guidelineDescription: "", defaultNotes: "Confirm the purpose of the follow-up meeting and expected outcomes.", timeAllocated: "", lead: "" },
+  { pointNumber: 2, title: "Review Previous Action Items", guidelineDescription: "", defaultNotes: "Review outstanding actions from the previous meeting and record progress.", timeAllocated: "", lead: "" },
+  { pointNumber: 3, title: "Key Matters Requiring Follow-up", guidelineDescription: "", defaultNotes: "Discuss the specific matters that require attention since the previous meeting.", timeAllocated: "", lead: "" },
+  { pointNumber: 4, title: "Decisions & Actions", guidelineDescription: "", defaultNotes: "Record decisions made, responsible persons and agreed deadlines.", timeAllocated: "", lead: "" },
+  { pointNumber: 5, title: "Any Other Business", guidelineDescription: "", defaultNotes: "Record any additional matters raised for discussion.", timeAllocated: "", lead: "" },
+  { pointNumber: 6, title: "Next Steps & Next Meeting", guidelineDescription: "", defaultNotes: "Confirm immediate next steps and the next meeting date if required.", timeAllocated: "", lead: "" },
 ];
 
 export const MEETING_TEMPLATE_CONFIGS: MeetingTemplateConfig[] = [
@@ -411,7 +381,7 @@ export const MEETING_TEMPLATE_CONFIGS: MeetingTemplateConfig[] = [
     badge: "Simple",
     policyTag: "Department Follow-up",
     summary: "A short practical agenda for following up previous decisions and outstanding actions.",
-    iconName: "check-circle",
+    iconName: "clipboard",
     colorClasses: {
       activeBorder: "border-emerald-600 dark:border-emerald-500 ring-2 ring-emerald-500/20",
       activeBg: "bg-emerald-50/70 dark:bg-emerald-950/40",
@@ -567,17 +537,15 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
   const [templateFilter, setTemplateFilter] = useState<"All" | MeetingTemplateType>("All");
 
   // Generator inputs
-  const [meetingTitle, setMeetingTitle] = useState("Term 1 Cycle 2 Mathematics Department Meeting");
-  const [meetingDate, setMeetingDate] = useState("2026-03-12");
-  const [startTime, setStartTime] = useState("14:30");
-  const [endTime, setEndTime] = useState("15:45");
-  const [venue, setVenue] = useState("Secondary Mathematics Staffroom");
+  const [meetingTitle, setMeetingTitle] = useState("Department Meeting");
+  const [meetingDate, setMeetingDate] = useState(new Date().toISOString().split("T")[0]);
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [venue, setVenue] = useState("");
   const [meetingType, setMeetingType] = useState<
     "Regular Departmental" | "Pre-Moderation Calibration" | "Post-Exam Review" | "Urgent / Escalation"
   >("Regular Departmental");
-  const [customFocus, setCustomFocus] = useState(
-    "Curriculum pacing spot-check against ATP, assessment compliance (§7.1 pre-mod & §7.2 post-mod), diagnostic data review, and Appendix 10 academic support trackers."
-  );
+  const [customFocus, setCustomFocus] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Template switch handler
@@ -591,8 +559,20 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
     }
   };
 
-  // Roster is supplied by the Department Configuration; never seed meeting attendees/signatures.
-  const defaultDepartmentTeachers: MeetingRecord["teacherSignatures"] = [];
+  // The Department Configuration roster is the source of truth for meeting attendees/signatures.
+  const defaultDepartmentTeachers: NonNullable<MeetingRecord["teacherSignatures"]> = staffList
+    .filter((teacher) => teacher.isMathsDept && teacher.status !== "inactive")
+    .map((teacher) => ({
+      teacherId: teacher.id,
+      name: teacher.name,
+      role: teacher.role || "Educator",
+      allocation:
+        teacher.allocations.length > 0
+          ? teacher.allocations.map((a) => `${a.subject} — Grade ${a.grade} (${a.curriculum})`).join("; ")
+          : "Department allocation not specified",
+      signed: false,
+      signedDate: "",
+    }));
 
   // Operational meeting records are blank until the HOD creates or loads a record.
   const defaultMeetings: MeetingRecord[] = [];
@@ -646,183 +626,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
     teacherSignatures: [],
     agendaPoints: [],
     actionItems: [],
-    minutesSummary: "",
-    status: "Draft",
-  });
-  const [selectedMeeting, setSelectedMeeting] = useState<MeetingRecord>(meetings[0] || blankMeeting());
-
-  // Toggle teacher signature
-  const toggleTeacherSignature = (teacherId: string) => {
-    const currentSignatures = selectedMeeting.teacherSignatures || defaultDepartmentTeachers;
-    const updatedSignatures = currentSignatures.map((sig) => {
-      if (sig.teacherId === teacherId) {
-        const nextSigned = !sig.signed;
-        return {
-          ...sig,
-          signed: nextSigned,
-          signedDate: nextSigned ? new Date().toISOString().split("T")[0] : "",
-        };
-      }
-      return sig;
-    });
-
-    const updatedMeeting = {
-      ...selectedMeeting,
-      teacherSignatures: updatedSignatures,
-    };
-
-    setSelectedMeeting(updatedMeeting);
-    updateMeetingsAndPersist(meetings.map((m) => (m.id === updatedMeeting.id ? updatedMeeting : m)));
-  };
-
-  // Generate automated agenda using AI with template-specific 10-point guideline structure
-  const handleGenerateAgenda = async () => {
-    setIsGenerating(true);
-    const activeTemplateConfig =
-      MEETING_TEMPLATE_CONFIGS.find((t) => t.id === selectedTemplate) ||
-      MEETING_TEMPLATE_CONFIGS[0];
-
-    // A follow-up agenda is intentionally simple: it does not invoke AI or the
-    // 10-point governance framework. The HOD can edit the six practical items.
-    if (selectedTemplate === "Follow-up Meeting") {
-      const followUpRecord: MeetingRecord = {
-        id: `MTG-${Date.now()}`,
-        title: meetingTitle || "Mathematics Department Follow-up Meeting",
-        date: meetingDate,
-        startTime,
-        endTime,
-        venue,
-        chairperson: "Mr. N. Mpofu (HOD)",
-        meetingType,
-        templateType: selectedTemplate,
-        attendees: defaultDepartmentTeachers.map((t) => t.name),
-        apologies: [],
-        teacherSignatures: defaultDepartmentTeachers.map((t) => ({ ...t, signed: false, signedDate: "" })),
-        agendaPoints: FOLLOW_UP_MEETING_ITEMS.map((item) => ({
-          pointNumber: item.pointNumber,
-          title: item.title,
-          notes: customFocus && item.pointNumber === 3
-            ? `${item.defaultNotes} Focus: ${customFocus}`
-            : item.defaultNotes,
-        })),
-        actionItems: [],
-        minutesSummary: "Simple follow-up meeting agenda. Edit the agenda points and action items before circulation.",
-        status: "Draft",
-      };
-      updateMeetingsAndPersist([followUpRecord, ...meetings]);
-      setSelectedMeeting(followUpRecord);
-      setActiveTab("scheduled");
-      setIsGenerating(false);
-      return;
-    }
-
-    try {
-      const result = await safePost("/api/meetings/generate", {
-        templateType: selectedTemplate,
-        meetingTitle,
-        meetingDate,
-        startTime,
-        endTime,
-        meetingType,
-        specificFocus: customFocus,
-        previousActionItems: selectedMeeting.actionItems,
-      });
-
-      if (!result.success || !result.data?.meeting) {
-        throw new Error(result.error || "Failed to generate meeting agenda.");
-      }
-
-      const data = result.data;
-
-      // Ensure all 10 template-specific points are present
-      const generatedPoints = data.meeting?.agendaPoints || [];
-      const complete10Points = activeTemplateConfig.items.map((std) => {
-        const found = generatedPoints.find((gp: any) => gp.pointNumber === std.pointNumber);
-        return {
-          pointNumber: std.pointNumber,
-          title: std.title,
-          notes: found?.notes || std.defaultNotes,
-        };
-      });
-
-      const newRecord: MeetingRecord = {
-        id: `MTG-${Date.now()}`,
-        title: data.meeting?.title || meetingTitle,
-        date: data.meeting?.date || meetingDate,
-        startTime,
-        endTime,
-        venue,
-        chairperson: "Mr. N. Mpofu (HOD)",
-        meetingType,
-        templateType: selectedTemplate,
-        attendees: ["Mr. N. Mpofu (HOD)", "Shingi", "Reggie", "Luthando"],
-        apologies: [],
-        teacherSignatures: defaultDepartmentTeachers.map((t) => ({ ...t, signed: false, signedDate: "" })),
-        agendaPoints: complete10Points,
-        actionItems: data.meeting?.actionItems?.length
-          ? data.meeting.actionItems
-          : [
-              {
-                id: `ACT-${Date.now()}-1`,
-                description: `Complete ${activeTemplateConfig.title} action tasks and statutory submissions`,
-                responsible: "Subject Teachers",
-                deadline: meetingDate,
-                status: "Pending",
-              },
-              {
-                id: `ACT-${Date.now()}-2`,
-                description: "Submit meeting summary documentation to Senior Leadership (SMT)",
-                responsible: "Mr. N. Mpofu (HOD)",
-                deadline: meetingDate,
-                status: "Pending",
-              },
-            ],
-        minutesSummary:
-          data.meeting?.minutesSummary ||
-          `Official ${activeTemplateConfig.title} draft conforming to Eagle House ${activeTemplateConfig.policyTag} guidelines.`,
-        status: "Draft",
-      };
-
-      updateMeetingsAndPersist([newRecord, ...meetings]);
-      setSelectedMeeting(newRecord);
-      setActiveTab("scheduled");
-    } catch (err: any) {
-      // Fallback: construct standard template matching selected template
-      const fallbackRecord: MeetingRecord = {
-        id: `MTG-${Date.now()}`,
-        title: meetingTitle,
-        date: meetingDate,
-        startTime,
-        endTime,
-        venue,
-        chairperson: "Mr. N. Mpofu (HOD)",
-        meetingType,
-        templateType: selectedTemplate,
-        attendees: ["Mr. N. Mpofu (HOD)", "Shingi", "Reggie", "Luthando"],
-        apologies: [],
-        teacherSignatures: defaultDepartmentTeachers.map((t) => ({ ...t, signed: false, signedDate: "" })),
-        agendaPoints: activeTemplateConfig.items.map((item) => ({
-          pointNumber: item.pointNumber,
-          title: item.title,
-          notes: `${item.defaultNotes} Focus: ${customFocus}`,
-        })),
-        actionItems: [
-          {
-            id: `ACT-${Date.now()}-1`,
-            description: `Execute ${activeTemplateConfig.title} directives as recorded`,
-            responsible: "Subject Teachers",
-            deadline: meetingDate,
-            status: "Pending",
-          },
-          {
-            id: `ACT-${Date.now()}-2`,
-            description: "Submit governance sign-off pack to Academic Head",
-            responsible: "Mr. N. Mpofu (HOD)",
-            deadline: meetingDate,
-            status: "Pending",
-          },
-        ],
-        minutesSummary: `Standard 10-point ${activeTemplateConfig.title} draft prepared for ${meetingTitle}.`,
+        minutesSummary: `${activeTemplateConfig.title} draft prepared for ${meetingTitle}.`,
         status: "Draft",
       };
 
@@ -909,7 +713,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
               alignment: AlignmentType.CENTER,
               children: [
                 new TextRun({
-                  text: targetTemplateType === "Follow-up Meeting" ? "SIMPLE FOLLOW-UP AGENDA" : `STANDARDIZED 10-POINT SEQUENCE (${targetTemplateConfig.policyTag.toUpperCase()})`,
+                  text: targetTemplateType === "Follow-up Meeting" ? "SIMPLE FOLLOW-UP AGENDA" : `AGENDA FORMAT: ${targetTemplateConfig.policyTag.toUpperCase()}`,
                   bold: true,
                   size: 16,
                   color: "2B6CB0",
@@ -1029,7 +833,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
             new Paragraph({
               children: [
                 new TextRun({
-                  text: `STATUTORY POLICY NOTICE (${targetTemplateConfig.policyTag.toUpperCase()}):`,
+                  text: targetTemplateType === "Follow-up Meeting" ? "MEETING NOTE:" : `TEMPLATE GUIDANCE (${targetTemplateConfig.policyTag.toUpperCase()}):`,
                   bold: true,
                   size: 16,
                   color: "1A365D",
@@ -1048,11 +852,11 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
               spacing: { after: 200 },
             }),
 
-            // 10-Point Agenda Table
+            // Agenda Agenda Table
             new Paragraph({
               children: [
                 new TextRun({
-                  text: targetTemplateType === "Follow-up Meeting" ? "AGENDA" : `STANDARDIZED 10-POINT ORDER OF BUSINESS (${targetTemplateConfig.title.toUpperCase()}):`,
+                  text: "AGENDA:",
                   bold: true,
                   size: 18,
                   color: "1A365D",
@@ -1072,7 +876,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
                       shading: { fill: "E2E8F0" },
                     }),
                     new TableCell({
-                      children: [new Paragraph({ children: [new TextRun({ text: "AGENDA TOPIC (STANDARDIZED)", bold: true, size: 15 })] })],
+                      children: [new Paragraph({ children: [new TextRun({ text: "AGENDA TOPIC", bold: true, size: 15 })] })],
                       width: { size: 3000, type: WidthType.DXA },
                       shading: { fill: "E2E8F0" },
                     }),
@@ -1082,7 +886,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
                       shading: { fill: "E2E8F0" },
                     }),
                     new TableCell({
-                      children: [new Paragraph({ children: [new TextRun({ text: "DISCUSSION FOCUS & STATUTORY OBJECTIVES", bold: true, size: 15 })] })],
+                      children: [new Paragraph({ children: [new TextRun({ text: "DISCUSSION FOCUS", bold: true, size: 15 })] })],
                       width: { size: 4000, type: WidthType.DXA },
                       shading: { fill: "E2E8F0" },
                     }),
@@ -1253,7 +1057,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
             new Paragraph({
               children: [
                 new TextRun({
-                  text: targetTemplateType === "Follow-up Meeting" ? "Follow-up agenda prepared for practical departmental use." : "I hereby confirm that this department meeting agenda has been constructed and circulated in strict adherence to the Eagle House School HOD Governance Handbook §1 standard 10-point framework.",
+                  text: targetTemplateType === "Follow-up Meeting" ? "Follow-up agenda prepared for practical departmental use." : "I hereby confirm that this department meeting agenda has been constructed and circulated in strict adherence to the Eagle House School HOD Governance Handbook §1 standard meeting record.",
                   size: 14,
                 }),
               ],
@@ -1312,7 +1116,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
               spacing: { after: 200 },
               children: [
                 new TextRun({
-                  text: `OFFICIAL MEETING MINUTES & ACCOUNTABILITY TRACKER\n${record.title.toUpperCase()}`,
+                  text: `MEETING MINUTES & ACTION TRACKER\n${record.title.toUpperCase()}`,
                   bold: true,
                   size: 22,
                   color: "2B6CB0",
@@ -1338,11 +1142,11 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
               spacing: { after: 200 },
             }),
 
-            // 10-Point Minutes Details
+            // Agenda Minutes Details
             new Paragraph({
               children: [
                 new TextRun({
-                  text: "RECORDED MINUTES (STANDARDIZED 10-POINT SEQUENCE):",
+                  text: "RECORDED MINUTES:",
                   bold: true,
                   size: 18,
                   color: "1A365D",
@@ -1597,14 +1401,14 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
           <div className="flex items-center gap-2">
             <ClipboardList className="w-5 h-5 text-blue-700 dark:text-blue-400" />
             <h1 className="text-xl font-bold text-slate-900 dark:text-white">
-              Department Meetings & Standard 10-Point Agendas
+              Department Meetings & Agendas
             </h1>
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-700">
               HOD Handbook §1 Compliant
             </span>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Standardized 10-point sequence for Eagle House School department governance with teacher signatures, OCR/Audio intake, and Word (.docx) export.
+            Create, review and export practical department meeting agendas and minutes. Use a formal template when governance detail is required; use Follow-up Meeting for a short practical agenda.
           </p>
         </div>
 
@@ -1672,7 +1476,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
 
             {/* Template Filter Pills */}
             <div className="flex flex-wrap gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-[11px]">
-              {(["All", "Standard Staff Meeting", "Moderation Meeting", "Curriculum Planning"] as const).map((filter) => {
+              {(["All", "Follow-up Meeting", "Standard Staff Meeting", "Moderation Meeting", "Curriculum Planning"] as const).map((filter) => {
                 const isSelected = templateFilter === filter;
                 return (
                   <button
@@ -1744,7 +1548,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
                         <Building className="w-3 h-3 text-slate-400" />
                         {m.venue || "Staffroom"}
                       </span>
-                      <span className="font-semibold text-blue-700 dark:text-blue-400">10-Point Sequence ✓</span>
+                      <span className="font-semibold text-blue-700 dark:text-blue-400">Agenda format ✓<//span>
                     </div>
                   </div>
                 );
@@ -1795,7 +1599,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
                 <button
                   onClick={() => exportAgendaDraftDocx(selectedMeeting)}
                   className="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all shadow-xs"
-                  title="Download clean official 10-point Agenda Draft with teacher signature spaces as a Microsoft Word document (.docx)"
+                  title="Download the meeting agenda as a Microsoft Word document (.docx)"
                 >
                   <Download className="w-4 h-4" />
                   <span>Download Agenda (.docx)</span>
@@ -1812,7 +1616,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
               </div>
             </div>
 
-            {/* Sub Tabs: 10-Point Agenda View vs Department Signatures */}
+            {/* Sub Tabs: Agenda Agenda View vs Department Signatures */}
             <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
               <button
                 onClick={() => setViewSubTab("agenda")}
@@ -1823,7 +1627,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
                 }`}
               >
                 <ListOrdered className="w-3.5 h-3.5" />
-                <span>10-Point Agenda & Minutes Draft</span>
+                <span>Agenda Agenda & Minutes Draft</span>
               </button>
 
               <button
@@ -1841,7 +1645,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
               </button>
             </div>
 
-            {/* TAB CONTENT: 10-Point Agenda Layout */}
+            {/* TAB CONTENT: Agenda Agenda Layout */}
             {viewSubTab === "agenda" && (() => {
               const activeTmpl =
                 MEETING_TEMPLATE_CONFIGS.find((t) => t.id === selectedMeeting.templateType) ||
@@ -1851,7 +1655,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
                   <div className="flex items-center justify-between">
                     <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
                       <ListOrdered className="w-4 h-4 text-blue-600" />
-                      {activeTmpl.title} — 10-Point Sequence
+                      {activeTmpl.title} — Agenda
                     </h3>
                     <span className="text-[11px] text-slate-500 font-medium">
                       {activeTmpl.policyTag} Guidelines
@@ -1914,7 +1718,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
                     Official Department Attendance & Sign-off Register
                   </div>
                   <p className="text-xs text-blue-800 mt-1">
-                    Every educator in the department signs this document to certify attendance, acknowledge discussion on Policy §7.1 / §7.2 moderation standards, and agree to the assigned deadlines.
+                    Educators can sign to confirm attendance and acknowledge the meeting record and agreed actions.
                   </p>
                 </div>
 
@@ -1977,7 +1781,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
                     Head of Department (HOD) Declaration & Certification:
                   </span>
                   <p className="text-slate-600 italic">
-                    "I hereby certify that this department meeting was convened in full accordance with the Eagle House School HOD Handbook §1 standardized 10-point sequence, and all assessment moderation guidelines (§7.1 and §7.2) were explicitly reviewed and recorded."
+                    "I hereby certify that this department meeting was convened in full accordance with the Eagle House School HOD Handbook §1 standardized meeting record, and all assessment moderation guidelines (§7.1 and §7.2) were explicitly reviewed and recorded."
                   </p>
                   <div className="flex items-center justify-between pt-2 border-t border-slate-200 text-[11px]">
                     <span className="font-semibold text-slate-800">
@@ -2084,11 +1888,11 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
               <div className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-amber-500" />
                 <h2 className="text-base font-bold text-slate-900 dark:text-white">
-                  Automated 10-Point Agenda & Minutes Generator
+                  Meeting Agenda & Minutes Generator
                 </h2>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Choose a meeting template format compliant with Eagle House School governance standards. The AI engine synthesizes a structured 10-point sequence, pre-populates department members, and generates a downloadable Word document (.docx).
+                Choose a meeting template format compliant with Eagle House School governance standards. The AI engine synthesizes a structured meeting record, pre-populates department members, and generates a downloadable Word document (.docx).
               </p>
             </div>
 
@@ -2108,7 +1912,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                     {MEETING_TEMPLATE_CONFIGS.map((tmpl) => {
                       const isSelected = selectedTemplate === tmpl.id;
                       return (
@@ -2143,7 +1947,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
                             </p>
                           </div>
                           <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
-                            <span>10 Points</span>
+                            <span>{tmpl.items.length} Items</span>
                             <span className="font-mono text-blue-600 dark:text-blue-400 font-semibold">{tmpl.badge}</span>
                           </div>
                         </button>
@@ -2243,14 +2047,14 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
 
               <div className="md:col-span-2">
                 <label className="block font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Department Context, Discussion Focus & Statutory Items
+                  Discussion Focus
                 </label>
                 <textarea
                   rows={3}
                   value={customFocus}
                   onChange={(e) => setCustomFocus(e.target.value)}
                   className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-700 text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-                  placeholder="Specify upcoming assessment tasks, moderation notes, ATP topics to review, or learner intervention groups..."
+                  placeholder="What needs to be discussed or decided at this meeting?"
                 />
               </div>
             </div>
@@ -2263,18 +2067,18 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
               {isGenerating ? (
                 <>
                   <RotateCcw className="w-4 h-4 animate-spin" />
-                  <span>Synthesizing {selectedTemplate} 10-Point Sequence & Guidelines...</span>
+                  <span>Synthesizing {selectedTemplate} Agenda & Guidelines...</span>
                 </>
               ) : (
                 <>
                   <Sparkles className="w-4 h-4 text-amber-300" />
-                  <span>Generate Official {selectedTemplate} Agenda & Minutes Draft</span>
+                  <span>Generate {selectedTemplate} Agenda & Minutes Draft</span>
                 </>
               )}
             </button>
           </div>
 
-          {/* Live Preview of Standard 10-Point Agenda Layout with Signature Section */}
+          {/* Live Preview of Agenda Layout with Signature Section */}
           {(() => {
             const previewTmpl =
               MEETING_TEMPLATE_CONFIGS.find((t) => t.id === selectedTemplate) ||
@@ -2305,16 +2109,16 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
                         chairperson: "Mr. N. Mpofu (HOD)",
                         meetingType,
                         templateType: selectedTemplate,
-                        attendees: ["Mr. N. Mpofu (HOD)", "Shingi", "Reggie", "Luthando"],
+                        attendees: defaultDepartmentTeachers.map((t) => t.name),
                         apologies: [],
                         teacherSignatures: defaultDepartmentTeachers,
                         agendaPoints: previewTmpl.items.map((item) => ({
                           pointNumber: item.pointNumber,
                           title: item.title,
-                          notes: `${item.defaultNotes} Focus: ${customFocus}`,
+                          notes: customFocus && item.pointNumber === 3 ? `${item.defaultNotes} Focus: ${customFocus}` : item.defaultNotes,
                         })),
                         actionItems: [],
-                        minutesSummary: `Official preview draft conforming to ${previewTmpl.title} guidelines.`,
+                        minutesSummary: `${previewTmpl.title} preview draft prepared for departmental use.`,
                         status: "Draft",
                       })
                     }
@@ -2325,11 +2129,11 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
                   </button>
                 </div>
 
-                {/* 10 Points in Preview */}
+                {/* Agenda items in Preview */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-                      {previewTmpl.title} Sequence (10 Points)
+                      {previewTmpl.title} Agenda ({previewTmpl.items.length} items)
                     </h4>
                     <span className="text-[11px] text-slate-500 font-mono">{previewTmpl.badge}</span>
                   </div>

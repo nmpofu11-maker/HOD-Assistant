@@ -39,10 +39,7 @@ import {
   FileType,
 } from "lucide-react";
 import { MeetingRecord, MeetingTemplateType } from "../types";
-import {
-  HOD_STANDARD_10_AGENDA_ITEMS,
-  MEETING_TEMPLATE_CONFIGS,
-} from "./MeetingsView";
+import { MEETING_TEMPLATE_CONFIGS } from "./MeetingsView";
 import { safePost } from "../utils/apiClient";
 
 interface MeetingUploadIntakeProps {
@@ -181,7 +178,7 @@ export const MeetingUploadIntake: React.FC<MeetingUploadIntakeProps> = ({
     const stepTimer2 = setTimeout(() => {
       setProgressStep(3);
       setProgressMessage(
-        "3/3 Structuring into Eagle House 10-point sequence & populating editable text fields..."
+        "3/3 Structuring the selected meeting format and populating editable text fields..."
       );
     }, 2600);
 
@@ -231,15 +228,13 @@ export const MeetingUploadIntake: React.FC<MeetingUploadIntakeProps> = ({
           titleVal ||
           `${activeTmplConfig.title} ${targetDoc === "agenda" ? "Agenda Draft" : "Minutes"} (${dateVal})`,
         date: rec.date || dateVal,
-        startTime: rec.startTime || "14:30",
-        endTime: rec.endTime || "15:45",
-        venue: rec.venue || "Secondary Mathematics Staffroom",
+        startTime: rec.startTime || "",
+        endTime: rec.endTime || "",
+        venue: rec.venue || "",
         chairperson: rec.chairperson || "Mr. N. Mpofu (HOD)",
         meetingType: rec.meetingType || "Regular Departmental",
         templateType: selectedTemplate,
-        attendees: rec.attendees?.length
-          ? rec.attendees
-          : ["Mr. N. Mpofu (HOD)", "Shingi", "Reggie", "Luthando"],
+        attendees: rec.attendees?.length ? rec.attendees : defaultTeachers.map((teacher) => teacher.name),
         apologies: rec.apologies || [],
         teacherSignatures: rec.teacherSignatures?.length
           ? rec.teacherSignatures
@@ -251,23 +246,13 @@ export const MeetingUploadIntake: React.FC<MeetingUploadIntakeProps> = ({
               title: h.title,
               notes: h.defaultNotes,
             })),
-        actionItems: rec.actionItems?.length
-          ? rec.actionItems
-          : [
-              {
-                id: `ACT-${Date.now().toString().slice(-3)}`,
-                description: "Submit Term 1 moderation calibration sample (§7.1)",
-                responsible: "Mr. N. Mpofu (HOD)",
-                deadline: dateVal,
-                status: "Pending",
-              },
-            ],
+        actionItems: Array.isArray(rec.actionItems) ? rec.actionItems : [],
         minutesSummary:
           rec.minutesSummary ||
-          `Parsed and structured into Eagle House School ${selectedTemplate} standard format.`,
+          `${activeTmplConfig.title} record prepared from the uploaded source.`,
         transcriptionSummary:
           rec.transcriptionSummary ||
-          `Extracted from source material and classified under ${activeTmplConfig.policyTag} standards.`,
+          `Source material processed for the ${activeTmplConfig.title} template`,
         rawTranscribedText: extractedOcrText,
         sourceType: format,
         status: targetDoc === "agenda" ? "Draft" : "Completed",
@@ -475,188 +460,6 @@ export const MeetingUploadIntake: React.FC<MeetingUploadIntakeProps> = ({
     return `${mins}:${s < 10 ? "0" : ""}${s}`;
   };
 
-  // Quick Preset Simulators across ALL file types
-  const loadPreset = (format: "handwritten_ocr" | "recorded_audio" | "typed_file" | "typed_text") => {
-    setUploadFormat(format);
-    setErrorMessage(null);
-    setParsedRecord(null);
-
-    if (format === "handwritten_ocr") {
-      const canvas = document.createElement("canvas");
-      canvas.width = 960;
-      canvas.height = 1200;
-      const ctx = canvas.getContext("2d");
-      if (ctx) {
-        ctx.fillStyle = "#fffdf5";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Ruled notebook lines
-        ctx.strokeStyle = "#e2e8f0";
-        ctx.lineWidth = 1;
-        for (let y = 80; y < canvas.height; y += 32) {
-          ctx.beginPath();
-          ctx.moveTo(40, y);
-          ctx.lineTo(920, y);
-          ctx.stroke();
-        }
-
-        // Red left margin
-        ctx.strokeStyle = "#fca5a5";
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(110, 0);
-        ctx.lineTo(110, canvas.height);
-        ctx.stroke();
-
-        // Handwritten text simulation
-        ctx.fillStyle = "#1e293b";
-        ctx.font = "italic bold 21px 'Courier New', monospace";
-        ctx.fillText("Eagle House Maths Dept - Meeting Minutes (24/03/2026)", 130, 70);
-
-        ctx.font = "italic 16px 'Courier New', monospace";
-        ctx.fillText("Chair: Mr. N. Mpofu (HOD)  |  Present: Shingi, Reggie, Luthando", 130, 102);
-        ctx.fillText("1. Prev min signed. Action items from cycle 1 cleared.", 130, 134);
-        ctx.fillText("2. ATP pacing: Gr 10 algebra 2 days behind due to athletics.", 130, 166);
-        ctx.fillText("   Catch-up clinic scheduled for Friday 14:30 in Room M2.", 130, 198);
-        ctx.fillText("3. §7.1 pre-mod test drafts due 5 days before assessment date.", 130, 230);
-        ctx.fillText("   Reggie submitting Gr 9 term test draft on 18th March.", 130, 262);
-        ctx.fillText("4. Diagnostic analysis: Gr 8 baseline averages 58.4%.", 130, 294);
-        ctx.fillText("5. Learners <30%: 4 learners flagged (Appendix 10 required).", 130, 326);
-        ctx.fillText("   Luthando to issue parental notification letters by Mon.", 130, 358);
-        ctx.fillText("6. Casio calculators: 15 loan units inspected & working.", 130, 390);
-        ctx.fillText("7. SMT Escalation: Projector bulb in M3 replaced; needs HDMI cable.", 130, 422);
-        ctx.fillText("Next meeting: 15 April 2026 at 14:30 in Staffroom.", 130, 454);
-
-        ctx.font = "italic bold 15px 'Courier New', monospace";
-        ctx.fillText("Signed: [N. Mpofu - HOD]  [Shingi]  [Reggie]  [Luthando]", 130, 520);
-      }
-
-      const dataUrl = canvas.toDataURL("image/png");
-      const sampleFile = {
-        dataUrl,
-        name: "Handwritten_Meeting_Minutes_Scan_March2026.png",
-        mimeType: "image/png",
-        size: 28400,
-        detectedTypeLabel: "Handwritten Journal Scan (Vision OCR)",
-      };
-      setUploadFile(sampleFile);
-      setMeetingTitle("Handwritten Notes Scan - Mathematics Term Review");
-      setAdditionalContext("Scanned handwritten journal notes from secondary maths staffroom meeting.");
-
-      runOcrProcessing(
-        targetType,
-        "handwritten_ocr",
-        sampleFile,
-        "",
-        meetingDate,
-        "Handwritten Notes Scan - Mathematics Term Review",
-        "Scanned handwritten journal notes from secondary maths staffroom meeting."
-      );
-    } else if (format === "recorded_audio") {
-      const sampleAudio = {
-        dataUrl:
-          "data:audio/webm;base64,GkXfo59ChoEBQveBAULygQRC84EIQoKEd2VibUKHgQRChYECGFOAZwEAAAAAAAHTEU2bmcleGQEAABXalFXlGZgEAAAAAAAAAA=",
-        name: "Meeting_Audio_Recording_DeptDiscussion.m4a",
-        mimeType: "audio/m4a",
-        size: 51200,
-        detectedTypeLabel: "Audio Voice Note (Speech-to-Text OCR)",
-      };
-      setUploadFile(sampleAudio);
-      const transcript =
-        "[Voice Recording Transcript for AI Engine]\nHOD Mpofu: 'Welcome colleagues. Let us review matters arising from our previous minutes, specifically the ATP pacing in Grade 10 and 11. Shingi, how is the syllabus pacing?'\nShingi: 'We are on track with Functions. Term 1 test pre-moderation draft is ready for HOD review 5 days in advance as per policy §7.1.'\nReggie: 'Grade 9 financial math had difficulties with simple vs compound interest; 3 learners scored below 30%. I am putting them on Appendix 10 remedial roadmaps.'\nLuthando: 'Cambridge lower secondary stats coverage is solid. Calculators were audited.'\nHOD Mpofu: 'Action items agreed: Shingi to submit drafts by Wednesday; Reggie to issue intervention trackers. Meeting adjourned at 15:40.'";
-      setTypedTextInput(transcript);
-      setMeetingTitle("Audio Voice Recording - Department Pacing & Moderation");
-
-      runOcrProcessing(
-        targetType,
-        "recorded_audio",
-        sampleAudio,
-        transcript,
-        meetingDate,
-        "Audio Voice Recording - Department Pacing & Moderation",
-        "Audio meeting recording."
-      );
-    } else if (format === "typed_file") {
-      const docSample = {
-        dataUrl:
-          "data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,UEsDBBQABgAIAAAAIQA=",
-        name: "EagleHouse_Maths_Minutes_Official_Term1.docx",
-        mimeType:
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        size: 38200,
-        detectedTypeLabel: "Word Document (.docx OCR Intake)",
-      };
-      setUploadFile(docSample);
-      const docText = `EAGLE HOUSE SCHOOL - MATHEMATICS DEPARTMENT
-OFFICIAL MEETING PROCEEDINGS & MINUTES
-Date: 2026-03-24 | Time: 14:30 - 15:45 | Venue: Staffroom M1
-Chairperson: Mr. N. Mpofu (HOD)
-Attendees: Mr. N. Mpofu, Shingi, Reggie, Luthando
-
-1. Welcome & Apologies: Full attendance. Apologies: None.
-2. Matters Arising: Follow-up on textbook allocations confirmed 100% distribution across all grades.
-3. Curriculum Progress: Grade 10 Trigonometry ahead of schedule. Grade 11 Analytical Geometry aligned with CAPS ATP week 8.
-4. Assessment & Moderation: Pre-moderation submissions verified under Policy §7.1. Post-moderation sampling will follow §7.2 10% purple pen protocol.
-5. Learner Diagnostics: Grade 10 test median was 61.2%. High cognitive error on 3D trigonometry problem-solving questions.
-6. Interventions: 5 learners requiring Appendix 10 support roadmaps identified in Grade 11.
-7. Educator Development: Lesson observation peer-visit scheduled for next Tuesday.
-8. Resources: 12 additional Casio scientific calculators received from school store.
-9. SMT Escalation: Classroom projector bulb replacement completed.
-10. AOB: Department cycle meeting confirmed for next term.
-
-Agreed Action Items:
-- Reggie: Submit Grade 9 Term 1 control test memorandum by 28 March
-- Shingi: Run Grade 11 algebra clinic on Thursday afternoons
-- Luthando: Finalize Appendix 10 learner intervention contracts by 30 March`;
-      setTypedTextInput(docText);
-      setMeetingTitle("Word Document Minutes - Term 1 Progress");
-
-      runOcrProcessing(
-        targetType,
-        "typed_file",
-        docSample,
-        docText,
-        meetingDate,
-        "Word Document Minutes - Term 1 Progress",
-        "Official department meeting Word document."
-      );
-    } else if (format === "typed_text") {
-      const typed = `EAGLE HOUSE SCHOOL - MATHEMATICS DEPARTMENT
-OFFICIAL MEETING PROCEEDINGS & MINUTES
-Date: 2026-03-24 | Time: 14:30 - 15:45 | Venue: Staffroom M1
-Chairperson: Mr. N. Mpofu (HOD)
-Attendees: Mr. N. Mpofu, Shingi, Reggie, Luthando
-
-1. Welcome & Apologies: Full attendance. Apologies: None.
-2. Matters Arising: Follow-up on textbook allocations confirmed 100% distribution across all grades.
-3. Curriculum Progress: Grade 10 Trigonometry ahead of schedule. Grade 11 Analytical Geometry aligned with CAPS ATP week 8.
-4. Assessment & Moderation: Pre-moderation submissions verified under Policy §7.1. Post-moderation sampling will follow §7.2 10% purple pen protocol.
-5. Learner Diagnostics: Grade 10 test median was 61.2%. High cognitive error on 3D trigonometry problem-solving questions.
-6. Interventions: 5 learners requiring Appendix 10 support roadmaps identified in Grade 11.
-7. Educator Development: Lesson observation peer-visit scheduled for next Tuesday.
-8. Resources: 12 additional Casio scientific calculators received from school store.
-9. SMT Escalation: Classroom projector bulb replacement completed.
-10. AOB: Department cycle meeting confirmed for next term.
-
-Agreed Action Items:
-- Reggie: Submit Grade 9 Term 1 control test memorandum by 28 March
-- Shingi: Run Grade 11 algebra clinic on Thursday afternoons
-- Luthando: Finalize Appendix 10 learner intervention contracts by 30 March`;
-      setTypedTextInput(typed);
-      setMeetingTitle("Typed Department Meeting Record - Term 1 Progress");
-
-      runOcrProcessing(
-        targetType,
-        "typed_text",
-        null,
-        typed,
-        meetingDate,
-        "Typed Department Meeting Record - Term 1 Progress",
-        "Typed executive notes."
-      );
-    }
-  };
-
   // EDITABLE FIELD MUTATION HANDLERS
   const updateMeetingField = (field: keyof MeetingRecord, value: any) => {
     if (!parsedRecord) return;
@@ -692,9 +495,9 @@ Agreed Action Items:
     if (!parsedRecord) return;
     const newItem = {
       id: `ACT-${Date.now().toString().slice(-4)}`,
-      description: "New agreed action item",
-      responsible: "Mr. N. Mpofu (HOD)",
-      deadline: parsedRecord.date || meetingDate,
+      description: "",
+      responsible: "",
+      deadline: parsedRecord.date || "",
       status: "Pending" as const,
     };
     setParsedRecord({
@@ -722,7 +525,7 @@ Agreed Action Items:
     });
   };
 
-  // Sync edits from raw OCR text editor into the 10-point fields
+  // Sync edits from raw OCR text editor into the agenda fields
   const syncRawOcrTextToFields = () => {
     if (!rawOcrText.trim() || !parsedRecord) return;
     setOcrSyncNotice(true);
@@ -787,7 +590,7 @@ Agreed Action Items:
       `VENUE: ${parsedRecord.venue} | CHAIR: ${parsedRecord.chairperson}`,
       `ATTENDEES: ${parsedRecord.attendees.join(", ")}`,
       "",
-      "--- 10-POINT SEQUENCE ---",
+      "--- AGENDA ITEMS ---",
       ...parsedRecord.agendaPoints.map(
         (p) => `${p.pointNumber}. ${p.title}\n${p.notes}\n`
       ),
@@ -822,46 +625,6 @@ Agreed Action Items:
               The AI OCR engine automatically transcribes the content into verbatim text and populates interactive, editable fields.
             </p>
           </div>
-
-          {/* Quick Demo Presets */}
-          <div className="flex flex-wrap items-center gap-1.5 text-xs">
-            <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
-              Demo Presets:
-            </span>
-            <button
-              type="button"
-              onClick={() => loadPreset("handwritten_ocr")}
-              className="px-2.5 py-1 rounded bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900 text-amber-900 dark:text-amber-200 text-[11px] cursor-pointer font-semibold transition-colors flex items-center gap-1"
-              title="Loads handwritten scan and automatically runs Vision OCR into editable fields"
-            >
-              <span>✍️ Handwritten Scan</span>
-              <span className="text-[9px] bg-amber-200 dark:bg-amber-800 px-1 rounded font-bold">Auto OCR</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => loadPreset("recorded_audio")}
-              className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[11px] cursor-pointer font-medium transition-colors"
-              title="Loads audio voice note and automatically runs speech-to-text OCR"
-            >
-              🎙️ Audio Recording
-            </button>
-            <button
-              type="button"
-              onClick={() => loadPreset("typed_file")}
-              className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[11px] cursor-pointer font-medium transition-colors"
-              title="Loads Word DOCX and extracts clean text into editable fields"
-            >
-              📄 Word (.docx)
-            </button>
-            <button
-              type="button"
-              onClick={() => loadPreset("typed_text")}
-              className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[11px] cursor-pointer font-medium transition-colors"
-            >
-              ⌨️ Typed Notes
-            </button>
-          </div>
-        </div>
 
         {/* STEP 1: Destination Template Selector */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
@@ -966,7 +729,7 @@ Agreed Action Items:
                     </p>
                   </div>
                   <div className="mt-2 pt-1.5 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
-                    <span>10 Points Sequence</span>
+                    <span>agendas Sequence</span>
                     <span className="font-semibold text-blue-600 dark:text-blue-400 font-mono">{tmpl.badge}</span>
                   </div>
                 </button>
@@ -1264,7 +1027,7 @@ Agreed Action Items:
                       ? "bg-blue-600 text-white shadow-xs font-semibold"
                       : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                   }`}
-                  title="Side-by-side: Source File Preview + Editable 10-Point Fields"
+                  title="Side-by-side: Source File Preview + Editable agenda Fields"
                 >
                   Preview + Fields
                 </button>
@@ -1300,9 +1063,9 @@ Agreed Action Items:
                       ? "bg-blue-600 text-white shadow-xs font-semibold"
                       : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                   }`}
-                  title="Full width 10-point meeting sequence fields"
+                  title="Full width agenda meeting sequence fields"
                 >
-                  10-Point Fields
+                  agenda Fields
                 </button>
               </div>
 
@@ -1468,7 +1231,7 @@ Agreed Action Items:
               </div>
             )}
 
-            {/* RIGHT COLUMN: Dedicated Raw OCR Text Editor OR Structured 10-Point Sequence */}
+            {/* RIGHT COLUMN: Dedicated Raw OCR Text Editor OR Structured agenda Sequence */}
             <div
               className={`${
                 viewMode === "preview_only"
@@ -1517,10 +1280,10 @@ Agreed Action Items:
                         type="button"
                         onClick={syncRawOcrTextToFields}
                         className="px-3 py-1 text-xs rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold flex items-center gap-1 cursor-pointer shadow-xs"
-                        title="Sync edits from this raw text into the 10-point sequence fields"
+                        title="Sync edits from this raw text into the agenda sequence fields"
                       >
                         <Zap className="w-3 h-3 text-amber-300" />
-                        <span>Sync to 10-Point Fields</span>
+                        <span>Sync to agenda Fields</span>
                       </button>
                     </div>
                   </div>
@@ -1528,7 +1291,7 @@ Agreed Action Items:
                   {ocrSyncNotice && (
                     <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-lg text-xs text-blue-700 dark:text-blue-300 flex items-center gap-2">
                       <Check className="w-4 h-4 text-blue-600" />
-                      <span>Changes from raw OCR text synchronized to 10-point sequence fields!</span>
+                      <span>Changes from raw OCR text synchronized to agenda sequence fields!</span>
                     </div>
                   )}
 
@@ -1557,7 +1320,7 @@ Agreed Action Items:
                   />
                 </div>
               ) : (
-                /* Otherwise show the Structured 10-Point Sequence Form Fields */
+                /* Otherwise show the Structured agenda Sequence Form Fields */
                 <>
                   {/* Meeting Header Editable Fields */}
                   <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
@@ -1660,7 +1423,7 @@ Agreed Action Items:
                     </div>
                   </div>
 
-                  {/* Standardized 10-Point Sequence Form Fields */}
+                  {/* Standardized agenda Sequence Form Fields */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">

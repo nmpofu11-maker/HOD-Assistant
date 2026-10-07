@@ -469,7 +469,7 @@ You must return valid JSON ONLY with this exact structure:
 - Duration: ${duration || "60 mins"}
 - Total Marks: ${totalMarks || "50"}
 - Teacher/Examiner: ${teacherName || "Assigned Teacher"}
-- Moderator: ${moderatorName || "HOD Mpofu"}
+- Moderator: ${moderatorName || "HOD"}
 - Custom HOD Notes: ${customNotes || "None"}
 
 Task Content / Question Paper Content:
@@ -820,7 +820,7 @@ Return valid JSON ONLY with this structure:
 - Subject: ${subject} (${curriculum})
 - Grade: ${grade}
 - Teacher: ${teacherName}
-- Moderator: ${moderatorName || "HOD Mpofu"}
+- Moderator: ${moderatorName || "HOD"}
 - Total Cohort Size: ${totalLearners}
 - Scripts Sampled: ${sampleSize}
 - Sample Audit Records: ${JSON.stringify(sampleScriptsData, null, 2)}
@@ -932,9 +932,11 @@ app.post("/api/meetings/generate", async (req, res) => {
     const ai = getGeminiClient();
 
     let templateSpecificStructure = "";
-    if (templateType === "Moderation Meeting") {
+    if (templateType === "Follow-up Meeting") {
+      templateSpecificStructure = `Simple Follow-up Meeting Agenda:\n1. Welcome & Purpose\n2. Review Previous Action Items\n3. Key Matters Requiring Follow-up\n4. Decisions & Actions\n5. Any Other Business\n6. Next Steps & Next Meeting`;
+    } else if (templateType === "Moderation Meeting") {
       templateSpecificStructure = `Eagle House Moderation Meeting 10-Point Sequence (Policy §7.1 & §7.2 Quality Assurance):
-1. Quorum Verification & Internal Moderation Objectives (HOD Mpofu)
+1. Quorum Verification & Internal Moderation Objectives (HOD)
 2. Matters Arising & Action Audit from Prior Moderation Cycle (Senior Moderators)
 3. Assessment Blueprint & Cognitive Weighting Grid (Bloom's Taxonomy Levels 1–4 Balance)
 4. Policy §7.1 Compliance: 5-Day Pre-Moderation Lead-Time & Technical Formatting Review
@@ -946,7 +948,7 @@ app.post("/api/meetings/generate", async (req, res) => {
 10. Moderation Remedial Orders & Senior Leadership (SMT) Escalation`;
     } else if (templateType === "Curriculum Planning") {
       templateSpecificStructure = `Eagle House Curriculum Planning 10-Point Sequence (CAPS ATP & SAGS Milestones):
-1. Department Academic Vision & Term Strategic Targets (HOD Mpofu)
+1. Department Academic Vision & Term Strategic Targets (HOD)
 2. CAPS/IEB Annual Teaching Plan (ATP) Milestone Mapping & Pacing Calendar
 3. Prerequisite Diagnostic Gaps & Baseline Remediation Strategy
 4. Common Assessment Task (CAT) & SBA Schedule Synchronization
@@ -977,7 +979,7 @@ You follow the Eagle House School HOD Handbook guidelines for professional depar
 Selected Template Format: ${templateType}
 ${templateSpecificStructure}
 
-Generate both a professional standardized Agenda and structured Minutes summary with specific Action Items.
+Generate a professional draft agenda and concise minutes summary. Do not invent completed actions, attendance, results, deadlines, learner figures, or other factual events. If information is unavailable, use a neutral prompt such as "To be discussed" or leave the actionItems array empty.
 Return valid JSON ONLY with this exact format:
 {
   "title": string,
@@ -1011,7 +1013,7 @@ Return valid JSON ONLY with this exact format:
 - Specific Focus: ${specificFocus || "Standard term review and moderation alignment"}
 - Previous Action Items: ${JSON.stringify(previousActionItems || [])}
 
-Ensure all 10 agenda points corresponding to the "${templateType}" format are fully populated with realistic, professional discussion notes, decisions, and clear action items for Eagle House School Mathematics educators.`;
+Use only the agenda structure required by the selected template. Populate notes as neutral discussion prompts unless the user supplied factual content. Never fabricate outcomes, statistics, names, deadlines or completed actions. Carry forward previousActionItems only when they are explicitly supplied.`;
 
     const meeting = await parseAndValidate(ai, {
       model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
@@ -1038,7 +1040,7 @@ app.post("/api/meetings/parse-upload", async (req, res) => {
   try {
     const {
       targetType, // "minutes" | "agenda"
-      templateType = "Standard Staff Meeting", // "Standard Staff Meeting" | "Moderation Meeting" | "Curriculum Planning"
+      templateType = "Standard Staff Meeting", // "Standard Staff Meeting" | "Follow-up Meeting" | "Moderation Meeting" | "Curriculum Planning"
       inputFormat, // "typed_text" | "typed_file" | "recorded_audio" | "handwritten_ocr"
       fileData, // base64 string or plain text
       mimeType, // e.g. "image/png", "audio/mp3", "application/pdf", "text/plain", etc.
@@ -1084,9 +1086,11 @@ app.post("/api/meetings/parse-upload", async (req, res) => {
     }
 
     let templateSpecificStructure = "";
-    if (templateType === "Moderation Meeting") {
+    if (templateType === "Follow-up Meeting") {
+      templateSpecificStructure = `Simple Follow-up Meeting Agenda:\n1. Welcome & Purpose\n2. Review Previous Action Items\n3. Key Matters Requiring Follow-up\n4. Decisions & Actions\n5. Any Other Business\n6. Next Steps & Next Meeting`;
+    } else if (templateType === "Moderation Meeting") {
       templateSpecificStructure = `Eagle House Moderation Meeting 10-Point Sequence (Policy §7.1 & §7.2 Quality Assurance):
-1. Quorum Verification & Internal Moderation Objectives (HOD Mpofu)
+1. Quorum Verification & Internal Moderation Objectives (HOD)
 2. Matters Arising & Action Audit from Prior Moderation Cycle (Senior Moderators)
 3. Assessment Blueprint & Cognitive Weighting Grid (Bloom's Taxonomy Levels 1–4 Balance)
 4. Policy §7.1 Compliance: 5-Day Pre-Moderation Lead-Time & Technical Formatting Review
@@ -1098,7 +1102,7 @@ app.post("/api/meetings/parse-upload", async (req, res) => {
 10. Moderation Remedial Orders & Senior Leadership (SMT) Escalation`;
     } else if (templateType === "Curriculum Planning") {
       templateSpecificStructure = `Eagle House Curriculum Planning 10-Point Sequence (CAPS ATP & SAGS Milestones):
-1. Department Academic Vision & Term Strategic Targets (HOD Mpofu)
+1. Department Academic Vision & Term Strategic Targets (HOD)
 2. CAPS/IEB Annual Teaching Plan (ATP) Milestone Mapping & Pacing Calendar
 3. Prerequisite Diagnostic Gaps & Baseline Remediation Strategy
 4. Common Assessment Task (CAT) & SBA Schedule Synchronization
@@ -1147,14 +1151,7 @@ ${formatSpecificInstruction}
 Selected Template Format: ${templateType}
 ${templateSpecificStructure}
 
-Mathematics Department Staff Roster:
-- Mr. N. Mpofu (Head of Department — Chair)
-- Shingi (Mathematics Educator)
-- Reggie (Mathematics Educator)
-- Luthando (Mathematics Educator)
-
-You MUST populate all 10 agenda points. If specific details for any point were not mentioned in the source material, provide professional, context-appropriate standard notes or leave a concise standard placeholder aligned with Eagle House guidelines.
-Extract all actionable tasks into the actionItems array with realistic deadlines and responsible educators.
+Do not assume or invent a staff roster. Extract attendee names only when they are explicitly present in the source material. Use the selected template structure, and when source material does not contain a detail, leave it blank or use a neutral placeholder such as "To be discussed". Never invent attendance, action items, deadlines, learner data, marks, policy compliance outcomes, or completed work. Only include actionItems that are explicitly supported by the uploaded source.
 Return valid JSON ONLY with this exact structure:
 {
   "title": string,
