@@ -1158,6 +1158,7 @@ Extract all actionable tasks into the actionItems array with realistic deadlines
 Return valid JSON ONLY with this exact structure:
 {
   "title": string,
+  "templateType": "${templateType}",
   "date": string,
   "startTime": string,
   "endTime": string,
@@ -1218,6 +1219,9 @@ ${rawTextContent ? `\n--- SOURCE TEXT EXTRACTED ---\n${rawTextContent}` : ""}`;
       },
     }, MeetingSchema);
 
+    // The selected template comes from the user's explicit UI selection, not OCR/model output.
+    // Enforce it server-side so a valid model response cannot fail the schema when it omits this field.
+    result.templateType = templateType;
     if (!result.rawTranscribedText && rawTextContent) {
       result.rawTranscribedText = rawTextContent;
     }
