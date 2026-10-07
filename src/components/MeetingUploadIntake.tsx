@@ -181,7 +181,7 @@ export const MeetingUploadIntake: React.FC<MeetingUploadIntakeProps> = ({
     const stepTimer2 = setTimeout(() => {
       setProgressStep(3);
       setProgressMessage(
-        "3/3 Structuring into Eagle House 10-point sequence & populating editable text fields..."
+        "3/3 Structuring the selected meeting format and populating editable text fields..."
       );
     }, 2600);
 
@@ -231,15 +231,13 @@ export const MeetingUploadIntake: React.FC<MeetingUploadIntakeProps> = ({
           titleVal ||
           `${activeTmplConfig.title} ${targetDoc === "agenda" ? "Agenda Draft" : "Minutes"} (${dateVal})`,
         date: rec.date || dateVal,
-        startTime: rec.startTime || "14:30",
-        endTime: rec.endTime || "15:45",
-        venue: rec.venue || "Secondary Mathematics Staffroom",
+        startTime: rec.startTime || "",
+        endTime: rec.endTime || "",
+        venue: rec.venue || "",
         chairperson: rec.chairperson || "Mr. N. Mpofu (HOD)",
         meetingType: rec.meetingType || "Regular Departmental",
         templateType: selectedTemplate,
-        attendees: rec.attendees?.length
-          ? rec.attendees
-          : ["Mr. N. Mpofu (HOD)", "Shingi", "Reggie", "Luthando"],
+        attendees: rec.attendees?.length ? rec.attendees : defaultTeachers.map((teacher) => teacher.name),
         apologies: rec.apologies || [],
         teacherSignatures: rec.teacherSignatures?.length
           ? rec.teacherSignatures
@@ -251,23 +249,9 @@ export const MeetingUploadIntake: React.FC<MeetingUploadIntakeProps> = ({
               title: h.title,
               notes: h.defaultNotes,
             })),
-        actionItems: rec.actionItems?.length
-          ? rec.actionItems
-          : [
-              {
-                id: `ACT-${Date.now().toString().slice(-3)}`,
-                description: "Submit Term 1 moderation calibration sample (§7.1)",
-                responsible: "Mr. N. Mpofu (HOD)",
-                deadline: dateVal,
-                status: "Pending",
-              },
-            ],
-        minutesSummary:
-          rec.minutesSummary ||
-          `Parsed and structured into Eagle House School ${selectedTemplate} standard format.`,
-        transcriptionSummary:
-          rec.transcriptionSummary ||
-          `Extracted from source material and classified under ${activeTmplConfig.policyTag} standards.`,
+        actionItems: Array.isArray(rec.actionItems) ? rec.actionItems : [],
+        minutesSummary:\n          rec.minutesSummary ||\n          `${activeTmplConfig.title} record prepared from the uploaded source.`,
+        transcriptionSummary:\n          rec.transcriptionSummary ||\n          `Source material processed for the ${activeTmplConfig.title} template.`,
         rawTranscribedText: extractedOcrText,
         sourceType: format,
         status: targetDoc === "agenda" ? "Draft" : "Completed",
@@ -722,7 +706,7 @@ Agreed Action Items:
     });
   };
 
-  // Sync edits from raw OCR text editor into the 10-point fields
+  // Sync edits from raw OCR text editor into the agenda fields
   const syncRawOcrTextToFields = () => {
     if (!rawOcrText.trim() || !parsedRecord) return;
     setOcrSyncNotice(true);
@@ -787,7 +771,7 @@ Agreed Action Items:
       `VENUE: ${parsedRecord.venue} | CHAIR: ${parsedRecord.chairperson}`,
       `ATTENDEES: ${parsedRecord.attendees.join(", ")}`,
       "",
-      "--- 10-POINT SEQUENCE ---",
+      "--- agenda SEQUENCE ---",
       ...parsedRecord.agendaPoints.map(
         (p) => `${p.pointNumber}. ${p.title}\n${p.notes}\n`
       ),
@@ -966,7 +950,7 @@ Agreed Action Items:
                     </p>
                   </div>
                   <div className="mt-2 pt-1.5 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
-                    <span>10 Points Sequence</span>
+                    <span>agendas Sequence</span>
                     <span className="font-semibold text-blue-600 dark:text-blue-400 font-mono">{tmpl.badge}</span>
                   </div>
                 </button>
@@ -1264,7 +1248,7 @@ Agreed Action Items:
                       ? "bg-blue-600 text-white shadow-xs font-semibold"
                       : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                   }`}
-                  title="Side-by-side: Source File Preview + Editable 10-Point Fields"
+                  title="Side-by-side: Source File Preview + Editable agenda Fields"
                 >
                   Preview + Fields
                 </button>
@@ -1300,9 +1284,9 @@ Agreed Action Items:
                       ? "bg-blue-600 text-white shadow-xs font-semibold"
                       : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                   }`}
-                  title="Full width 10-point meeting sequence fields"
+                  title="Full width agenda meeting sequence fields"
                 >
-                  10-Point Fields
+                  agenda Fields
                 </button>
               </div>
 
@@ -1468,7 +1452,7 @@ Agreed Action Items:
               </div>
             )}
 
-            {/* RIGHT COLUMN: Dedicated Raw OCR Text Editor OR Structured 10-Point Sequence */}
+            {/* RIGHT COLUMN: Dedicated Raw OCR Text Editor OR Structured agenda Sequence */}
             <div
               className={`${
                 viewMode === "preview_only"
@@ -1517,10 +1501,10 @@ Agreed Action Items:
                         type="button"
                         onClick={syncRawOcrTextToFields}
                         className="px-3 py-1 text-xs rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold flex items-center gap-1 cursor-pointer shadow-xs"
-                        title="Sync edits from this raw text into the 10-point sequence fields"
+                        title="Sync edits from this raw text into the agenda sequence fields"
                       >
                         <Zap className="w-3 h-3 text-amber-300" />
-                        <span>Sync to 10-Point Fields</span>
+                        <span>Sync to agenda Fields</span>
                       </button>
                     </div>
                   </div>
@@ -1528,7 +1512,7 @@ Agreed Action Items:
                   {ocrSyncNotice && (
                     <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-lg text-xs text-blue-700 dark:text-blue-300 flex items-center gap-2">
                       <Check className="w-4 h-4 text-blue-600" />
-                      <span>Changes from raw OCR text synchronized to 10-point sequence fields!</span>
+                      <span>Changes from raw OCR text synchronized to agenda sequence fields!</span>
                     </div>
                   )}
 
@@ -1557,7 +1541,7 @@ Agreed Action Items:
                   />
                 </div>
               ) : (
-                /* Otherwise show the Structured 10-Point Sequence Form Fields */
+                /* Otherwise show the Structured agenda Sequence Form Fields */
                 <>
                   {/* Meeting Header Editable Fields */}
                   <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
@@ -1660,7 +1644,7 @@ Agreed Action Items:
                     </div>
                   </div>
 
-                  {/* Standardized 10-Point Sequence Form Fields */}
+                  {/* Standardized agenda Sequence Form Fields */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
