@@ -732,7 +732,7 @@ export const MeetingsView: React.FC<MeetingsViewProps> = ({ staffList }) => {
               alignment: AlignmentType.CENTER,
               children: [
                 new TextRun({
-                  text: targetTemplateType === "Follow-up Meeting" ? "SIMPLE FOLLOW-UP AGENDA" : `STANDARDIZED 10-POINT SEQUENCE (${targetTemplateConfig.policyTag.toUpperCase()})`,
+                  text: targetTemplateType === "Follow-up Meeting" ? "SIMPLE FOLLOW-UP AGENDA" : `AGENDA FORMAT: ${targetTemplateConfig.policyTag.toUpperCase()}`,
                   bold: true,
                   size: 16,
                   color: "2B6CB0",
