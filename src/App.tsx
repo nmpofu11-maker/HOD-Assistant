@@ -124,7 +124,7 @@ export default function App() {
 
   const [isAdvisorModalOpen, setIsAdvisorModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [persona, setPersona] = useState<"hod" | "shingi" | "reggie" | "luthando">("hod");
+  const [persona, setPersona] = useState<string>("hod");
   
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     try {
@@ -167,15 +167,9 @@ export default function App() {
 
   // Filter deadlines dynamically based on the selected Active Persona Role
   const getPersonaDeadlines = () => {
-    let list = deadlines;
-    if (persona === "shingi") {
-      list = list.filter((d) => d.teacherName === "Shingi");
-    } else if (persona === "reggie") {
-      list = list.filter((d) => d.teacherName === "Reggie");
-    } else if (persona === "luthando") {
-      list = list.filter((d) => d.teacherName === "Luthando");
-    }
-    return list;
+    if (persona === "hod") return deadlines;
+    const educator = staffList.find((s) => s.id === persona);
+    return educator ? deadlines.filter((d) => d.teacherName === educator.name) : deadlines;
   };
 
   const personaDeadlines = getPersonaDeadlines();
@@ -184,16 +178,8 @@ export default function App() {
   );
 
   const getFilteredStaffList = () => {
-    if (persona === "shingi") {
-      return staffList.filter((s) => s.name === "Shingi");
-    }
-    if (persona === "reggie") {
-      return staffList.filter((s) => s.name === "Reggie");
-    }
-    if (persona === "luthando") {
-      return staffList.filter((s) => s.name === "Luthando");
-    }
-    return staffList;
+    if (persona === "hod") return staffList;
+    return staffList.filter((s) => s.id === persona);
   };
 
   const filteredStaffList = getFilteredStaffList();
@@ -421,21 +407,15 @@ export default function App() {
               onChange={(e) => setPersona(e.target.value as any)}
               className="w-full text-xs bg-white border border-neutral-200 rounded-md py-1.5 px-2 font-semibold text-teal-950 focus:ring-1 focus:ring-teal-800 focus:outline-none"
             >
-              <option value="hod">HOD Mpofu (All Subjects)</option>
-              <option value="shingi">Shingi (Grade 10 Maths)</option>
-              <option value="reggie">Reggie (Grade 11-12 Maths)</option>
-              <option value="luthando">Luthando (Cambridge Maths)</option>
+              <option value="hod">HOD / All Department</option>
+              {staffList.filter((s) => s.isMathsDept && s.status === "active").map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
             </select>
             <div className="text-[10px] text-neutral-400 leading-tight">
               {persona === "hod"
                 ? "Full administrative control of department workflows."
-                : `Filtered view for ${
-                    persona === "shingi"
-                      ? "Mathematics Grade 10"
-                      : persona === "reggie"
-                      ? "Mathematical Literacy & Calculus"
-                      : "Cambridge Assessment"
-                  }.`}
+                : `Filtered view for ${staffList.find((s) => s.id === persona)?.name || "selected educator"}.`}
             </div>
           </div>
         </aside>
