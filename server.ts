@@ -188,6 +188,7 @@ const ALLOWED_DATA_FILES = new Set([
   "interventions.json",
   "classroom_visits.json",
   "demo_backup.json",
+  "peer_moderation_schedule.json",
 ]);
 
 function validateDataFilename(filename: string): string | null {
