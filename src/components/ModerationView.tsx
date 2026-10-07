@@ -164,6 +164,9 @@ export const ModerationView: React.FC<ModerationViewProps> = ({
   // Moderator selection is based on the live Mathematics staff configuration.
   // The application does not invent moderation assignments; the HOD selects the actual peer.
   const availableModerators = staffList.filter((member) => member.isMathsDept && member.status === "active");
+  const [assignedModerator, setAssignedModerator] = useState<string>("");
+  const [isManualModerator, setIsManualModerator] = useState<boolean>(true);
+  const [postScripts, setPostScripts] = useState<PostModerationScriptSample[]>([]);
 
   const handleExportAssignmentSchedule = () => {
     if (!teacher || !moderator || !grade || !subject) {
@@ -229,8 +232,11 @@ export const ModerationView: React.FC<ModerationViewProps> = ({
       setScriptAnalysisResult(data.analysis);
       
       // Auto-append the analyzed script findings to the postScripts stratified list for full verification
-      const newLearnerCode = `LRN-SCAN-${Math.floor(100 + Math.random() * 900)}`;
-      const detectedMark = data.analysis.totalMarkDetected || 35;
+      const detectedMark = data.analysis.totalMarkDetected;
+      if (typeof detectedMark !== "number" || !Number.isFinite(detectedMark)) {
+        throw new Error("The scanned script did not contain a verified total mark, so no learner record was created.");
+      }
+      const newLearnerCode = `LRN-SCAN-${Date.now()}`;
       const calculatedVariance = data.analysis.calculationErrorFound ? -2 : 0;
       const newFindings = {
         learnerCode: newLearnerCode,
