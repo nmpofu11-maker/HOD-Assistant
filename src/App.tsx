@@ -11,7 +11,7 @@ import { DEMO_DEADLINES, DEMO_MEETINGS, DEMO_RESULTS_DATASET, DEMO_PRE_MODERATIO
 import { HodHandbookIndexView } from "./components/HodHandbookIndexView";
 import { WeeklyOverview } from "./components/WeeklyOverview";
 import { AiAdvisorModal } from "./components/AiAdvisorModal";
-import { StaffDeadlineItem, StaffMember, DepartmentConfigState, MeetingRecord, ResultsAnalysisData, PreModerationReport, PostModerationReport } from "./types";
+import { StaffDeadlineItem, StaffMember, DepartmentConfigState, MeetingRecord, ResultsAnalysisData, PreModerationReport, PostModerationReport, PeerModerationScheduleEntry } from "./types";
 import { safeGet, safePut } from "./utils/apiClient";
 import {
   ShieldCheck,
@@ -43,6 +43,7 @@ export default function App() {
   const [savedPreReports, setSavedPreReports] = useState<PreModerationReport[]>([]);
   const [savedPostReports, setSavedPostReports] = useState<PostModerationReport[]>([]);
   const [isDemoMode, setIsDemoMode] = useState(false);
+  const [peerModerationSchedule, setPeerModerationSchedule] = useState<PeerModerationScheduleEntry[]>([]);
 
   useEffect(() => {
     Promise.all([
@@ -51,16 +52,19 @@ export default function App() {
       safeGet<MeetingRecord[]>("/api/data/meetings.json"),
       safeGet<ResultsAnalysisData | ResultsAnalysisData[]>("/api/data/results.json"),
       safeGet<Array<PreModerationReport | PostModerationReport>>("/api/data/moderations.json"),
-    ]).then(([config, d, m, r, mod]) => {
+      safeGet<PeerModerationScheduleEntry[]>("/api/data/peer_moderation_schedule.json"),
+      safeGet<{ active: boolean }>("/api/data/demo_mode.json"),
+    ]).then(([config, d, m, r, mod, peerSchedule, demoState]) => {
       if (config.success && config.data) setDepartmentConfig(config.data);
       if (d.success && Array.isArray(d.data)) setDeadlines(d.data);
       if (m.success && Array.isArray(m.data)) setMeetings(m.data);
       if (r.success) setResultsData(Array.isArray(r.data) ? (r.data[0] || null) : (r.data || null));
+      if (peerSchedule.success && Array.isArray(peerSchedule.data)) setPeerModerationSchedule(peerSchedule.data);
       if (mod.success && Array.isArray(mod.data)) {
         setSavedPreReports(mod.data.filter((x): x is PreModerationReport => "checklist" in x));
         setSavedPostReports(mod.data.filter((x): x is PostModerationReport => "scriptFindings" in x));
       }
-      if ((r.success && (Array.isArray(r.data) ? r.data[0]?.id : r.data?.id)?.includes("DEMO")) || (m.success && m.data?.some?.((x: any) => String(x.id || "").includes("DEMO")))) setIsDemoMode(true);
+      setIsDemoMode(demoState.success && demoState.data?.active === true);
     }).catch((err) => console.error("Failed to load departmental data:", err));
   }, []);
 
@@ -79,6 +83,12 @@ export default function App() {
     setDepartmentConfig(newConfig);
   };
 
+  const handleSavePeerModerationSchedule = async (schedule: PeerModerationScheduleEntry[]) => {
+    const result = await safePut("/api/data/peer_moderation_schedule.json", schedule);
+    if (!result.success) throw new Error(result.error || "Failed to save peer moderation schedule.");
+    setPeerModerationSchedule(schedule);
+  };
+
   const loadDemoData = async () => {
     const current = {
       deadlines, meetings, resultsData, savedPreReports, savedPostReports,
@@ -92,6 +102,8 @@ export default function App() {
       safePut("/api/data/moderations.json", [DEMO_PRE_MODERATION_REPORT, DEMO_POST_MODERATION_REPORT]),
     ]);
     if (results.some((r) => !r.success)) throw new Error("One or more demonstration datasets could not be loaded.");
+    const mode = await safePut("/api/data/demo_mode.json", { active: true });
+    if (!mode.success) throw new Error(mode.error || "Could not mark demonstration mode as active.");
     setDeadlines(DEMO_DEADLINES); setMeetings(DEMO_MEETINGS); setResultsData(DEMO_RESULTS_DATASET);
     setSavedPreReports([DEMO_PRE_MODERATION_REPORT]); setSavedPostReports([DEMO_POST_MODERATION_REPORT]); setIsDemoMode(true);
   };
@@ -109,13 +121,15 @@ export default function App() {
       safePut("/api/data/demo_backup.json", {}),
     ]);
     if (results.some((r) => !r.success)) throw new Error("Could not restore the preserved departmental data.");
+    const mode = await safePut("/api/data/demo_mode.json", { active: false });
+    if (!mode.success) throw new Error(mode.error || "Could not clear demonstration mode state.");
     setDeadlines(original.deadlines || []); setMeetings(original.meetings || []); setResultsData(original.resultsData || null);
     setSavedPreReports(original.savedPreReports || []); setSavedPostReports(original.savedPostReports || []); setIsDemoMode(false);
   };
 
   const [isAdvisorModalOpen, setIsAdvisorModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [persona, setPersona] = useState<"hod" | "shingi" | "reggie" | "luthando">("hod");
+  const [persona, setPersona] = useState<string>("hod");
   
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     try {
@@ -158,15 +172,9 @@ export default function App() {
 
   // Filter deadlines dynamically based on the selected Active Persona Role
   const getPersonaDeadlines = () => {
-    let list = deadlines;
-    if (persona === "shingi") {
-      list = list.filter((d) => d.teacherName === "Shingi");
-    } else if (persona === "reggie") {
-      list = list.filter((d) => d.teacherName === "Reggie");
-    } else if (persona === "luthando") {
-      list = list.filter((d) => d.teacherName === "Luthando");
-    }
-    return list;
+    if (persona === "hod") return deadlines;
+    const educator = staffList.find((s) => s.id === persona);
+    return educator ? deadlines.filter((d) => d.teacherName === educator.name) : deadlines;
   };
 
   const personaDeadlines = getPersonaDeadlines();
@@ -175,16 +183,8 @@ export default function App() {
   );
 
   const getFilteredStaffList = () => {
-    if (persona === "shingi") {
-      return staffList.filter((s) => s.name === "Shingi");
-    }
-    if (persona === "reggie") {
-      return staffList.filter((s) => s.name === "Reggie");
-    }
-    if (persona === "luthando") {
-      return staffList.filter((s) => s.name === "Luthando");
-    }
-    return staffList;
+    if (persona === "hod") return staffList;
+    return staffList.filter((s) => s.id === persona);
   };
 
   const filteredStaffList = getFilteredStaffList();
@@ -412,21 +412,15 @@ export default function App() {
               onChange={(e) => setPersona(e.target.value as any)}
               className="w-full text-xs bg-white border border-neutral-200 rounded-md py-1.5 px-2 font-semibold text-teal-950 focus:ring-1 focus:ring-teal-800 focus:outline-none"
             >
-              <option value="hod">HOD Mpofu (All Subjects)</option>
-              <option value="shingi">Shingi (Grade 10 Maths)</option>
-              <option value="reggie">Reggie (Grade 11-12 Maths)</option>
-              <option value="luthando">Luthando (Cambridge Maths)</option>
+              <option value="hod">HOD / All Department</option>
+              {staffList.filter((s) => s.isMathsDept && s.status === "active").map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
             </select>
             <div className="text-[10px] text-neutral-400 leading-tight">
               {persona === "hod"
                 ? "Full administrative control of department workflows."
-                : `Filtered view for ${
-                    persona === "shingi"
-                      ? "Mathematics Grade 10"
-                      : persona === "reggie"
-                      ? "Mathematical Literacy & Calculus"
-                      : "Cambridge Assessment"
-                  }.`}
+                : `Filtered view for ${staffList.find((s) => s.id === persona)?.name || "selected educator"}.`}
             </div>
           </div>
         </aside>
@@ -486,6 +480,7 @@ export default function App() {
                 savedPostReports={savedPostReports}
                 departmentConfig={departmentConfig}
                 currentTerm={currentTerm}
+                peerModerationSchedule={peerModerationSchedule}
                 onImportFullBackup={async (backup) => {
                   if (backup.departmentConfig) await handleSaveDepartmentConfig(backup.departmentConfig);
                   if (Array.isArray(backup.deadlines)) { await safePut("/api/data/deadlines.json", backup.deadlines); setDeadlines(backup.deadlines); }
@@ -493,6 +488,7 @@ export default function App() {
                   if (backup.resultsData) { await safePut("/api/data/results.json", backup.resultsData); setResultsData(backup.resultsData); }
                   const mods = [...(backup.savedPreReports || []), ...(backup.savedPostReports || [])];
                   await safePut("/api/data/moderations.json", mods); setSavedPreReports(backup.savedPreReports || []); setSavedPostReports(backup.savedPostReports || []);
+                  if (Array.isArray(backup.peerModerationSchedule)) { await handleSavePeerModerationSchedule(backup.peerModerationSchedule); }
                   setIsDemoMode(false);
                 }}
               />
@@ -501,7 +497,7 @@ export default function App() {
             {activeTab === "curriculum" && <CurriculumView />}
 
             {activeTab === "staff" && (
-              <DepartmentSetupView config={departmentConfig} onSaveConfig={handleSaveDepartmentConfig} onSelectTeacherForDeadlines={handleSelectTeacherForDeadlines} />
+              <DepartmentSetupView config={departmentConfig} onSaveConfig={handleSaveDepartmentConfig} onSelectTeacherForDeadlines={handleSelectTeacherForDeadlines} peerModerationSchedule={peerModerationSchedule} onSavePeerModerationSchedule={handleSavePeerModerationSchedule} currentTerm={currentTerm} />
             )}
 
             {activeTab === "hod-index" && <HodHandbookIndexView setActiveTab={setActiveTab} />}

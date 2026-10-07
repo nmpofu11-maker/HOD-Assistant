@@ -304,3 +304,22 @@ export interface ClassroomVisitRecord {
   status: "Draft" | "Finalised";
   createdAt: string;
 }
+
+
+export type PeerModerationStatus = "Scheduled" | "Completed" | "Cancelled";
+
+export interface PeerModerationScheduleEntry {
+  id: string;
+  academicYear: number;
+  term: 1 | 2 | 3 | 4;
+  taskCycle: string;
+  taskName: string;
+  subject: string;
+  curriculum: CurriculumType;
+  className: string;
+  teacherId: string;
+  moderatorId: string;
+  moderationDate: string;
+  status: PeerModerationStatus;
+  notes: string;
+}
