@@ -47,18 +47,18 @@ export const ResultsAnalysisView: React.FC<ResultsAnalysisViewProps> = ({
   deadlines = [],
 }) => {
   const [selectedSubject, setSelectedSubject] = useState("Mathematics");
-  const [selectedGrade, setSelectedGrade] = useState("10A & 10B");
-  const [selectedTerm, setSelectedTerm] = useState("Term 1 (2026)");
-  const [selectedTeacher, setSelectedTeacher] = useState("Shingi");
-  const [selectedClass, setSelectedClass] = useState("Grade 10A");
+  const [selectedGrade, setSelectedGrade] = useState("");
+  const [selectedTerm, setSelectedTerm] = useState("");
+  const [selectedTeacher, setSelectedTeacher] = useState("");
+  const [selectedClass, setSelectedClass] = useState("");
 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [uploadTaskName, setUploadTaskName] = useState("Term 1 Control Test");
-  const [uploadTeacher, setUploadTeacher] = useState("Shingi");
-  const [uploadClass, setUploadClass] = useState("Grade 10A");
+  const [uploadTaskName, setUploadTaskName] = useState("");
+  const [uploadTeacher, setUploadTeacher] = useState("");
+  const [uploadClass, setUploadClass] = useState("");
   const [uploadTaskDate, setUploadTaskDate] = useState(new Date().toISOString().split("T")[0]);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
 
@@ -158,106 +158,27 @@ export const ResultsAnalysisView: React.FC<ResultsAnalysisViewProps> = ({
     }).catch((err) => console.error("Failed to save results analysis:", err));
   };
 
-  // Sample active analysis dataset for Grade 10 Mathematics
+  // Production starts with an empty results record. Real results replace this state after import/analysis.
   const [analysisData, setAnalysisData] = useState<ResultsAnalysisData>({
-    id: "RES-GR10-T1",
-    subject: "Mathematics",
-    grade: "10A & 10B",
-    term: "Term 1 (2026)",
-    taskName: "Term 1 Control Test (Algebra, Equations & Sequences)",
-    cohortSize: 48,
-    averagePercentage: 58.4,
-    passRatePercentage: 83.3,
-    distinctionsCount: 9,
+    id: "",
+    subject: "",
+    grade: "",
+    term: "",
+    taskName: "",
+    cohortSize: 0,
+    averagePercentage: 0,
+    passRatePercentage: 0,
+    distinctionsCount: 0,
     overallHealth: "Satisfactory",
-    marksDistribution: {
-      "Level 7 (80-100%)": 9,
-      "Level 6 (70-79%)": 8,
-      "Level 5 (60-69%)": 12,
-      "Level 4 (50-59%)": 11,
-      "Level 3 (40-49%)": 4,
-      "Level 2 (30-39%)": 3,
-      "Level 1 (0-29%)": 1,
-    },
-    strandPerformance: {
-      "Algebraic Products & Expansions": 74,
-      "Factorisation (Trinomials & Cubes)": 62,
-      "Linear & Quadratic Equations": 58,
-      "Exponential Equations": 48,
-      "Number Patterns (Linear Sequences)": 66,
-      "Mathematical Word Problems / Area": 42,
-    },
-    executiveSummary:
-      "Overall cohort attainment stands at 58.4% with an 83.3% pass rate. Strong performance was observed in routine algebraic products and linear sequences. However, noticeable diagnostic drop-offs occurred in exponential equations (2^(x+1)+2^x=24) and contextual word problems converting geometric measurements into quadratic equations.",
-    keyStrengths: [
-      "9 distinctions (18.8% of cohort) demonstrating high higher-order capability.",
-      "Solid mastery of standard linear number patterns (arithmetic difference).",
-      "Neat mathematical layout and notation adherence across the majority of scripts.",
-    ],
-    criticalGaps: [
-      {
-        strand: "Exponential Equations & Laws",
-        observedWeakness: "Learners failed to recognize common factoring of 2^x in 2^(x+1) + 2^x.",
-        rootCause: "Over-reliance on calculators without mastering exponent properties (a^(m+n) = a^m * a^n).",
-        pedagogicalFix: "Implement a 10-minute daily starter drill on splitting index terms before solving.",
-      },
-      {
-        strand: "Contextual Word Problems / Modelling",
-        observedWeakness: "Struggled to translate word problems into quadratic expressions (Area = (2x+3)(x-1)).",
-        rootCause: "Weak linguistic-to-algebraic decoding skills; learners skip drawing visual sketches.",
-        pedagogicalFix: "Explicit modeling of the 3-step 'Read -> Diagram -> Equation' heuristic.",
-      },
-    ],
-    learnerInterventions: [
-      {
-        id: "INT-1",
-        learnerName: "Kagiso M.",
-        grade: "10A",
-        subject: "Mathematics",
-        concern: "Mark dropped to 28% (Level 1). Severe difficulty with quadratic factorisation.",
-        evidence: "Test 1 score 14/50; diagnostic reveals inability to find factors of 12 summing to -7.",
-        intervention: "Assigned to Tuesday afternoon peer-tutoring & factorisation flashcard drill.",
-        responsible: "Shingi (Teacher) & Mpofu (HOD)",
-        reviewDate: "2026-03-24",
-        outcomeMetric: "Score >= 50% on factorisation diagnostic re-test.",
-        status: "Active",
-      },
-      {
-        id: "INT-2",
-        learnerName: "Sarah V.",
-        grade: "10B",
-        subject: "Mathematics",
-        concern: "CAT4 quantitative SAS of 115 but achieved 52% (underperforming ability).",
-        evidence: "Left Question 3.2 and Question 4 incomplete due to poor time management.",
-        intervention: "Timed sectional practice with clock checkpoints; calculator speed techniques.",
-        responsible: "Shingi (Teacher)",
-        reviewDate: "2026-03-27",
-        outcomeMetric: "Complete 100% of test questions within allotted time.",
-        status: "Under Review",
-      },
-      {
-        id: "INT-3",
-        learnerName: "Thabo N.",
-        grade: "10A",
-        subject: "Mathematics",
-        concern: "Borderline fail (38% Level 2). High anxiety on algebraic fractions.",
-        evidence: "Adding numerators without finding Lowest Common Denominator (LCD).",
-        intervention: "Guided worksheet on numerical fractions before algebraic fraction transitions.",
-        responsible: "Shingi (Teacher)",
-        reviewDate: "2026-03-25",
-        outcomeMetric: "Correctly determine LCD on 5 consecutive algebraic fraction questions.",
-        status: "Active",
-      },
-    ],
-    departmentActionDirectives: [
-      "Dedicate next department working session (March 12) to calibrating exponential equation pedagogy.",
-      "Verify that homework checks are conducted consistently twice weekly across both Grade 10 sets.",
-      "Monitor intervention attendance every Friday afternoon in department log.",
-    ],
-    curriculumAdjustments:
-      "Adjust Term 1 pacing to allocate 2 additional periods for quadratics remediation before introducing hyperbolic functions.",
+    marksDistribution: {},
+    strandPerformance: {},
+    executiveSummary: "",
+    keyStrengths: [],
+    criticalGaps: [],
+    learnerInterventions: [],
+    departmentActionDirectives: [],
+    curriculumAdjustments: "",
   });
-
   // Recharts Data Prep
   const marksChartData = Object.entries(analysisData.marksDistribution).map(([level, count]) => ({
     level: level.replace(" (", "\n("),
