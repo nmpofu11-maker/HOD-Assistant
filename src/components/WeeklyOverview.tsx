@@ -65,6 +65,11 @@ export const WeeklyOverview: React.FC<WeeklyOverviewProps> = ({
 
   const formatDateISO = (d: Date) => d.toISOString().split("T")[0];
 
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskDate, setNewTaskDate] = useState("");
+  const [newTaskTime, setNewTaskTime] = useState("");
+  const [newTaskType, setNewTaskType] = useState<"meeting" | "task">("task");
+  const [newTaskTeacher, setNewTaskTeacher] = useState("");
   React.useEffect(() => {
     if (!newTaskTeacher && staffList.length) {
       setNewTaskTeacher(staffList.find((s) => s.isMathsDept && s.status === "active")?.name || "");
@@ -72,11 +77,6 @@ export const WeeklyOverview: React.FC<WeeklyOverviewProps> = ({
   }, [staffList, newTaskTeacher]);
 
 
-  const [newTaskTitle, setNewTaskTitle] = useState("");
-  const [newTaskDate, setNewTaskDate] = useState("");
-  const [newTaskTime, setNewTaskTime] = useState("");
-  const [newTaskType, setNewTaskType] = useState<"meeting" | "task">("task");
-  const [newTaskTeacher, setNewTaskTeacher] = useState("");
 
   const handleAddTask = (e: React.FormEvent) => {
     e.preventDefault();
