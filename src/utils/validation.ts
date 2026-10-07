@@ -56,7 +56,7 @@ export const PostModerationSchema = z.object({
 
 export const MeetingSchema = z.object({
   title: z.string(),
-  templateType: z.string(),
+  templateType: z.string().default("Standard Staff Meeting"),
   date: z.string(),
   attendees: z.array(z.string()),
   agendaPoints: z.array(z.object({
