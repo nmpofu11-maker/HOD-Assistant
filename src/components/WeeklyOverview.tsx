@@ -82,19 +82,7 @@ export const WeeklyOverview: React.FC<WeeklyOverviewProps> = ({
   const [newTaskDate, setNewTaskDate] = useState("");
   const [newTaskTime, setNewTaskTime] = useState("");
   const [newTaskType, setNewTaskType] = useState<"meeting" | "task">("task");
-  const [newTaskTeacher, setNewTaskTeacher] = useState("Shingi");
-
-  // Generate 7 days of the selected week starting from the selected pre-set Monday
-  const getWeekDates = (startDateStr: string) => {
-    const start = new Date(startDateStr);
-    const dates = [];
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(start);
-      d.setDate(start.getDate() + i);
-      dates.push(d);
-    }
-    return dates;
-  };
+  const [newTaskTeacher, setNewTaskTeacher] = useState("");
 
   const handleAddTask = (e: React.FormEvent) => {
     e.preventDefault();
@@ -151,7 +139,7 @@ export const WeeklyOverview: React.FC<WeeklyOverviewProps> = ({
       }
     });
 
-    // 3. Add custom tasks / meetings
+    // 3. Add user-created tasks / meetings
     customTasks.forEach((ct) => {
       if (ct.date === dateStr) {
         items.push(ct);
