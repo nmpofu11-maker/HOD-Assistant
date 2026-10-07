@@ -60,6 +60,7 @@ export default function App() {
         setSavedPreReports(mod.data.filter((x: any) => "checklist" in x));
         setSavedPostReports(mod.data.filter((x: any) => "scriptFindings" in x));
       }
+      if ((r.success && !Array.isArray(r.data) && r.data?.id?.includes("DEMO")) || (m.success && m.data?.some?.((x: any) => String(x.id || "").includes("DEMO")))) setIsDemoMode(true);
     }).catch((err) => console.error("Failed to load departmental data:", err));
   }, []);
 
@@ -79,24 +80,37 @@ export default function App() {
   };
 
   const loadDemoData = async () => {
+    const current = {
+      deadlines, meetings, resultsData, savedPreReports, savedPostReports,
+    };
+    const backup = await safePut("/api/data/demo_backup.json", current);
+    if (!backup.success) throw new Error(backup.error || "Could not preserve current departmental data before entering demonstration mode.");
     const results = await Promise.all([
       safePut("/api/data/deadlines.json", DEMO_DEADLINES),
       safePut("/api/data/meetings.json", DEMO_MEETINGS),
       safePut("/api/data/results.json", DEMO_RESULTS_DATASET),
       safePut("/api/data/moderations.json", [DEMO_PRE_MODERATION_REPORT, DEMO_POST_MODERATION_REPORT]),
     ]);
-    if (results.some((r) => !r.success)) throw new Error("One or more demonstration datasets could not be saved.");
+    if (results.some((r) => !r.success)) throw new Error("One or more demonstration datasets could not be loaded.");
     setDeadlines(DEMO_DEADLINES); setMeetings(DEMO_MEETINGS); setResultsData(DEMO_RESULTS_DATASET);
     setSavedPreReports([DEMO_PRE_MODERATION_REPORT]); setSavedPostReports([DEMO_POST_MODERATION_REPORT]); setIsDemoMode(true);
   };
 
   const clearDemoData = async () => {
+    if (!isDemoMode) return;
+    const backup = await safeGet<any>("/api/data/demo_backup.json");
+    if (!backup.success || !backup.data) throw new Error("No preserved departmental data was found; demonstration data was not cleared.");
+    const original = backup.data;
     const results = await Promise.all([
-      safePut("/api/data/deadlines.json", []), safePut("/api/data/meetings.json", []),
-      safePut("/api/data/results.json", []), safePut("/api/data/moderations.json", []),
+      safePut("/api/data/deadlines.json", original.deadlines || []),
+      safePut("/api/data/meetings.json", original.meetings || []),
+      safePut("/api/data/results.json", original.resultsData || []),
+      safePut("/api/data/moderations.json", [...(original.savedPreReports || []), ...(original.savedPostReports || [])]),
+      safePut("/api/data/demo_backup.json", null),
     ]);
-    if (results.some((r) => !r.success)) throw new Error("Could not clear demonstration data.");
-    setDeadlines([]); setMeetings([]); setResultsData(null); setSavedPreReports([]); setSavedPostReports([]); setIsDemoMode(false);
+    if (results.some((r) => !r.success)) throw new Error("Could not restore the preserved departmental data.");
+    setDeadlines(original.deadlines || []); setMeetings(original.meetings || []); setResultsData(original.resultsData || null);
+    setSavedPreReports(original.savedPreReports || []); setSavedPostReports(original.savedPostReports || []); setIsDemoMode(false);
   };
 
   const [isAdvisorModalOpen, setIsAdvisorModalOpen] = useState(false);
