@@ -191,13 +191,11 @@ export const ResultsAnalysisView: React.FC<ResultsAnalysisViewProps> = ({
     score,
   }));
 
-  const termTrendData = [
-    { term: "Term 1 '25", average: 54.2, passRate: 78.0 },
-    { term: "Term 2 '25", average: 56.0, passRate: 80.5 },
-    { term: "Term 3 '25", average: 57.1, passRate: 81.2 },
-    { term: "Term 4 '25", average: 55.8, passRate: 79.5 },
-    { term: "Term 1 '26", average: analysisData.averagePercentage, passRate: analysisData.passRatePercentage },
-  ];
+  // Trend data is derived only from persisted departmental results.
+  // No historical averages or pass rates are invented when no records exist.
+  const termTrendData = analysisData.id && analysisData.term
+    ? [{ term: analysisData.term, average: analysisData.averagePercentage, passRate: analysisData.passRatePercentage }]
+    : [];
 
   const interventionStatusData = [
     { name: "Active", value: analysisData.learnerInterventions.filter(i => i.status === "Active").length, color: "#2563eb" },
