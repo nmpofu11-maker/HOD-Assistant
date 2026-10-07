@@ -54,8 +54,8 @@ export const ModerationView: React.FC<ModerationViewProps> = ({
   React.useEffect(() => {
     safeGet<Array<PreModerationReport | PostModerationReport>>("/api/data/moderations.json").then((result) => {
       if (!result.success || !Array.isArray(result.data)) return;
-      setSavedPreReports(result.data.filter((x: any) => "checklist" in x));
-      setSavedPostReports(result.data.filter((x: any) => "scriptFindings" in x));
+      setSavedPreReports(result.data.filter((x): x is PreModerationReport => "checklist" in x));
+      setSavedPostReports(result.data.filter((x): x is PostModerationReport => "scriptFindings" in x));
     }).catch((err) => console.error("Failed to load moderation archive:", err));
   }, []);
 
