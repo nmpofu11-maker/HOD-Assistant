@@ -24,6 +24,9 @@ import {
   User,
   Zap,
   Trash2,
+  Copy,
+  Edit2,
+  RotateCcw,
 } from "lucide-react";
 import { StaffDeadlineItem, StaffMember, SubjectDifficultyTier } from "../types";
 import { exportDeadlinesXlsx } from "../utils/xlsxExport";
@@ -32,10 +35,12 @@ interface DeadlinesViewProps {
   deadlines: StaffDeadlineItem[];
   staffList: StaffMember[];
   onAddDeadline: (item: StaffDeadlineItem) => void;
+  onEditDeadline?: (item: StaffDeadlineItem) => void;
   onUpdateStatus: (id: string, status: StaffDeadlineItem["preModStatus"]) => void;
   onSelectForModeration: (task: StaffDeadlineItem) => void;
   onClearDeadlines: () => void;
   onDeleteDeadline: (id: string) => void;
+  onLoadDemoData?: () => void;
   currentTerm: number;
   onTermChange?: (term: number) => void;
 }
@@ -134,8 +139,10 @@ export const DeadlinesView: React.FC<DeadlinesViewProps> = ({
   const [sortField, setSortField] = useState<DeadlineSortField>("urgency");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
-  // New task form state
-  const [newTeacher, setNewTeacher] = useState("Shingi");
+  // New/Edit task form state
+  const [editingDeadlineId, setEditingDeadlineId] = useState<string | null>(null);
+  const defaultTeacher = staffList.find((s) => s.isMathsDept)?.name || staffList[0]?.name || "Shingi";
+  const [newTeacher, setNewTeacher] = useState(defaultTeacher);
   const [newSubject, setNewSubject] = useState("Mathematics");
   const [newCurriculum, setNewCurriculum] = useState<"IEB" | "CAPS" | "Cambridge">("IEB");
   const [newGrade, setNewGrade] = useState("10A & 10B");
@@ -148,6 +155,80 @@ export const DeadlinesView: React.FC<DeadlinesViewProps> = ({
   const [newDifficulty, setNewDifficulty] = useState<SubjectDifficultyTier>(
     "Tier 3: Core FET Foundations"
   );
+
+  const activeTeacherObj = staffList.find((s) => s.name === newTeacher);
+  const teacherAllocations = activeTeacherObj?.allocations || [];
+
+  const handleOpenAddModal = () => {
+    setEditingDeadlineId(null);
+    setNewTeacher(defaultTeacher);
+    const firstAlloc = staffList.find((s) => s.name === defaultTeacher)?.allocations[0];
+    if (firstAlloc) {
+      setNewSubject(firstAlloc.subject);
+      setNewGrade(firstAlloc.grade);
+      setNewCurriculum(firstAlloc.curriculum);
+    } else {
+      setNewSubject("Mathematics");
+      setNewGrade("Grade 10");
+      setNewCurriculum("IEB");
+    }
+    setNewTaskName("");
+    setNewTestDate("");
+    setNewTotalMarks(50);
+    setNewTermSelect(selectedTermTab === "annual" ? currentTerm : selectedTermTab);
+    setIsAddModalOpen(true);
+  };
+
+  const handleOpenEditModal = (item: StaffDeadlineItem) => {
+    setEditingDeadlineId(item.id);
+    setNewTeacher(item.teacherName);
+    setNewSubject(item.subject);
+    setNewCurriculum(item.curriculum);
+    setNewGrade(item.grade);
+    setNewTaskName(item.taskName);
+    setNewTestDate(item.testDate);
+    setNewTotalMarks(item.totalMarks);
+    setNewTermSelect(item.term || currentTerm);
+    setNewDifficulty(item.difficultyCategory || getTaskDifficultyTier(item));
+    setIsAddModalOpen(true);
+  };
+
+  const handleDuplicateDeadline = (item: StaffDeadlineItem) => {
+    setEditingDeadlineId(null);
+    setNewTeacher(item.teacherName);
+    setNewSubject(item.subject);
+    setNewCurriculum(item.curriculum);
+    setNewGrade(item.grade);
+    setNewTaskName(`${item.taskName} (Copy)`);
+    setNewTestDate("");
+    setNewTotalMarks(item.totalMarks);
+    setNewTermSelect(item.term || currentTerm);
+    setNewDifficulty(item.difficultyCategory || getTaskDifficultyTier(item));
+    setIsAddModalOpen(true);
+  };
+
+  const handleClearForm = () => {
+    setNewTaskName("");
+    setNewTestDate("");
+    setNewTotalMarks(50);
+  };
+
+  const handleTeacherChange = (teacherName: string) => {
+    setNewTeacher(teacherName);
+    const teacherObj = staffList.find((s) => s.name === teacherName);
+    if (teacherObj && teacherObj.allocations.length > 0) {
+      const first = teacherObj.allocations[0];
+      setNewSubject(first.subject);
+      setNewGrade(first.grade);
+      setNewCurriculum(first.curriculum);
+    }
+  };
+
+  const handleSelectAllocation = (alloc: { curriculum: any; grade: string; subject: string }) => {
+    setNewCurriculum(alloc.curriculum);
+    setNewGrade(alloc.grade);
+    setNewSubject(alloc.subject);
+  };
 
   // Helper to calculate days remaining until a date
   const calculateDaysRemaining = (dateStr: string) => {

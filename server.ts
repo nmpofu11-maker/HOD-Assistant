@@ -114,17 +114,25 @@ async function generateContentWithRetry(
 
 // Persistence helper functions
 const DATA_DIR = path.join(process.cwd(), "data");
-function readJsonFile(filename: string): any[] {
-  const filePath = path.join(DATA_DIR, filename);
-  if (!fs.existsSync(filePath)) return [];
+if (!fs.existsSync(DATA_DIR)) {
   try {
-    return JSON.parse(fs.readFileSync(filePath, "utf-8"));
+    fs.mkdirSync(DATA_DIR, { recursive: true });
   } catch (e) {
-    return [];
+    console.error("Failed to create data dir:", e);
   }
 }
 
-function writeJsonFile(filename: string, data: any[]): void {
+function readJsonFile(filename: string): any {
+  const filePath = path.join(DATA_DIR, filename);
+  if (!fs.existsSync(filePath)) return filename.includes("config") ? null : [];
+  try {
+    return JSON.parse(fs.readFileSync(filePath, "utf-8"));
+  } catch (e) {
+    return filename.includes("config") ? null : [];
+  }
+}
+
+function writeJsonFile(filename: string, data: any): void {
   fs.writeFileSync(path.join(DATA_DIR, filename), JSON.stringify(data, null, 2));
 }
 
@@ -171,7 +179,15 @@ function advisorRateLimit(req: express.Request, res: express.Response, next: exp
 // Persistence Endpoints
 // Only expose the application's known JSON stores. This prevents path traversal
 // and accidental reads/writes of arbitrary server files.
-const ALLOWED_DATA_FILES = new Set(["deadlines.json", "meetings.json", "results.json"]);
+const ALLOWED_DATA_FILES = new Set([
+  "deadlines.json",
+  "meetings.json",
+  "results.json",
+  "moderations.json",
+  "department_config.json",
+  "interventions.json",
+  "classroom_visits.json",
+]);
 
 function validateDataFilename(filename: string): string | null {
   const safe = path.basename(filename);
@@ -197,7 +213,7 @@ app.post("/api/data/:filename", requireDataWriteAuth, (req, res) => {
 app.put("/api/data/:filename", requireDataWriteAuth, (req, res) => {
   const filename = validateDataFilename(req.params.filename);
   if (!filename) return res.status(404).json({ success: false, error: "Unknown data resource." });
-  if (!Array.isArray(req.body)) return res.status(400).json({ success: false, error: "Expected an array payload." });
+  if (req.body === undefined || req.body === null) return res.status(400).json({ success: false, error: "Expected a valid payload." });
   writeJsonFile(filename, req.body);
   return res.json({ success: true });
 });

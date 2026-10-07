@@ -1,10 +1,48 @@
 export type CurriculumType = "IEB" | "CAPS" | "Cambridge";
 
+export interface EducatorAllocation {
+  id: string;
+  curriculum: CurriculumType;
+  grade: string;
+  subject: string;
+}
+
+export interface DepartmentEducator {
+  id: string;
+  name: string;
+  role: string;
+  email: string;
+  isMathsDept: boolean;
+  status: "active" | "inactive";
+  notes?: string;
+  allocations: EducatorAllocation[];
+}
+
+export interface AcademicYearConfig {
+  year: number;
+  label: string;
+  isActive: boolean;
+  isArchived?: boolean;
+  notes?: string;
+  educators: DepartmentEducator[];
+}
+
+export interface DepartmentConfigState {
+  currentAcademicYear: number;
+  years: AcademicYearConfig[];
+}
+
+// Backward compatibility alias for views expecting StaffMember
 export interface StaffMember {
   id: string;
   name: string;
+  role?: string;
+  email?: string;
+  status?: "active" | "inactive";
+  notes?: string;
   isMathsDept: boolean;
   allocations: {
+    id?: string;
     curriculum: CurriculumType;
     grade: string;
     subject: string;
@@ -245,4 +283,23 @@ export interface HodDutySection {
   detailedGuidance: string[];
   escalationRules?: string[];
   templates?: string[];
+}
+
+export interface ClassroomVisitRecord {
+  id: string;
+  educatorName: string;
+  subject: string;
+  grade: string;
+  curriculum: CurriculumType;
+  visitDate: string;
+  focusArea: string;
+  observer: string;
+  whatObserved: string;
+  soWhatImpact: string;
+  nowWhatAction: string;
+  commendations: string[];
+  growthAreas: string[];
+  followUpDate?: string;
+  status: "Draft" | "Finalised";
+  createdAt: string;
 }
