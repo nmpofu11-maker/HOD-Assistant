@@ -53,7 +53,8 @@ export default function App() {
       safeGet<ResultsAnalysisData | ResultsAnalysisData[]>("/api/data/results.json"),
       safeGet<Array<PreModerationReport | PostModerationReport>>("/api/data/moderations.json"),
       safeGet<PeerModerationScheduleEntry[]>("/api/data/peer_moderation_schedule.json"),
-    ]).then(([config, d, m, r, mod, peerSchedule]) => {
+      safeGet<{ active: boolean }>("/api/data/demo_mode.json"),
+    ]).then(([config, d, m, r, mod, peerSchedule, demoState]) => {
       if (config.success && config.data) setDepartmentConfig(config.data);
       if (d.success && Array.isArray(d.data)) setDeadlines(d.data);
       if (m.success && Array.isArray(m.data)) setMeetings(m.data);
@@ -63,7 +64,7 @@ export default function App() {
         setSavedPreReports(mod.data.filter((x): x is PreModerationReport => "checklist" in x));
         setSavedPostReports(mod.data.filter((x): x is PostModerationReport => "scriptFindings" in x));
       }
-      if ((r.success && (Array.isArray(r.data) ? r.data[0]?.id : r.data?.id)?.includes("DEMO")) || (m.success && m.data?.some?.((x: any) => String(x.id || "").includes("DEMO")))) setIsDemoMode(true);
+      setIsDemoMode(demoState.success && demoState.data?.active === true);
     }).catch((err) => console.error("Failed to load departmental data:", err));
   }, []);
 
@@ -101,6 +102,8 @@ export default function App() {
       safePut("/api/data/moderations.json", [DEMO_PRE_MODERATION_REPORT, DEMO_POST_MODERATION_REPORT]),
     ]);
     if (results.some((r) => !r.success)) throw new Error("One or more demonstration datasets could not be loaded.");
+    const mode = await safePut("/api/data/demo_mode.json", { active: true });
+    if (!mode.success) throw new Error(mode.error || "Could not mark demonstration mode as active.");
     setDeadlines(DEMO_DEADLINES); setMeetings(DEMO_MEETINGS); setResultsData(DEMO_RESULTS_DATASET);
     setSavedPreReports([DEMO_PRE_MODERATION_REPORT]); setSavedPostReports([DEMO_POST_MODERATION_REPORT]); setIsDemoMode(true);
   };
@@ -118,6 +121,8 @@ export default function App() {
       safePut("/api/data/demo_backup.json", {}),
     ]);
     if (results.some((r) => !r.success)) throw new Error("Could not restore the preserved departmental data.");
+    const mode = await safePut("/api/data/demo_mode.json", { active: false });
+    if (!mode.success) throw new Error(mode.error || "Could not clear demonstration mode state.");
     setDeadlines(original.deadlines || []); setMeetings(original.meetings || []); setResultsData(original.resultsData || null);
     setSavedPreReports(original.savedPreReports || []); setSavedPostReports(original.savedPostReports || []); setIsDemoMode(false);
   };
