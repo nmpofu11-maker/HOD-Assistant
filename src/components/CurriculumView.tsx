@@ -1663,52 +1663,10 @@ export const CurriculumView: React.FC = () => {
     setSelectedEducator(activeSubjectAtp.defaultEducator);
   }, [selectedSubjectId]);
 
-  // Initializing completion state per educator per subject per term per cycle per topic index
-  const [topicCompletions, setTopicCompletions] = useState<Record<string, boolean>>(() => {
-    const initial: Record<string, boolean> = {};
-    SUBJECT_ATPS.forEach((sub) => {
-      [1, 2, 3, 4].forEach((termNum) => {
-        const cycles = sub.terms[termNum] || [];
-        cycles.forEach((cyc) => {
-          cyc.topics.forEach((_, idx) => {
-            sub.educators.forEach((edu) => {
-              const key = `${sub.id}-${edu}-term${termNum}-cycle${cyc.cycleNum}-topic${idx}`;
-              // Initial Mock Pre-population:
-              // Term 1, Cycle 1 is complete (100%), Cycle 2 is partially complete (50%), Cycle 3 is upcoming (0%)
-              // Other terms are completely upcoming (0%) to wait for teacher entries
-              if (termNum === 1) {
-                if (cyc.cycleNum === 1) {
-                  initial[key] = true;
-                } else if (cyc.cycleNum === 2 && idx < 2) {
-                  initial[key] = true;
-                } else {
-                  initial[key] = false;
-                }
-              } else {
-                initial[key] = false;
-              }
-            });
-          });
-        });
-      });
-    });
-    return initial;
-  });
-
-  // Initializing SBA task completion status per educator per subject per term per cycle
-  const [sbaStatuses, setSbaStatuses] = useState<Record<string, string>>(() => {
-    const initial: Record<string, string> = {};
-    SUBJECT_ATPS.forEach((sub) => {
-      sub.educators.forEach((edu) => {
-        [1, 2, 3, 4].forEach((termNum) => {
-          initial[`${sub.id}-${edu}-term${termNum}-cycle1`] = termNum === 1 ? "Administered & Scored" : "Drafting & Mapping";
-          initial[`${sub.id}-${edu}-term${termNum}-cycle2`] = termNum === 1 ? "In Pre-Moderation" : "Drafting & Mapping";
-          initial[`${sub.id}-${edu}-term${termNum}-cycle3`] = termNum === 1 ? "Drafting & Mapping" : "Drafting & Mapping";
-        });
-      });
-    });
-    return initial;
-  });
+  // Production starts with no claimed teaching progress.
+  // Topic/SBA status becomes factual only after an educator records it.
+  const [topicCompletions, setTopicCompletions] = useState<Record<string, boolean>>({});
+  const [sbaStatuses, setSbaStatuses] = useState<Record<string, string>>({});
 
   // Helper to toggle a single topic completion
   const handleToggleTopic = (subjectId: string, educator: string, termNum: number, cycleNum: number, topicIdx: number) => {
@@ -1756,8 +1714,9 @@ export const CurriculumView: React.FC = () => {
   const [newModuleName, setNewModuleName] = useState<string>("");
   const [newModuleCategory, setNewModuleCategory] = useState<ResourceItem["category"]>("Lesson Plans & Notes");
   const [newDriveUrl, setNewDriveUrl] = useState<string>("");
-  const [newUploader, setNewUploader] = useState<string>(activeSubjectAtp.defaultEducator);
+  const [newUploader, setNewUploader] = useState<string>("");
 
+  // Resource library starts empty; resources are supplied by the department.
   const [resources, setResources] = useState<ResourceItem[]>(() => {
     try {
       const stored = localStorage.getItem("eaglehouse_subject_resources");
@@ -1766,52 +1725,7 @@ export const CurriculumView: React.FC = () => {
         if (Array.isArray(parsed)) return parsed;
       }
     } catch {}
-    return [
-      {
-        id: "res-1",
-        subjectId: "ieb-gr10-math",
-        term: 1,
-        year: 2026,
-        moduleName: "Algebraic Expressions & Factorisation Master Folder",
-        category: "Lesson Plans & Notes",
-        driveUrl: "https://drive.google.com/drive/folders/1A2b3C4d5E6f7G8h9I0jK",
-        uploadedBy: "Shingi",
-        dateAdded: "2026-01-15",
-      },
-      {
-        id: "res-2",
-        subjectId: "ieb-gr10-math",
-        term: 1,
-        year: 2026,
-        moduleName: "Exponents & Number Patterns Worksheets & Memos",
-        category: "Worksheets & Memos",
-        driveUrl: "https://drive.google.com/drive/folders/2B3c4D5e6F7g8H9i0J1kL",
-        uploadedBy: "Reggie",
-        dateAdded: "2026-01-20",
-      },
-      {
-        id: "res-3",
-        subjectId: "ieb-gr11-math",
-        term: 2,
-        year: 2026,
-        moduleName: "Euclidean Geometry Circle Theorems GeoGebra & Notes",
-        category: "Interactive Resources",
-        driveUrl: "https://drive.google.com/drive/folders/3C4d5E6f7G8h9I0jK1lM2",
-        uploadedBy: "Shingi",
-        dateAdded: "2026-04-10",
-      },
-      {
-        id: "res-4",
-        subjectId: "ieb-gr12-math",
-        term: 1,
-        year: 2026,
-        moduleName: "Calculus & Finance Past Exam Papers (2020-2025)",
-        category: "Past Papers",
-        driveUrl: "https://drive.google.com/drive/folders/4D5e6F7g8H9i0J1kL2mM3",
-        uploadedBy: "Mpofu",
-        dateAdded: "2026-01-10",
-      },
-    ];
+    return [];
   });
 
   const handleCreateResource = (e: React.FormEvent) => {
